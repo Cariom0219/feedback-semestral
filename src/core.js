@@ -226,6 +226,14 @@ var FeedbackCore = (function () {
 
   function ehLider(ctx, mat) { return (ctx.equipes[mat] || []).length > 0; }
 
+  /** Como o líder avalia este liderado: itens de liderança + 3 pontos fortes e 3 fracos para quem lidera
+   *  uma equipe e para todos que respondem direto à coordenação; os demais usam os itens do liderado. */
+  function formaAvaliacao(ctx, p) {
+    if (ehLider(ctx, p.mat)) return { lideranca: true, motivo: 'EQUIPE' };
+    if (ctx.eu.perfil === 'COORDENACAO') return { lideranca: true, motivo: 'COORDENACAO' };
+    return { lideranca: false, motivo: '' };
+  }
+
   function vPessoa(p) {
     return p ? { mat: p.mat, nome: titulo(p.nome), cc: str(p.cc).trim(), utd: utdDoCC(p.cc), perfil: p.perfil } : null;
   }
@@ -596,13 +604,14 @@ var FeedbackCore = (function () {
     var cfg = ctx.cfg, hoje = store.hoje();
     var atual = null;
     store.listDown(cfg.ciclo).forEach(function (r) { if (r.avaliador === ctx.eu.mat && r.avaliado === p.mat) atual = r; });
-    var lid = ehLider(ctx, p.mat);
+    var forma = formaAvaliacao(ctx, p), lid = forma.lideranca;
     var marcado = store.listAgenda(cfg.ciclo).filter(function (a) {
       return a.lider === ctx.eu.mat && a.liderado === p.mat && a.tipo === 'FEEDBACK' && a.status === 'AGENDADO';
     }).sort(porData)[0];
     return {
       liderado: vPessoa(p),
       lideranca: lid,
+      motivoLideranca: forma.motivo,
       fase: cfg.faseLiderLiderado,
       criterios: criteriosAtivos(store, lid ? FORM_UP : FORM_DOWN),
       extras: lid,
@@ -620,7 +629,7 @@ var FeedbackCore = (function () {
     var cfg = ctx.cfg;
     if (cfg.faseLiderLiderado !== 'ABERTA') throw erro('FASE_FECHADA', 'A avaliação dos liderados não está aberta no momento.');
     var p = lideradoDe(ctx, d.mat);
-    var lid = ehLider(ctx, p.mat);
+    var lid = formaAvaliacao(ctx, p).lideranca;
     var crits = criteriosAtivos(store, lid ? FORM_UP : FORM_DOWN);
     var notas = lerNotas(d.notas, crits);
     var obs = lerPorques(d.obs, notas, crits, cfg);
@@ -989,7 +998,7 @@ var FeedbackCore = (function () {
         return { mat: m, nome: nomeDe(m, porLider[m][0].avaliadoNome), n: porLider[m].length, media: mediaGeral(porLider[m]), itens: mapaItens(porLider[m]) };
       }).sort(function (a, b) { return a.media - b.media; })
     };
-    // 2) O gestor avaliando os líderes (itens de liderança + fortes e fracos)
+    // 2) Avaliações de liderança: o gestor avaliando quem lidera equipe e quem responde direto à coordenação
     var dLid = downs.filter(function (r) { return r.tipo === 'LIDERANCA'; });
     var gestao = {
       n: dLid.length, media: mediaGeral(dLid), itens: listaItens(mediaPorCriterio(dLid), info),

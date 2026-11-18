@@ -3,7 +3,7 @@
 Ferramenta de feedback semestral da Operação Centro-BA (Sirtec), com duas avaliações identificadas:
 
 - **Liderado x Líder**: cada pessoa avalia o próprio líder com notas de 1 a 5, o **porquê** das notas e considerações finais. Quem é liderado direto da coordenação também escreve 3 pontos fortes e 3 pontos fracos.
-- **Líder x Liderado**: o líder avalia cada liderado no dia da conversa presencial, com notas, porquê, plano combinado e considerações. Quem lidera uma equipe (supervisores) é avaliado com os itens de liderança e 3 pontos fortes e 3 fracos.
+- **Líder x Liderado**: o líder avalia cada liderado no dia da conversa presencial, com notas, porquê, plano combinado e considerações. Supervisores e todos que respondem direto à coordenação (administrativo e RH) são avaliados com os itens de liderança e 3 pontos fortes e 3 fracos, e avaliam a coordenação do mesmo jeito.
 
 A pessoa entra com a **matrícula**, confirma o nome e usa o **CPF como senha**.
 

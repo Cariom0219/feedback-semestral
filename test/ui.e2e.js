@@ -272,7 +272,7 @@ async function notasTodas(page, valor) {
     await page.getByRole('heading', { name: 'Pontos de atenção' }).waitFor();
     ok((await page.locator('.mapa').count()) === 2, 'mapas por líder e por equipe');
     ok((await page.locator('.mapa td.cel').count()) >= 40, 'células do mapa preenchidas');
-    ok(await page.getByRole('heading', { name: 'Gestão avaliando os líderes' }).isVisible(), 'mostra a avaliação que a gestão fez dos líderes');
+    ok(await page.getByRole('heading', { name: 'Coordenação avaliando a equipe direta' }).isVisible(), 'mostra a avaliação que a coordenação fez da equipe direta');
     ok(await page.getByRole('heading', { name: 'Acompanhamento mensal' }).isVisible(), 'lista o acompanhamento mensal');
     await page.screenshot({ path: path.join(SHOTS, '13-analises.png'), fullPage: true });
     await page.getByRole('tab', { name: 'Pessoas' }).click();

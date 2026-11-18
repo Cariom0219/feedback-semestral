@@ -487,8 +487,11 @@ body.ocupado { cursor: progress; }
   }
   function chamar(acao, dados) {
     ocupado(true);
-    return transporte(acao, dados, S.token).then(function (txt) {
+    var tokenUsado = S.token;
+    return transporte(acao, dados, tokenUsado).then(function (txt) {
       ocupado(false);
+      // resposta que chegou depois de sair (ou de trocar de pessoa): descarta para não reabrir telas antigas
+      if (tokenUsado !== S.token) throw { code: 'DESCARTADO', message: '' };
       var r;
       try { r = typeof txt === 'string' ? JSON.parse(txt) : txt; } catch (e) { r = null; }
       if (r && r.ok) return r.data;
@@ -501,7 +504,7 @@ body.ocupado { cursor: progress; }
     });
   }
   function falha(e) {
-    if (e && e.code === 'SESSAO') return;
+    if (e && (e.code === 'SESSAO' || e.code === 'DESCARTADO')) return;
     toast((e && e.message) || 'Erro inesperado.', 'erro');
   }
   function guardarToken(t) {
@@ -1302,7 +1305,7 @@ body.ocupado { cursor: progress; }
         kpi(String(P.mensal), P.mensal === 1 ? 'com acompanhamento mensal' : 'com acompanhamento mensal', P.mensal ? 'var(--warn)' : null),
         kpi(String(P.semestral), 'com feedback semestral')),
       grupos.liderado.length ? h('section', { class: 'card stack' }, h('h2', null, 'Média por item'), barrasItens(grupos.liderado), notaBarras()) : null,
-      grupos.lideranca.length ? h('section', { class: 'card stack' }, h('h2', null, 'Itens de liderança (líderes da sua equipe)'), barrasItens(grupos.lideranca), notaBarras()) : null,
+      grupos.lideranca.length ? h('section', { class: 'card stack' }, h('h2', null, 'Itens de liderança'), barrasItens(grupos.lideranca), notaBarras()) : null,
       h('section', { class: 'card stack' }, h('h2', null, 'Acompanhamento mensal'),
         P.mensais.length ? h('div', { class: 'lista' }, P.mensais.map(function (x) {
           return h('div', { class: 'linha-pessoa' }, h('div', { class: 'quem' }, h('div', { class: 'nome' }, x.nome), h('div', { class: 'sub' }, x.motivos.join(' · '))),
@@ -1367,7 +1370,9 @@ body.ocupado { cursor: progress; }
       h('div', { class: 'stack', style: 'gap:6px' }, h('span', { class: 'rotulo' }, (F.lideranca ? 'Avaliação de liderança · ' : 'Líder x Liderado · ') + F.cicloRotulo), h('h1', null, P.nome),
         h('p', { class: 'muted' }, ['Matrícula ' + P.mat, P.cc, P.utd ? 'UTD ' + P.utd : null].filter(Boolean).join(' · '))),
       !aberta ? aviso('warn', 'A avaliação dos liderados está fechada. Você pode consultar, mas não salvar.') : null,
-      F.lideranca ? aviso('info', primeiro(P.nome) + ' lidera uma equipe, então a avaliação usa os itens de liderança e pede 3 pontos fortes e 3 pontos fracos.') : null,
+      F.lideranca ? aviso('info', F.motivoLideranca === 'COORDENACAO'
+        ? 'Quem responde direto à coordenação é avaliado como os supervisores: itens de liderança e 3 pontos fortes e 3 pontos fracos.'
+        : primeiro(P.nome) + ' lidera uma equipe, então a avaliação usa os itens de liderança e pede 3 pontos fortes e 3 pontos fracos.') : null,
       F.atual && F.atual.cienciaEm ? aviso('ok', primeiro(P.nome) + ' confirmou a conversa em ' + dataBR(F.atual.cienciaEm) + '. Se você alterar a avaliação, ele precisa confirmar de novo.', 'check') : null,
       h('div', { class: 'card grade-2' },
         campo('dataF', 'Data do feedback', dataF, 'Dia da conversa presencial. O liderado vê a avaliação a partir desse dia.'),
@@ -1900,8 +1905,8 @@ body.ocupado { cursor: progress; }
           mapaCalor(L.lideres, L.itens, 'Líder')]
           : h('p', { class: 'muted' }, 'Ainda não há avaliações das lideranças neste ciclo.')),
 
-      G.n ? h('section', { class: 'card stack' }, h('h2', null, 'Gestão avaliando os líderes'),
-        h('p', { class: 'muted small' }, 'Avaliação que a coordenação fez de cada supervisor, com os itens de liderança.'),
+      G.n ? h('section', { class: 'card stack' }, h('h2', null, 'Coordenação avaliando a equipe direta'),
+        h('p', { class: 'muted small' }, 'Avaliação que a coordenação fez de quem responde direto a ela (supervisores, administrativo e RH), com os itens de liderança e 3 pontos fortes e 3 fracos.'),
         h('div', { class: 'tabela-wrap' }, h('table', null,
           h('thead', null, h('tr', null, h('th', null, 'Líder'), h('th', null, 'Avaliado por'), h('th', { class: 'num' }, 'Média'), h('th', null, 'Pontos fortes'), h('th', null, 'Pontos fracos'))),
           h('tbody', null, G.registros.map(function (r) {
@@ -2179,7 +2184,7 @@ body.ocupado { cursor: progress; }
             else salvarConfig({ faseLideradoLider: v }, 'Avaliação do líder aberta.');
           })),
         h('div', { class: 'linha-config' },
-          h('div', null, h('h3', { id: 'tFase2' }, '2. Líder x Liderado'), h('p', { class: 'muted small' }, 'Líderes avaliam cada liderado no dia da conversa presencial, com o porquê das notas e o plano combinado. Quem lidera uma equipe é avaliado com os itens de liderança e 3 pontos fortes e 3 fracos.')),
+          h('div', null, h('h3', { id: 'tFase2' }, '2. Líder x Liderado'), h('p', { class: 'muted small' }, 'Líderes avaliam cada liderado no dia da conversa presencial, com o porquê das notas e o plano combinado. Supervisores e todos que respondem direto à coordenação são avaliados com os itens de liderança e 3 pontos fortes e 3 fracos.')),
           interruptor('tFase2', C.faseLiderLiderado, function (v) { salvarConfig({ faseLiderLiderado: v }, v === 'ABERTA' ? 'Avaliação dos liderados aberta.' : 'Avaliação dos liderados fechada.'); })),
         h('div', { class: 'linha-config' },
           h('div', null, h('h3', null, 'Resultado para os líderes'), h('p', { class: 'muted small' }, 'Depois de liberar, cada líder vê as respostas da equipe com o nome de quem respondeu e o porquê de cada nota. O ideal é liberar quando a avaliação do líder fechar.')),

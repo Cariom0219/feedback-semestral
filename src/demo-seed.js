@@ -95,6 +95,9 @@ window.FB_DEMO = true;
     'Avisar o supervisor sempre que houver impedimento em campo', 'Fazer o treinamento do novo aplicativo'];
   var PLANOS_LIDER = ['Fazer uma conversa individual por mês com cada liderado', 'Elogiar em público as entregas da equipe',
     'Resolver conflitos da equipe em até 1 semana', 'Divulgar as metas da semana toda segunda-feira'];
+  var FORTES_ADM = ['Organização', 'Relatórios em dia', 'Boa comunicação com as equipes', 'Cumpre os prazos', 'Proatividade', 'Conhece os processos'];
+  var FRACOS_ADM = ['Retorno às solicitações demora', 'Planejamento semanal', 'Delegar mais', 'Pouca presença nas bases', 'Atualização das planilhas'];
+  var PLANOS_ADM = ['Fechar os relatórios do mês até o dia 5', 'Responder as solicitações das equipes em até 1 dia', 'Visitar as bases uma vez por mês'];
   var CONSIDERACOES = ['Conversa feita na base. Combinamos acompanhar os pontos do plano no próximo mês.',
     'Bom semestre. Continue assim e ajude os colegas novos.', 'Evoluiu bastante desde o último feedback.', ''];
 
@@ -162,7 +165,8 @@ window.FB_DEMO = true;
     function avaliar(ciclo, p, dataF, op) {
       op = op || {};
       var lider = porMat[p.liderMat];
-      var lid = !!LIDERES[p.mat];
+      var temEquipe = !!LIDERES[p.mat];
+      var lid = temEquipe || lider.perfil === 'COORDENACAO'; // quem responde direto à coordenação é avaliado como líder
       var n = {}, base = op.base || 3.3 + rnd() * 1.4;
       crit.filter(function (c) { return c.form === (lid ? Core.FORM_UP : Core.FORM_DOWN) && c.ativo !== false; }).forEach(function (c) { n[c.id] = nota(base); });
       Object.keys(op.forcar || {}).forEach(function (k) { n[k] = op.forcar[k]; });
@@ -170,8 +174,8 @@ window.FB_DEMO = true;
       store.saveDown({
         id: store.uuid(), ciclo: ciclo, tipo: lid ? 'LIDERANCA' : 'PADRAO', avaliador: lider.mat, avaliadorNome: lider.nome, avaliado: p.mat, avaliadoNome: p.nome,
         dataFeedback: dataF, dataReavaliacao: Core.somarMeses(dataF, 3), notas: n, media: media(n), obs: porques(n),
-        fortes: lid ? escolher(FORTES_SUP, 3) : [], fracos: lid ? escolher(FRACOS_SUP, 3) : [],
-        plano: baixos ? escolher(lid ? PLANOS_LIDER : PLANOS, Math.min(2, baixos)) : [],
+        fortes: lid ? escolher(temEquipe ? FORTES_SUP : FORTES_ADM, 3) : [], fracos: lid ? escolher(temEquipe ? FRACOS_SUP : FRACOS_ADM, 3) : [],
+        plano: baixos ? escolher(temEquipe ? PLANOS_LIDER : lid ? PLANOS_ADM : PLANOS, Math.min(2, baixos)) : [],
         consideracoes: op.consideracoes !== undefined ? op.consideracoes : CONSIDERACOES[Math.floor(rnd() * CONSIDERACOES.length)],
         cienciaEm: op.ciencia ? dataF + 'T17:30:00' : '', enviadoEm: dataF + 'T10:00:00', atualizadoEm: dataF + 'T10:00:00'
       });

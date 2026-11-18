@@ -209,17 +209,28 @@ test('Líder x Liderado: só a própria equipe, fase aberta, datas, "por quê" e
   assert.equal(ag[0].status, 'REALIZADO');
 });
 
-test('coordenação avalia supervisor com itens de liderança e 3 fortes e 3 fracos; administrativo no formulário normal', () => {
+test('coordenação avalia toda a equipe direta (supervisores, administrativo e RH) com itens de liderança e 3 fortes e 3 fracos', () => {
   const { store } = montar();
   abrirFase2(store);
   const adm = entrar(store, '900');
   const fSup = api(store, adm, 'formLiderado', { mat: '100' }).data;
   assert.equal(fSup.lideranca, true);
+  assert.equal(fSup.motivoLideranca, 'EQUIPE');
   assert.equal(fSup.criterios[0].id, 'LL01');
   assert.equal(fSup.extras, true);
   const fRh = api(store, adm, 'formLiderado', { mat: '901' }).data;
-  assert.equal(fRh.lideranca, false);
-  assert.equal(fRh.criterios[0].id, 'LD01');
+  assert.equal(fRh.lideranca, true, 'quem responde direto à coordenação é avaliado como os supervisores');
+  assert.equal(fRh.motivoLideranca, 'COORDENACAO');
+  assert.equal(fRh.criterios.length, 13);
+  assert.equal(fRh.extras, true);
+  assert.equal(api(store, adm, 'salvarLiderado', { mat: '901', notas: notas('LD', 10, 4), dataFeedback: '2026-11-18' }).code, 'INCOMPLETO', 'itens do liderado não servem para a equipe direta');
+  const okRh = api(store, adm, 'salvarLiderado', { mat: '901', notas: notas('LL', 13, 5), dataFeedback: '2026-11-18', fortes: ['Organizada', 'Prazos', 'Comunicação'], fracos: ['Delegar', 'Planilhas', 'Visitas'] });
+  assert.equal(okRh.ok, true, JSON.stringify(okRh));
+  assert.equal(store.listDown('2026-2').find((r) => r.avaliado === '901').tipo, 'LIDERANCA');
+  // o supervisor continua avaliando a própria equipe com os itens do liderado
+  const fMembro = api(store, entrar(store, '100'), 'formLiderado', { mat: '101' }).data;
+  assert.equal(fMembro.lideranca, false);
+  assert.equal(fMembro.criterios[0].id, 'LD01');
   assert.equal(api(store, adm, 'salvarLiderado', { mat: '100', notas: notas('LL', 13, 4), dataFeedback: '2026-11-18' }).code, 'INCOMPLETO');
   const ok = api(store, adm, 'salvarLiderado', { mat: '100', notas: notas('LL', 13, 4), dataFeedback: '2026-11-18', fortes: ['Segurança', 'Dados', 'Equipe unida'], fracos: ['Atrasos', 'Prazos', 'Delegar'] });
   assert.equal(ok.ok, true, JSON.stringify(ok));
