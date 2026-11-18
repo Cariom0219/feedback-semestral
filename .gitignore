@@ -6,3 +6,4 @@ dist/
 *.xls
 *.csv
 .DS_Store
+deno.lock

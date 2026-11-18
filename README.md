@@ -1,14 +1,24 @@
 # Feedback Semestral
 
-Ferramenta de feedback semestral da Operação Centro-BA (Sirtec) com duas avaliações:
+Ferramenta de feedback semestral da Operação Centro-BA (Sirtec), com duas avaliações identificadas:
 
-- **Liderado x Líder** (anônima): cada colaborador avalia o próprio líder com notas de 1 a 5 e considerações finais. Quem é liderado direto da coordenação também escreve 3 pontos fortes e 3 pontos fracos.
-- **Líder x Liderado** (identificada): o líder avalia cada liderado com notas de 1 a 5, data do feedback, data da reavaliação e observações.
+- **Liderado x Líder**: cada pessoa avalia o próprio líder com notas de 1 a 5, o **porquê** das notas e considerações finais. Quem é liderado direto da coordenação também escreve 3 pontos fortes e 3 pontos fracos.
+- **Líder x Liderado**: o líder avalia cada liderado no dia da conversa presencial, com notas, porquê, plano combinado e considerações. Quem lidera uma equipe (supervisores) é avaliado com os itens de liderança e 3 pontos fortes e 3 fracos.
 
-A pessoa entra com a **matrícula**, confirma o nome e usa o **CPF como senha**. Coordenação e RH têm um painel de gestão. Os líderes veem quem já respondeu, mas não o que cada pessoa respondeu.
+A pessoa entra com a **matrícula**, confirma o nome e usa o **CPF como senha**.
 
 - Aplicativo: https://cariom0219.github.io/feedback-semestral/
 - Demonstração com dados fictícios: https://cariom0219.github.io/feedback-semestral/demo/
+
+## O que cada perfil vê
+
+| Perfil | O que faz |
+| --- | --- |
+| Colaborador | Avalia o líder. Vê o próprio feedback (notas, porquê, plano, frequência mensal ou semestral e evolução entre ciclos) a partir do dia da conversa e confirma que a conversa aconteceu (ciência). |
+| Líder | Avalia a equipe, monta o cronograma de conversas (com datas sugeridas), vê o painel com as médias da equipe e, depois que a coordenação libera, a avaliação de cada pessoa da equipe com nome e porquê. |
+| Coordenação e RH | Painel com participação, resultados, avaliações, cronograma geral (feitos, marcados e atrasados), análises (itens mais fracos, mapa por líder e por equipe, comparação com o ciclo anterior, acompanhamento mensal), cadastro, importação da base, fases e regras. |
+
+**Frequência do feedback.** Depois das notas, cada pessoa fica com **acompanhamento mensal** se a média for menor que 3,5 ou se tiver nota 1 ou 2 em algum item. Para líderes, conta também a média que a equipe deu. Os demais ficam no **semestral**. O limite e a nota crítica são ajustáveis em *Fases e ciclo*.
 
 ## Como funciona
 
@@ -16,76 +26,46 @@ A pessoa entra com a **matrícula**, confirma o nome e usa o **CPF como senha**.
 Celular / computador
         │
         ▼
-GitHub Pages (pasta docs/)         ← só as telas
-        │  fetch (POST)
+GitHub Pages (pasta docs/)             ← telas
+        │  fetch (POST, texto simples)
         ▼
-Google Apps Script (apps-script/)  ← regras, login e permissões
-        │
+Supabase Edge Function "feedback"      ← regras, login e permissões (src/core.js)
+        │  conexão direta (SUPABASE_DB_URL)
         ▼
-Planilha Google                    ← banco de dados (abas Pessoas, Respostas, etc.)
+Postgres do Supabase                   ← dados (tabelas com RLS e sem acesso pela API pública)
 ```
 
-O GitHub só hospeda as telas. As respostas ficam numa Planilha Google da coordenação, gravadas pelo Apps Script. O endereço do Apps Script fica em `docs/config.js`.
-
-O link do próprio Apps Script (terminado em `/exec`) também abre o aplicativo completo, sem o GitHub.
+O endereço da função fica em [`docs/config.js`](docs/config.js).
 
 ## Colocar no ar (uma vez)
 
-1. **Crie uma Planilha Google** na conta que vai guardar os dados.
-2. Na planilha, abra **Extensões → Apps Script**. Apague o conteúdo do `Código.gs` e cole o [`apps-script/Codigo.gs`](apps-script/Codigo.gs). Clique em **+ → HTML**, dê o nome `Index` e cole o [`apps-script/Index.html`](apps-script/Index.html). Salve.
-3. Recarregue a planilha. No menu **Feedback**:
-   - **1. Preparar planilha** cria as abas. Na primeira vez o Google pede autorização: Avançado → Acessar → Permitir.
-   - **2. Cadastrar acesso da coordenação ou do RH**: matrícula, nome igual ao da coluna Liderança da base, CPF e perfil `COORDENACAO` ou `RH`.
-4. No Apps Script: **Implantar → Nova implantação → App da Web**, com **Executar como: Eu** e **Quem pode acessar: Qualquer pessoa**. Copie o endereço que termina em `/exec`.
-5. No GitHub, edite [`docs/config.js`](docs/config.js) e cole o endereço:
-   ```js
-   window.FB_API_URL = 'https://script.google.com/macros/s/.../exec';
-   ```
-   Em cerca de 1 minuto o site passa a funcionar.
-6. Entre no site com a sua matrícula e vá em **Painel de gestão → Pessoas → Importar base** para carregar a planilha de colaboradores (colunas Matrícula, Descrição C.C, Liderança, Nome e CPF).
+1. No Supabase, aplique a migração [`supabase/migrations/20261118190000_feedback.sql`](supabase/migrations/20261118190000_feedback.sql). Ela cria as tabelas, os itens padrão, a chave secreta do CPF e um **código de configuração**.
+2. Publique a função [`supabase/functions/feedback/index.ts`](supabase/functions/feedback/index.ts) com o nome `feedback` e **sem verificação de JWT** (o login é feito pela própria função).
+3. Em `docs/config.js`, coloque `window.FB_API_URL = 'https://SEU-PROJETO.supabase.co/functions/v1/feedback';`
+4. Abra o site com `#configurar` no fim do endereço e crie o acesso da coordenação com o código de configuração (consulta: `select valor from segredos where nome = 'codigo_configuracao'`).
+5. Entre com a matrícula e o CPF e vá em **Painel de gestão → Pessoas → Importar base** para carregar a planilha de colaboradores (colunas Matrícula, Descrição C.C, Liderança, Nome e CPF). Cadastre o RH em **Pessoas** com o perfil RH.
 
-Se a conta Google da empresa não mostrar a opção "Qualquer pessoa", use uma conta Gmail separada só para o feedback.
+## Segurança
 
-**Atualizar o código depois:** cole os arquivos novos no Apps Script e use **Implantar → Gerenciar implantações → Editar → Nova versão**. Assim o endereço `/exec` continua o mesmo.
-
-## Segurança e anonimato
-
-- O CPF nunca fica em texto: é guardado como SHA-256 de uma chave secreta (nas propriedades do script) + matrícula + CPF. Depois de 5 tentativas erradas o acesso trava por 15 minutos.
-- "Quem respondeu" (aba Participacao) e "o que respondeu" (aba Resp_LideradoLider) ficam separados. A resposta anônima não tem nome nem data e entra na planilha em lotes embaralhados de 5.
-- Resultados da avaliação do líder só aparecem depois que a coordenação fecha a fase e com no mínimo 3 respostas (configurável). Cada líder só vê o próprio resultado quando a coordenação libera.
-- Todas as regras rodam no servidor (Apps Script). A página nunca recebe CPF nem respostas de outras pessoas.
-- Este repositório não contém dados reais. Nunca envie a base de colaboradores para cá (o `.gitignore` bloqueia `*.xlsx`, `tmp/` e `*.local.*`).
-
-## Abas da planilha
-
-| Aba | Conteúdo |
-| --- | --- |
-| Pessoas | Matrícula, nome, C.C, UTD, líder, perfil, ativo e CPF criptografado |
-| Criterios | Itens dos dois formulários (editáveis no painel) |
-| Participacao | Quem já avaliou o líder e em que dia |
-| Resp_LideradoLider | Notas e comentários anônimos |
-| Resp_LiderLiderado | Avaliações dos líderes, identificadas |
-| Config | Ciclo atual, fases abertas/fechadas e liberação de resultados |
-| Log | Acessos e alterações (sem conteúdo das avaliações) |
-| Importar | Área para colar a base e importar pelo menu |
+- O CPF nunca fica em texto: é guardado como SHA-256 de uma chave secreta + matrícula + CPF. Depois de 5 tentativas erradas o acesso trava por 15 minutos. Sessões expiram em 4 horas sem uso.
+- As tabelas têm RLS ligado e nenhuma política: a chave pública do Supabase não lê nem grava nada. Só a função acessa o banco.
+- As avaliações da equipe são identificadas. Cada líder só vê as próprias respostas e só depois que a coordenação libera o ciclo. O liderado só vê o feedback a partir da data da conversa.
+- Este repositório não contém dados reais. Nunca envie a base de colaboradores para cá (o `.gitignore` bloqueia `*.xlsx`, `*.csv`, `tmp/` e `*.local.*`).
 
 ## Desenvolvimento
 
 ```
-src/core.js           regras (usadas no Apps Script e na demonstração)
-src/server.gs.js      servidor Apps Script: Planilha, sessão, menu, doGet/doPost
-src/ui.html           telas (JavaScript puro, sem framework)
-src/store-memory.js   armazenamento em memória (demonstração e testes)
-src/demo-seed.js      dados fictícios da demonstração
-build.js              gera apps-script/ e docs/
-test/                 testes (somente dados fictícios)
+src/core.js             regras (as mesmas na função do Supabase e na demonstração)
+src/server.supabase.js  função do Supabase: transação, trava, leitura e gravação no Postgres
+src/schema.sql          banco de dados (vira a migração em supabase/migrations)
+src/ui.html             telas (JavaScript puro, sem framework)
+src/store-memory.js     armazenamento em memória (demonstração e testes)
+src/demo-seed.js        dados fictícios da demonstração
+build.js                gera docs/ e supabase/
 ```
 
-```bash
-npm install
-npm run build      # gera apps-script/ e docs/ a partir de src/
-npm test           # regras + simulador do Apps Script
-npm run test:ui    # navegador (Playwright): demonstração e site oficial
 ```
-
-Edite sempre os arquivos de `src/` e rode `npm run build`. Os arquivos de `apps-script/` e `docs/` são gerados, exceto `docs/config.js`, que o build não sobrescreve.
+npm run build      # gera docs/ e supabase/
+npm test           # regras (node:test)
+npm run test:ui    # navegador (Playwright + Chrome), demonstração e site oficial
+```

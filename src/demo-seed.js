@@ -2,7 +2,7 @@
 window.FB_DEMO = true;
 (function () {
   'use strict';
-  var CHAVE = 'fbs_demo_v1';
+  var CHAVE = 'fbs_demo_v2';
   var Core = window.FeedbackCore;
 
   function cpf(base) {
@@ -39,13 +39,39 @@ window.FB_DEMO = true;
   GRUPOS.forEach(function (g) {
     g[0].forEach(function (nome) { BASE.push([String(proxMat++), nome, g[2], g[1], 'COLABORADOR']); });
   });
+  var LIDERES = { '9001': true, '9101': true, '9102': true, '9103': true };
 
-  // Perfis de cada líder: média esperada por item (o resto fica em torno da média base).
+  // Perfil de cada líder: média esperada por item (o resto fica em torno da média base).
   var PERFIL_LIDER = {
     '9101': { base: 4.0, LL01: 4.6, LL08: 4.6, LL12: 4.5, LL06: 3.1, LL07: 2.9, LL11: 3.4 },
     '9102': { base: 4.1, LL02: 4.7, LL03: 4.6, LL11: 4.6, LL04: 3.2, LL09: 3.5 },
     '9103': { base: 3.6, LL01: 2.8, LL13: 3.0, LL08: 4.4, LL05: 3.1 },
     '9001': { base: 4.2, LL04: 3.5, LL09: 3.4, LL13: 4.7, LL03: 4.5 }
+  };
+  var PORQUE = {
+    LL01: 'As orientações chegam só pelo grupo, sem detalhe do serviço.',
+    LL02: 'Já chamou a atenção de colega na frente de todo mundo.',
+    LL03: 'Quando a equipe sugere alguma coisa, não tem retorno.',
+    LL04: 'As rotas mudam em cima da hora e a equipe perde tempo.',
+    LL05: 'Não tive nenhuma conversa sobre o que posso melhorar.',
+    LL06: 'Quando a meta é batida, ninguém comenta.',
+    LL07: 'Briga entre colegas ficou semanas sem solução.',
+    LL08: 'Já liberou serviço sem conferir o EPI.',
+    LL09: 'Em campo, demora para atender o telefone.',
+    LL10: 'Não indica cursos nem dá chance de aprender outras atividades.',
+    LL11: 'Tenho receio de falar quando algo não está bem.',
+    LL12: 'Pouco acompanhamento em campo nos procedimentos.',
+    LL13: 'As informações sobre metas chegam pela metade.',
+    LD01: 'Saiu antes do fim do serviço em duas ocasiões.',
+    LD02: 'Três atrasos na saída da base neste mês.',
+    LD03: 'Deixou de registrar ocorrência no sistema.',
+    LD04: 'Retrabalho em leituras com foto ilegível.',
+    LD05: 'A rota terminou incompleta várias vezes.',
+    LD06: 'Evita ajudar os colegas quando termina antes.',
+    LD07: 'Não avisa quando tem problema em campo.',
+    LD08: 'Precisa aprender a usar o novo aplicativo de leitura.',
+    LD09: 'Não seguiu o procedimento padrão de corte.',
+    LD10: 'Foi visto em campo sem a luva isolante.'
   };
   var COMENTARIOS = [
     'Sempre explica o serviço do dia com clareza antes de a equipe sair para o campo.',
@@ -59,10 +85,18 @@ window.FB_DEMO = true;
     'Falta conversa individual. Muita coisa fica só no grupo.',
     'Está sempre disponível no telefone quando a gente precisa em campo.'
   ];
-  var FORTES = ['Conhece a operação de perto', 'Decide com base em dados', 'Está disponível para os supervisores', 'Transparência nas metas',
+  var FORTES_COORD = ['Conhece a operação de perto', 'Decide com base em dados', 'Está disponível para os supervisores', 'Transparência nas metas',
     'Apoia a equipe nas dificuldades', 'Organização das prioridades', 'Cobra segurança com exemplo'];
-  var FRACOS = ['Reuniões longas', 'Muitas demandas ao mesmo tempo', 'Retorno às vezes demora', 'Pouca presença em Itaberaba',
+  var FRACOS_COORD = ['Reuniões longas', 'Muitas demandas ao mesmo tempo', 'Retorno às vezes demora', 'Pouca presença em Itaberaba',
     'Prazos muito apertados', 'Mensagens fora do horário', 'Delegar mais'];
+  var FORTES_SUP = ['Cobra segurança com exemplo', 'Equipe unida', 'Bom controle das rotas', 'Resolve problemas em campo', 'Relatórios em dia', 'Boa relação com a equipe'];
+  var FRACOS_SUP = ['Delegar mais', 'Retorno à equipe demora', 'Pouca conversa individual', 'Organização das rotas', 'Registro de ocorrências', 'Planejamento semanal'];
+  var PLANOS = ['Chegar à base 10 minutos antes da saída', 'Revisar as fotos antes de finalizar cada leitura', 'Fazer o check-list de EPI todos os dias',
+    'Avisar o supervisor sempre que houver impedimento em campo', 'Fazer o treinamento do novo aplicativo'];
+  var PLANOS_LIDER = ['Fazer uma conversa individual por mês com cada liderado', 'Elogiar em público as entregas da equipe',
+    'Resolver conflitos da equipe em até 1 semana', 'Divulgar as metas da semana toda segunda-feira'];
+  var CONSIDERACOES = ['Conversa feita na base. Combinamos acompanhar os pontos do plano no próximo mês.',
+    'Bom semestre. Continue assim e ajude os colegas novos.', 'Evoluiu bastante desde o último feedback.', ''];
 
   function prng(seed) {
     return function () {
@@ -72,81 +106,121 @@ window.FB_DEMO = true;
       return ((t ^ t >>> 14) >>> 0) / 4294967296;
     };
   }
+  function semana(iso) { var p = iso.split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay(); }
+  function util(iso, passo) { while (semana(iso) === 0 || semana(iso) === 6) iso = Core.somarDias(iso, passo); return iso; }
 
   function montar() {
     var gravar = false;
     var store = MemoryStore(null, { persistir: function (st) { if (gravar) persistir(st); } });
+    var HOJE = store.hoje();
+    var dia = function (n) { return util(Core.somarDias(HOJE, n), n < 0 ? -1 : 1); };
     var rnd = prng(20261118);
     var crit = Core.CRITERIOS_PADRAO;
     store.salvarCriterios(crit);
-    store.setConfig({ ciclo: '2026-2', faseLideradoLider: 'ABERTA', faseLiderLiderado: 'ABERTA', ciclosLiberados: ['2026-1'], minimoRespostas: 3, organizacao: Core.CONFIG_PADRAO.organizacao });
+    store.setConfig({ ciclo: '2026-2', faseLideradoLider: 'ABERTA', faseLiderLiderado: 'ABERTA', ciclosLiberados: ['2026-1'], organizacao: Core.CONFIG_PADRAO.organizacao });
     var pessoas = BASE.map(function (l) {
       return { mat: l[0], nome: l[1], cc: l[2], liderMat: '', liderNome: l[3], perfil: l[4], ativo: true, cpfHash: Core.hashCpf(store, l[0], cpfDe(l[0])), atualizadoEm: '2026-11-03T08:00:00' };
     });
-    var porNome = {};
-    pessoas.forEach(function (p) { porNome[p.nome] = p; });
+    var porNome = {}, porMat = {};
+    pessoas.forEach(function (p) { porNome[p.nome] = p; porMat[p.mat] = p; });
     pessoas.forEach(function (p) { if (p.liderNome) p.liderMat = porNome[p.liderNome].mat; });
     store.substituirPessoas(pessoas);
 
-    function nota(media) { return Math.max(1, Math.min(5, Math.round(media + (rnd() - 0.5) * 1.8))); }
-    function notasLider(liderMat, deslocamento) {
-      var perfil = PERFIL_LIDER[liderMat], n = {};
-      crit.filter(function (c) { return c.form === Core.FORM_UP; }).forEach(function (c) { n[c.id] = nota((perfil[c.id] || perfil.base) + (deslocamento || 0)); });
-      return n;
-    }
+    function nota(m) { return Math.max(1, Math.min(5, Math.round(m + (rnd() - 0.5) * 1.8))); }
     function media(n) { var k = Object.keys(n); return Math.round(k.reduce(function (a, x) { return a + n[x]; }, 0) / k.length * 100) / 100; }
     function escolher(lista, k) {
       var c = lista.slice(), out = [];
       while (out.length < k && c.length) out.push(c.splice(Math.floor(rnd() * c.length), 1)[0]);
       return out;
     }
-    function dia(ano, mes, d) { return ano + '-' + ('0' + mes).slice(-2) + '-' + ('0' + d).slice(-2); }
+    function porques(n) {
+      var o = {};
+      Object.keys(n).forEach(function (id) { if (n[id] <= 2 || (n[id] === 3 && rnd() < 0.25)) o[id] = PORQUE[id]; });
+      return o;
+    }
+    function agendar(ciclo, lider, liderado, data, tipo, status) {
+      store.salvarAgenda({
+        id: store.uuid(), ciclo: ciclo, lider: lider, liderado: liderado, data: data, tipo: tipo || 'FEEDBACK', status: status || 'AGENDADO',
+        realizadoEm: status === 'REALIZADO' ? data : '', obs: '', atualizadoEm: data + 'T09:00:00'
+      });
+    }
 
     function responder(ciclo, p, data, deslocamento) {
-      var lider = pessoas.filter(function (x) { return x.mat === p.liderMat; })[0];
+      var lider = porMat[p.liderMat];
       var coord = lider.perfil === 'COORDENACAO';
-      var n = notasLider(lider.mat, deslocamento);
+      var perfil = PERFIL_LIDER[lider.mat], n = {};
+      crit.filter(function (c) { return c.form === Core.FORM_UP; }).forEach(function (c) { n[c.id] = nota((perfil[c.id] || perfil.base) + (deslocamento || 0)); });
       store.addUp({
-        id: store.uuid(), ciclo: ciclo, avaliado: lider.mat, avaliadoNome: lider.nome, notas: n, media: media(n),
-        fortes: coord ? escolher(FORTES, 3) : [], fracos: coord ? escolher(FRACOS, 3) : [],
+        id: store.uuid(), ciclo: ciclo, avaliado: lider.mat, avaliadoNome: lider.nome, avaliador: p.mat, avaliadorNome: p.nome, data: data,
+        notas: n, porques: porques(n), media: media(n),
+        fortes: coord ? escolher(FORTES_COORD, 3) : [], fracos: coord ? escolher(FRACOS_COORD, 3) : [],
         consideracoes: rnd() < 0.55 ? COMENTARIOS[Math.floor(rnd() * COMENTARIOS.length)] : ''
       });
       store.addParticipacao({ ciclo: ciclo, form: Core.FORM_UP, avaliador: p.mat, avaliadorNome: p.nome, avaliado: lider.mat, avaliadoNome: lider.nome, data: data });
     }
-    function avaliarLiderado(ciclo, p, dataF, dataR) {
-      var lider = pessoas.filter(function (x) { return x.mat === p.liderMat; })[0];
-      var n = {}, base = 3.3 + rnd() * 1.4;
-      crit.filter(function (c) { return c.form === Core.FORM_DOWN; }).forEach(function (c) { n[c.id] = nota(base); });
-      var obs = {};
-      if (n.LD02 <= 3) obs.LD02 = 'Combinar horário de saída da base.';
-      if (n.LD10 <= 3) obs.LD10 = 'Reforçar check-list de EPI antes de cada serviço.';
+
+    function avaliar(ciclo, p, dataF, op) {
+      op = op || {};
+      var lider = porMat[p.liderMat];
+      var lid = !!LIDERES[p.mat];
+      var n = {}, base = op.base || 3.3 + rnd() * 1.4;
+      crit.filter(function (c) { return c.form === (lid ? Core.FORM_UP : Core.FORM_DOWN) && c.ativo !== false; }).forEach(function (c) { n[c.id] = nota(base); });
+      Object.keys(op.forcar || {}).forEach(function (k) { n[k] = op.forcar[k]; });
+      var baixos = Object.keys(n).filter(function (k) { return n[k] <= 3; }).length;
       store.saveDown({
-        id: store.uuid(), ciclo: ciclo, avaliador: lider.mat, avaliadorNome: lider.nome, avaliado: p.mat, avaliadoNome: p.nome,
-        dataFeedback: dataF, dataReavaliacao: dataR, notas: n, media: media(n), obs: obs,
-        consideracoes: rnd() < 0.5 ? 'Conversa feita na base. Combinamos acompanhamento no próximo mês.' : '',
-        enviadoEm: dataF + 'T10:00:00', atualizadoEm: dataF + 'T10:00:00'
+        id: store.uuid(), ciclo: ciclo, tipo: lid ? 'LIDERANCA' : 'PADRAO', avaliador: lider.mat, avaliadorNome: lider.nome, avaliado: p.mat, avaliadoNome: p.nome,
+        dataFeedback: dataF, dataReavaliacao: Core.somarMeses(dataF, 3), notas: n, media: media(n), obs: porques(n),
+        fortes: lid ? escolher(FORTES_SUP, 3) : [], fracos: lid ? escolher(FRACOS_SUP, 3) : [],
+        plano: baixos ? escolher(lid ? PLANOS_LIDER : PLANOS, Math.min(2, baixos)) : [],
+        consideracoes: op.consideracoes !== undefined ? op.consideracoes : CONSIDERACOES[Math.floor(rnd() * CONSIDERACOES.length)],
+        cienciaEm: op.ciencia ? dataF + 'T17:30:00' : '', enviadoEm: dataF + 'T10:00:00', atualizadoEm: dataF + 'T10:00:00'
       });
+      agendar(ciclo, lider.mat, p.mat, dataF, 'FEEDBACK', 'REALIZADO');
     }
 
     var liderados = pessoas.filter(function (p) { return p.liderMat; });
+
     // Ciclo anterior (2026-1): encerrado e liberado.
     liderados.forEach(function (p, i) {
-      if (rnd() < 0.86 || p.liderMat === '9001') responder('2026-1', p, dia(2026, 5, 5 + (i % 20)), -0.25);
-      avaliarLiderado('2026-1', p, dia(2026, 6, 2 + (i % 24)), dia(2026, 9, 2 + (i % 24)));
+      if (rnd() < 0.86 || p.liderMat === '9001') responder('2026-1', p, '2026-05-' + ('0' + (5 + (i % 20))).slice(-2), -0.25);
+      avaliar('2026-1', p, '2026-06-' + ('0' + (2 + (i % 24))).slice(-2), { ciencia: rnd() < 0.8, base: 3.1 + rnd() * 1.4 });
     });
-    // Ciclo atual (2026-2): avaliação do líder em andamento.
-    var atual = { '9101': ['1002', '1003', '1005', '1006', '1008', '1010', '1012'], '9102': ['1014', '1015', '1018', '1021'],
-      '9103': ['1023', '1024', '1025', '1027', '1028', '1030'], '9001': ['9002', '9103'] };
+
+    // Ciclo atual (2026-2): a equipe está avaliando os líderes e os líderes estão dando feedback.
+    var responderam = {
+      '9101': ['1002', '1003', '1005', '1006', '1008', '1010', '1012'], '9102': ['1014', '1015', '1018', '1021'],
+      '9103': ['1023', '1024', '1025', '1027', '1028', '1030'], '9001': ['9002', '9103']
+    };
     var k = 0;
-    Object.keys(atual).forEach(function (l) {
-      atual[l].forEach(function (mat) {
-        var p = pessoas.filter(function (x) { return x.mat === mat; })[0];
-        responder('2026-2', p, dia(2026, 11, 3 + (k++ % 14)), 0);
-      });
+    Object.keys(responderam).forEach(function (l) {
+      responderam[l].forEach(function (mat) { responder('2026-2', porMat[mat], dia(-12 + (k++ % 10)), 0); });
     });
-    ['1004', '1007', '1011'].forEach(function (mat, i) {
-      avaliarLiderado('2026-2', pessoas.filter(function (x) { return x.mat === mat; })[0], dia(2026, 11, 10 + i), dia(2027, 2, 10 + i));
-    });
+    // Coordenação: feedback do Edson já feito; os demais marcados (um atrasado).
+    avaliar('2026-2', porMat['9101'], dia(-6), { base: 4.1, ciencia: true, consideracoes: 'Equipe com bons números de segurança. Combinamos dar mais retorno individual aos leituristas.' });
+    agendar('2026-2', '9001', '9003', dia(-2));
+    agendar('2026-2', '9001', '9102', dia(2));
+    agendar('2026-2', '9001', '9103', dia(3));
+    agendar('2026-2', '9001', '9002', dia(5));
+    // Edson (9101)
+    avaliar('2026-2', porMat['1001'], dia(-2), { base: 4.3, consideracoes: 'Ana é referência de qualidade na equipe. Combinamos que ela vai acompanhar os dois leituristas novos nas primeiras rotas.' });
+    avaliar('2026-2', porMat['1004'], dia(-8), { ciencia: true });
+    avaliar('2026-2', porMat['1007'], dia(-7), { base: 3.5, forcar: { LD02: 2 }, ciencia: true });
+    avaliar('2026-2', porMat['1011'], dia(-6), { ciencia: true, base: 4.2 });
+    var d1007 = store.listDown('2026-2').filter(function (r) { return r.avaliado === '1007'; })[0].dataFeedback;
+    [1, 2, 3].forEach(function (m) { agendar('2026-2', '9101', '1007', util(Core.somarMeses(d1007, m), 1), 'ACOMPANHAMENTO'); });
+    agendar('2026-2', '9101', '1002', dia(1));
+    agendar('2026-2', '9101', '1003', dia(1));
+    agendar('2026-2', '9101', '1005', dia(2));
+    agendar('2026-2', '9101', '1006', dia(3));
+    agendar('2026-2', '9101', '1008', dia(-3));
+    // Patrícia (9102)
+    avaliar('2026-2', porMat['1014'], dia(-4), { base: 2.9 });
+    avaliar('2026-2', porMat['1015'], dia(-4), { base: 4.0, ciencia: true });
+    agendar('2026-2', '9102', '1013', dia(2));
+    agendar('2026-2', '9102', '1016', dia(4));
+    agendar('2026-2', '9102', '1017', dia(4));
+    agendar('2026-2', '9102', '1018', dia(9));
+
     gravar = true;
     persistir(store._estado());
     return store;

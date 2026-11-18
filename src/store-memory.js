@@ -70,7 +70,7 @@ function MemoryStore(estadoInicial, opcoes) {
   opcoes = opcoes || {};
   function clone(o) { return o == null ? o : JSON.parse(JSON.stringify(o)); }
   function vazio() {
-    return { config: {}, pessoas: [], criterios: [], participacao: [], up: [], down: [], logs: [], cache: {}, segredo: '' };
+    return { config: {}, pessoas: [], criterios: [], participacao: [], up: [], down: [], agenda: [], logs: [], cache: {}, segredo: '' };
   }
   var st = Object.assign(vazio(), clone(estadoInicial) || {});
   if (!st.segredo) st.segredo = uuid() + uuid();
@@ -106,16 +106,19 @@ function MemoryStore(estadoInicial, opcoes) {
     },
     addParticipacao: function (r) { st.participacao.push(clone(r)); salvar(); },
     listUp: function (ciclo) { return clone(st.up.filter(function (x) { return !ciclo || x.ciclo === ciclo; })); },
-    addUp: function (r) {
-      var pos = Math.floor(Math.random() * (st.up.length + 1));
-      st.up.splice(pos, 0, clone(r));
-      salvar();
-    },
+    addUp: function (r) { st.up.push(clone(r)); salvar(); },
     listDown: function (ciclo) { return clone(st.down.filter(function (x) { return !ciclo || x.ciclo === ciclo; })); },
     saveDown: function (r) {
       var i = -1;
       st.down.forEach(function (x, j) { if (x.id === r.id) i = j; });
       if (i >= 0) st.down[i] = clone(r); else st.down.push(clone(r));
+      salvar();
+    },
+    listAgenda: function (ciclo) { return clone(st.agenda.filter(function (x) { return !ciclo || x.ciclo === ciclo; })); },
+    salvarAgenda: function (r) {
+      var i = -1;
+      st.agenda.forEach(function (x, j) { if (x.id === r.id) i = j; });
+      if (i >= 0) st.agenda[i] = clone(r); else st.agenda.push(clone(r));
       salvar();
     },
     log: function (mat, evento, detalhe) {

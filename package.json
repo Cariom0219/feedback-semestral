@@ -1,11 +1,11 @@
 {
   "name": "feedback-semestral",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Feedback semestral (Liderado x Líder e Líder x Liderado) com Google Apps Script, Planilha Google e site no GitHub Pages",
+  "description": "Feedback semestral (Liderado x Líder e Líder x Liderado) com site no GitHub Pages e dados no Supabase",
   "scripts": {
     "build": "node build.js",
-    "test": "node --test test/core.test.js test/gas.test.js",
+    "test": "node --test test/core.test.js",
     "test:ui": "node test/ui.e2e.js"
   },
   "devDependencies": {

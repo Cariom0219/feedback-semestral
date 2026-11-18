@@ -31,6 +31,9 @@
   --n1: #c62828; --n2: #e46c0a; --n3: #e3b007; --n4: #5c9a2c; --n5: #1b7443;
   --n3-ink: #1b1400;
   --focus: #2b7de9;
+  /* escala divergente das médias: vermelho abaixo do limite do mensal, cinza no meio, azul acima */
+  --dv-r2: #d03b3b; --dv-r2-ink: #ffffff; --dv-r1: #f7c9c4; --dv-r1-ink: #0f1d2e; --dv-0: #eceae6; --dv-0-ink: #0f1d2e;
+  --dv-b1: #b7d3f6; --dv-b1-ink: #0f1d2e; --dv-b2: #256abf; --dv-b2-ink: #ffffff;
   --shadow: 0 1px 2px rgba(15, 29, 46, .06), 0 6px 18px rgba(15, 29, 46, .06);
   --radius: 12px;
   --font-display: 'Barlow Semi Condensed', 'Arial Narrow', Arial, sans-serif;
@@ -45,6 +48,7 @@
     --ok: #63c891; --ok-bg: #12301f; --warn: #f2b45a; --warn-bg: #352610; --bad: #f28b82; --bad-bg: #3b1714; --info: #85b6ee; --info-bg: #13283f;
     --n1: #e0574f; --n2: #f08a3a; --n3: #e8c22e; --n4: #7cbf4b; --n5: #3fae6f; --n3-ink: #1b1400;
     --focus: #85b6ee; --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 6px 18px rgba(0, 0, 0, .25);
+    --dv-r2: #c94040; --dv-r2-ink: #ffffff; --dv-r1: #5b2a28; --dv-r1-ink: #f6dcd8; --dv-0: #383835; --dv-0-ink: #e6edf5; --dv-b1: #1c4a80; --dv-b1-ink: #e0ebfb; --dv-b2: #5594dc; --dv-b2-ink: #04101d;
     color-scheme: dark;
   }
 }
@@ -55,6 +59,7 @@
   --ok: #63c891; --ok-bg: #12301f; --warn: #f2b45a; --warn-bg: #352610; --bad: #f28b82; --bad-bg: #3b1714; --info: #85b6ee; --info-bg: #13283f;
   --n1: #e0574f; --n2: #f08a3a; --n3: #e8c22e; --n4: #7cbf4b; --n5: #3fae6f; --n3-ink: #1b1400;
   --focus: #85b6ee; --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 6px 18px rgba(0, 0, 0, .25);
+  --dv-r2: #c94040; --dv-r2-ink: #ffffff; --dv-r1: #5b2a28; --dv-r1-ink: #f6dcd8; --dv-0: #383835; --dv-0-ink: #e6edf5; --dv-b1: #1c4a80; --dv-b1-ink: #e0ebfb; --dv-b2: #5594dc; --dv-b2-ink: #04101d;
   color-scheme: dark;
 }
 
@@ -184,6 +189,10 @@ fieldset legend + * { clear: both; }
 .progresso { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 0 12px; display: grid; gap: 6px; border-bottom: 1px solid var(--line); }
 .progresso .linha { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; font-weight: 600; }
 .obs-toggle { justify-self: start; }
+.porque { display: grid; gap: 6px; }
+.porque > label { font-size: 14px; font-weight: 600; color: var(--muted); }
+.porque.obrig > label { color: var(--bad); }
+.porque textarea.input { min-height: 64px; font-size: 15.5px; }
 .grupo-extra { gap: 10px; }
 .grupo-extra.falta { border-color: var(--bad); background: var(--bad-bg); }
 .campo-linha { display: grid; grid-template-columns: 28px 1fr; align-items: center; gap: 10px; }
@@ -199,7 +208,7 @@ fieldset legend + * { clear: both; }
 .selo-ok { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--ok-bg); color: var(--ok); }
 
 /* abas e filtros */
-.abas { display: flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--line); padding: 4px; border-radius: 12px; overflow-x: auto; }
+.abas { display: flex; flex-wrap: wrap; gap: 4px; background: var(--surface-2); border: 1px solid var(--line); padding: 4px; border-radius: 12px; }
 .aba { border: 0; background: transparent; padding: 9px 14px; border-radius: 9px; font-weight: 600; cursor: pointer; white-space: nowrap; color: var(--muted); flex: 1 0 auto; }
 .aba.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
 .filtros { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
@@ -232,8 +241,13 @@ tr.clicavel:hover td, tr.clicavel:focus td { background: var(--surface-2); }
 .res-lista { display: grid; }
 .res-item { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 36%) 46px; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
 .res-item:first-child { border-top: 0; }
-.res-barra { height: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
-.res-barra i { display: block; height: 100%; border-radius: 99px; }
+.res-barra { position: relative; height: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+.res-barra i { display: block; height: 100%; border-radius: 99px; background: var(--primary); }
+.res-barra b { position: absolute; top: -1px; bottom: -1px; width: 2px; background: var(--ink); opacity: .55; }
+.res-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.res-sub.alerta { color: var(--bad); font-weight: 600; display: flex; gap: 4px; align-items: center; }
+.delta { font-size: 12.5px; font-weight: 700; margin-left: 6px; white-space: nowrap; }
+.delta.sobe { color: var(--ok); } .delta.desce { color: var(--bad); }
 .res-v { font: 700 19px/1 var(--font-display); text-align: right; font-variant-numeric: tabular-nums; }
 @media (max-width: 560px) { .res-item { grid-template-columns: minmax(0, 1fr) 46px; row-gap: 6px; } .res-barra { grid-column: 1 / -1; grid-row: 2; } }
 .citacoes { display: grid; gap: 10px; }
@@ -241,6 +255,41 @@ tr.clicavel:hover td, tr.clicavel:focus td { background: var(--surface-2); }
 .lista-simples { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
 .vezes { display: inline-block; margin-left: 8px; font: 700 13px/1 var(--font-display); color: var(--muted); background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; padding: 3px 7px; vertical-align: 1px; }
 .fases { display: flex; gap: 8px; flex-wrap: wrap; }
+.nota-pill.dv-r2, .mapa td.dv-r2 { background: var(--dv-r2); color: var(--dv-r2-ink); }
+.nota-pill.dv-r1, .mapa td.dv-r1 { background: var(--dv-r1); color: var(--dv-r1-ink); }
+.nota-pill.dv-0, .mapa td.dv-0 { background: var(--dv-0); color: var(--dv-0-ink); }
+.nota-pill.dv-b1, .mapa td.dv-b1 { background: var(--dv-b1); color: var(--dv-b1-ink); }
+.nota-pill.dv-b2, .mapa td.dv-b2 { background: var(--dv-b2); color: var(--dv-b2-ink); }
+.nota-pill.dv-vazio { background: var(--surface-2); color: var(--muted); }
+.escala-dv { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 13px; color: var(--muted); align-items: center; }
+.escala-dv span { display: inline-flex; align-items: center; gap: 6px; }
+.escala-dv i { width: 18px; height: 12px; border-radius: 3px; display: inline-block; }
+.mapa table { font-size: 14px; }
+.mapa th.col { text-align: center; padding: 8px 4px; min-width: 40px; }
+.mapa td.cel { text-align: center; font-weight: 700; padding: 8px 4px; border: 2px solid var(--surface); font-variant-numeric: tabular-nums; }
+.mapa td.cel.vazia { color: var(--muted); font-weight: 500; }
+.mapa td.quem { white-space: nowrap; }
+.legenda-itens { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 2px 18px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); font-size: 13.5px; color: var(--muted); }
+.legenda-itens b { color: var(--ink); display: inline-block; min-width: 30px; }
+.resp { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.resp + .resp { margin-top: 8px; }
+.resp > summary { list-style: none; cursor: pointer; display: flex; gap: 10px; align-items: center; padding: 12px 14px; flex-wrap: wrap; }
+.resp > summary::-webkit-details-marker { display: none; }
+.resp > summary::after { content: '+'; margin-left: auto; font: 700 20px/1 var(--font-display); color: var(--muted); }
+.resp[open] > summary::after { content: '–'; }
+.resp > summary .quem { flex: 1 1 200px; min-width: 0; }
+.resp-corpo { padding: 0 14px 14px; display: grid; gap: 12px; }
+.nota-linha { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; align-items: start; padding: 8px 0; border-top: 1px solid var(--line); }
+.nota-linha:first-child { border-top: 0; }
+.nota-q { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; font: 700 16px/1 var(--font-display); color: #fff; }
+.nota-q.n1 { background: var(--n1); } .nota-q.n2 { background: var(--n2); } .nota-q.n3 { background: var(--n3); color: var(--n3-ink); } .nota-q.n4 { background: var(--n4); } .nota-q.n5 { background: var(--n5); }
+.porque-txt { font-size: 14.5px; color: var(--muted); margin-top: 2px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.porque-txt::before { content: 'Por quê: '; font-weight: 700; color: var(--ink); }
+.hero { display: flex; gap: 18px 28px; align-items: center; flex-wrap: wrap; }
+.hero-num { font: 700 64px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.hero-num small { font-size: 22px; color: var(--muted); font-weight: 600; }
+.ag-data { font: 700 17px/1.1 var(--font-display); font-variant-numeric: tabular-nums; min-width: 78px; }
+.ag-data small { display: block; font: 600 12px/1.2 var(--font-body); color: var(--muted); }
 
 /* configurações */
 .linha-config { display: flex; gap: 14px 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
@@ -361,15 +410,35 @@ body.ocupado { cursor: progress; }
     var d = new Date(p[0], p[1] - 1 + m, p[2]);
     return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
   }
-  function corNota(v) {
-    if (v === null || v === undefined) return 'var(--line)';
-    if (v >= 4.5) return 'var(--n5)';
-    if (v >= 3.75) return 'var(--n4)';
-    if (v >= 3) return 'var(--n3)';
-    if (v >= 2) return 'var(--n2)';
-    return 'var(--n1)';
+  function limite() { return (S.home && S.home.limiteMensal) || 3.5; }
+  // Classe da escala divergente: dois degraus abaixo do limite do mensal, cinza logo acima, dois degraus de azul.
+  function classeMedia(v) {
+    if (v === null || v === undefined || v === '' || isNaN(Number(v))) return 'dv-vazio';
+    var m = limite(), x = Number(v);
+    if (x < m - 0.5) return 'dv-r2';
+    if (x < m) return 'dv-r1';
+    if (x < m + 0.5) return 'dv-0';
+    if (x < m + 1) return 'dv-b1';
+    return 'dv-b2';
   }
-  function tintaNota(v) { return v !== null && v !== undefined && v >= 3 && v < 3.75 ? 'var(--n3-ink)' : '#fff'; }
+  function escalaDivergente() {
+    var m = limite();
+    var f = function (x) { return n1(x); };
+    var faixas = [['dv-r2', 'abaixo de ' + f(m - 0.5)], ['dv-r1', f(m - 0.5) + ' a ' + f(m - 0.1)], ['dv-0', f(m) + ' a ' + f(m + 0.4)],
+      ['dv-b1', f(m + 0.5) + ' a ' + f(m + 0.9)], ['dv-b2', f(m + 1) + ' ou mais']];
+    return h('div', { class: 'escala-dv', 'aria-label': 'Legenda das cores' }, faixas.map(function (x) {
+      return h('span', null, h('i', { style: 'background:var(--' + x[0] + ')' }), x[1]);
+    }), h('span', null, 'Limite do acompanhamento mensal: ' + n1(m)));
+  }
+  var DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+  function diaSemana(iso) { var p = String(iso).split('-').map(Number); return DIAS[new Date(p[0], p[1] - 1, p[2]).getDay()]; }
+  function somarDias(iso, n) {
+    var p = iso.split('-').map(Number);
+    var d = new Date(p[0], p[1] - 1, p[2] + n);
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function proximoDiaUtil(iso) { var d = iso; while (/^(domingo|sábado)$/.test(diaSemana(d))) d = somarDias(d, 1); return d; }
+  function faixaCritica(c) { return c <= 1 ? '1' : c === 2 ? '1 e 2' : '1 a ' + c; }
   function mascaraCpf(v) {
     var d = String(v).replace(/\D/g, '').slice(0, 11), o = d.slice(0, 3);
     if (d.length > 3) o += '.' + d.slice(3, 6);
@@ -400,8 +469,8 @@ body.ocupado { cursor: progress; }
   var S = { token: null, home: null, view: 'carregando', login: novoLogin(), adm: { aba: 'painel' } };
   function novoLogin() { return { passo: 1, mat: '', nome: '', utd: '', erro: '', cpf: '' }; }
 
-  // Dentro do Apps Script (e na demonstração) a página fala com o servidor por google.script.run.
-  // Publicada fora dele (GitHub Pages), fala com o mesmo Apps Script pela internet (doPost).
+  // Na demonstração, a página fala com um servidor que roda no próprio navegador (google.script.run simulado).
+  // Publicada no GitHub Pages, fala com a função "feedback" do Supabase pelo endereço do config.js.
   var API_URL = String(window.FB_API_URL || '').trim();
   function temGoogleRun() { return !!(window.google && window.google.script && window.google.script.run); }
   function temServidor() { return temGoogleRun() || !!API_URL; }
@@ -489,7 +558,7 @@ body.ocupado { cursor: progress; }
       h('h1', null, 'Avaliação de liderança'),
       h('section', { class: 'card stack' },
         aviso('warn', 'O aplicativo ainda não está ligado ao servidor, então ainda não dá para entrar.'),
-        h('p', null, 'A coordenação precisa publicar o Apps Script (a parte que guarda as respostas na Planilha Google) e colar o endereço dele no arquivo config.js deste site.'),
+        h('p', null, 'Falta colar o endereço do servidor (a função "feedback" do Supabase) no arquivo config.js deste site.'),
         h('a', { class: 'btn btn-sec', href: 'demo/' }, 'Ver a demonstração')));
   }
 
@@ -533,13 +602,16 @@ body.ocupado { cursor: progress; }
     return h('div', { class: 'campo card' }, h('label', { for: id }, rotulo), h('span', { class: 'ajuda' }, ajuda), ta, cont);
   }
 
-  function itemNota(c, i, notas, escala, aoMudar, obs) {
+  // Item com nota de 1 a 5. Com "porques", mostra o campo "Por quê?": obrigatório nas notas críticas,
+  // aberto nas notas 3 e opcional (atrás de um link) nas notas 4 e 5.
+  function itemNota(c, i, notas, escala, aoMudar, porques, critica) {
     var valor = h('span', { class: 'item-v' }, notas[c.id] ? notas[c.id] + ' · ' + escala[notas[c.id] - 1] : '');
     var grupo = h('div', { class: 'notas', role: 'radiogroup', 'aria-labelledby': 'q-' + c.id });
     var item = h('div', { class: 'item', id: 'item-' + c.id },
       h('div', { class: 'item-top' }, h('span', { class: 'item-n' }, ('0' + (i + 1)).slice(-2)), h('p', { class: 'item-t', id: 'q-' + c.id }, c.texto), valor),
       grupo,
       h('div', { class: 'escala', 'aria-hidden': 'true' }, h('span', null, escala[0]), h('span', null, escala[4])));
+    var ajustar = null;
     [1, 2, 3, 4, 5].forEach(function (v) {
       var b = h('button', { type: 'button', class: 'nota n' + v + (notas[c.id] === v ? ' sel' : ''), role: 'radio', 'aria-checked': notas[c.id] === v ? 'true' : 'false', 'aria-label': v + ', ' + escala[v - 1] }, String(v));
       b.addEventListener('click', function () {
@@ -550,21 +622,31 @@ body.ocupado { cursor: progress; }
         });
         valor.textContent = v + ' · ' + escala[v - 1];
         item.classList.remove('falta');
+        if (ajustar) ajustar();
         aoMudar();
       });
       grupo.appendChild(b);
     });
-    if (obs) {
-      var area = h('textarea', { class: 'input', id: 'obs-' + c.id, rows: '2', maxlength: '500', 'aria-label': 'Observação sobre ' + c.texto, oninput: function (ev) { obs[c.id] = ev.target.value; } });
-      area.value = obs[c.id] || '';
-      if (!obs[c.id]) area.hidden = true;
-      var tog = h('button', { type: 'button', class: 'btn-link obs-toggle' + (obs[c.id] ? '' : ''), onclick: function () {
-        area.hidden = !area.hidden;
-        tog.textContent = area.hidden ? 'Adicionar observação' : 'Ocultar observação';
-        if (!area.hidden) area.focus();
-      } }, obs[c.id] ? 'Ocultar observação' : 'Adicionar observação');
-      item.appendChild(tog);
-      item.appendChild(area);
+    if (porques) {
+      var aberto = !!porques[c.id];
+      var rot = h('label', { for: 'pq-' + c.id });
+      var area = h('textarea', { class: 'input', id: 'pq-' + c.id, rows: '2', maxlength: '500', oninput: function (ev) { porques[c.id] = ev.target.value; item.classList.remove('falta'); } });
+      area.value = porques[c.id] || '';
+      var caixa = h('div', { class: 'porque' }, rot, area);
+      var link = h('button', { type: 'button', class: 'btn-link obs-toggle', onclick: function () { aberto = true; ajustar(); area.focus(); } }, 'Explicar o porquê (opcional)');
+      ajustar = function () {
+        var v = notas[c.id];
+        var obrig = !!(critica > 0 && v && v <= critica);
+        var mostrar = !!v && (obrig || v <= 3 || aberto || !!porques[c.id]);
+        caixa.hidden = !mostrar;
+        link.hidden = !v || mostrar;
+        caixa.classList.toggle('obrig', obrig);
+        rot.textContent = obrig ? 'Por quê? Obrigatório para nota ' + v : 'Por quê? (opcional)';
+        area.placeholder = obrig ? 'Conte o que aconteceu para dar essa nota.' : 'Um exemplo ajuda na conversa de feedback.';
+      };
+      ajustar();
+      item.appendChild(link);
+      item.appendChild(caixa);
     }
     return item;
   }
@@ -576,6 +658,29 @@ body.ocupado { cursor: progress; }
       toast('Falta' + (falta.length === 1 ? ' 1 item' : 'm ' + falta.length + ' itens') + ' sem nota.', 'erro');
     }
     return falta.length;
+  }
+  // Notas críticas (1 e 2, por padrão) precisam do "por quê".
+  function faltaPorque(criterios, notas, porques, critica) {
+    if (!(critica > 0)) return 0;
+    var sem = criterios.filter(function (c) { return notas[c.id] && notas[c.id] <= critica && String(porques[c.id] || '').trim().length < 3; });
+    sem.forEach(function (c) { var el = document.getElementById('item-' + c.id); if (el) el.classList.add('falta'); });
+    if (sem.length) {
+      rolarAte(document.getElementById('item-' + sem[0].id));
+      var ta = document.getElementById('pq-' + sem[0].id);
+      if (ta) setTimeout(function () { ta.focus({ preventScroll: true }); }, 350);
+      toast('Explique o porquê das notas ' + faixaCritica(critica) + (sem.length > 1 ? ' (' + sem.length + ' itens).' : '.'), 'erro');
+    }
+    return sem.length;
+  }
+  // Erro do servidor que aponta um item (sem nota ou sem o porquê): destaca o item.
+  function marcarCampo(e) {
+    if (!e || !e.campo) return;
+    var el = document.getElementById('item-' + e.campo);
+    if (!el) return;
+    el.classList.add('falta');
+    rolarAte(el);
+    var ta = document.getElementById('pq-' + e.campo);
+    if (ta && e.code === 'JUSTIFICAR') { var cx = ta.parentNode; if (cx) cx.hidden = false; setTimeout(function () { ta.focus({ preventScroll: true }); }, 350); }
   }
 
   function modal(titulo, corpo, acoes, largo) {
@@ -642,7 +747,7 @@ body.ocupado { cursor: progress; }
     return h('div', { class: 'login-wrap' },
       h('div', { class: 'stack', style: 'gap:8px' },
         h('h1', null, 'Avaliação de liderança'),
-        h('p', { class: 'muted' }, 'Entre com sua matrícula e seu CPF. A avaliação que você faz do seu líder é anônima.')),
+        h('p', { class: 'muted' }, 'Entre com sua matrícula e seu CPF para avaliar o seu líder e ver o seu feedback.')),
       h('section', { class: 'card stack', 'aria-label': 'Entrar' },
         h('div', { class: 'passos', 'aria-hidden': 'true' }, [1, 2, 3].map(function (n) { return h('span', { class: n <= L.passo ? 'on' : '' }); })),
         conteudo,
@@ -706,6 +811,36 @@ body.ocupado { cursor: progress; }
     setTimeout(function () { inp.focus(); }, 0);
     return form;
   }
+  // Primeiro acesso da coordenação, com o código gerado no banco. Abre pelo endereço com #configurar.
+  function vConfigurar() {
+    var codigo = h('input', { class: 'input', id: 'cfgCodigo', autocomplete: 'off', maxlength: '20', style: 'text-transform:uppercase' });
+    var mat = h('input', { class: 'input', id: 'cfgMat', inputmode: 'numeric', autocomplete: 'off', maxlength: '12' });
+    var nome = h('input', { class: 'input', id: 'cfgNome', autocomplete: 'off', maxlength: '120' });
+    var cpf = h('input', { class: 'input', id: 'cfgCpf', type: 'password', inputmode: 'numeric', autocomplete: 'off', placeholder: '000.000.000-00' });
+    cpf.addEventListener('input', function () { cpf.value = mascaraCpf(cpf.value); });
+    var btn = h('button', { class: 'btn btn-primario btn-bloco', type: 'submit' }, 'Criar acesso da coordenação');
+    var form = h('form', { class: 'card stack', novalidate: true },
+      aviso('info', 'Use só uma vez, para criar o primeiro acesso da coordenação. Depois disso, este formulário deixa de funcionar e o resto das pessoas é cadastrado pelo painel.'),
+      campo('cfgCodigo', 'Código de configuração', codigo, 'Recebido de quem configurou o sistema.'),
+      campo('cfgMat', 'Sua matrícula', mat),
+      campo('cfgNome', 'Seu nome completo', nome, 'Igual ao da coluna Liderança da base, para seus liderados ficarem ligados a você.'),
+      campo('cfgCpf', 'Seu CPF (vai ser a sua senha)', cpf),
+      btn,
+      h('button', { type: 'button', class: 'btn-link', onclick: function () { try { history.replaceState(null, '', location.pathname); } catch (e) { location.hash = ''; } S.login = novoLogin(); ir('login'); } }, 'Voltar para a entrada'));
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      btn.disabled = true;
+      chamar('configurarCoordenacao', { codigo: codigo.value, mat: mat.value, nome: nome.value, cpf: cpf.value.replace(/\D/g, '') }).then(function (d) {
+        try { history.replaceState(null, '', location.pathname); } catch (e) { location.hash = ''; }
+        S.login = novoLogin();
+        ir('login');
+        toast('Acesso de coordenação criado para ' + d.nome + '. Agora entre com sua matrícula e CPF.');
+      }).catch(function (e) { btn.disabled = false; falha(e); });
+    });
+    setTimeout(function () { codigo.focus(); }, 0);
+    return h('div', { class: 'login-wrap' }, h('h1', null, 'Primeiro acesso da coordenação'), form);
+  }
+
   function acessosDemo() {
     var lista = window.FB_DEMO_ACESSOS || [];
     return h('section', { class: 'card stack' },
@@ -727,9 +862,9 @@ body.ocupado { cursor: progress; }
   function abrirInicio() { chamar('home').then(function (d) { S.home = d; ir('inicio'); }).catch(falha); }
   function vInicio() {
     var H = S.home, cards = [];
-    if (H.meuLider) cards.push(cardMeuLider(H));
+    if (H.meuLider) { cards.push(cardMeuLider(H)); cards.push(cardMeuFeedback(H)); }
     else if (!H.eu.admin && !H.equipe) cards.push(h('div', { class: 'card' }, aviso('warn', 'Não encontramos o seu líder no cadastro. Procure o RH.')));
-    if (H.equipe) { cards.push(cardLiderados(H)); cards.push(cardEquipe(H)); cards.push(cardResultado()); }
+    if (H.equipe) { cards.push(cardLiderados(H)); cards.push(cardCronograma(H)); cards.push(cardEquipe(H)); cards.push(cardResultado(H)); }
     if (H.eu.admin) cards.push(cardGestao(H));
     var papel = H.eu.perfil === 'COORDENACAO' ? 'Coordenação' : H.eu.perfil === 'RH' ? 'RH' : H.eu.lider ? 'Líder' : 'Colaborador';
     return h('div', { class: 'stack' },
@@ -746,10 +881,25 @@ body.ocupado { cursor: progress; }
       h('h2', null, 'Avaliar meu líder'),
       h('p', { class: 'nome' }, H.meuLider.nome),
       h('p', { class: 'muted small' }, H.meuLider.coordenacao
-        ? 'Notas de 1 a 5, 3 pontos fortes, 3 pontos fracos e considerações finais.'
-        : 'Notas de 1 a 5 e considerações finais. Leva uns 3 minutos.'),
+        ? 'Notas de 1 a 5 com o porquê, 3 pontos fortes, 3 pontos fracos e considerações finais.'
+        : 'Notas de 1 a 5 com o porquê e considerações finais. Leva uns 5 minutos.'),
       pend ? h('button', { class: 'btn btn-primario', type: 'button', onclick: abrirFormLider }, 'Começar avaliação')
-        : h('p', { class: 'muted small' }, H.avaliouLider ? 'Obrigado! Sua resposta foi registrada sem identificação.' : 'A avaliação do líder não está aberta agora.'));
+        : h('p', { class: 'muted small' }, H.avaliouLider ? 'Obrigado! Sua avaliação foi registrada.' : 'A avaliação do líder não está aberta agora.'));
+  }
+  function cardMeuFeedback(H) {
+    var M = H.meuFeedback || { status: 'AGUARDANDO' };
+    var disp = M.status === 'DISPONIVEL';
+    var chipEl = disp ? (M.ciencia ? chip('ok', 'Conversa confirmada') : chip('warn', 'Confirme a conversa'))
+      : M.status === 'MARCADO' ? chip('info', 'Disponível em ' + dataBR(M.data)) : chip('', 'Aguardando o líder');
+    var texto = disp ? 'Suas notas, o porquê de cada uma, o que vocês combinaram e se o seu acompanhamento é mensal ou semestral.'
+      : M.status === 'MARCADO' ? 'Seu líder já registrou. Aparece aqui a partir de ' + dataBR(M.data) + ', dia da conversa com você.'
+        : 'Seu líder ainda não registrou o seu feedback deste ciclo.';
+    return h('section', { class: 'card card-acao' + (disp && !M.ciencia ? ' destaque' : '') },
+      h('div', { class: 'card-cab' }, h('span', { class: 'rotulo' }, 'Líder x Liderado'), chipEl),
+      h('h2', null, 'Meu feedback'),
+      h('p', { class: 'muted small' }, texto),
+      H.proximoEncontro ? h('p', { class: 'small' }, h('b', null, 'Próxima conversa: '), dataBR(H.proximoEncontro.data) + ' (' + diaSemana(H.proximoEncontro.data) + ')') : null,
+      h('button', { class: 'btn ' + (disp ? 'btn-primario' : 'btn-sec'), type: 'button', onclick: function () { abrirMeuFeedback(); } }, disp ? 'Ver meu feedback' : 'Ver histórico'));
   }
   function cardEquipe(H) {
     var e = H.equipe;
@@ -757,7 +907,7 @@ body.ocupado { cursor: progress; }
       h('div', { class: 'card-cab' }, h('span', { class: 'rotulo' }, 'Minha equipe'), H.fases.up === 'ABERTA' ? chip('info', 'Avaliação do líder aberta') : chip('', 'Avaliação do líder fechada')),
       h('h2', null, e.responderam + ' de ' + e.total + ' avaliaram você'),
       barra(e.responderam, e.total, true),
-      h('p', { class: 'muted small' }, 'Você vê quem já respondeu, nunca as notas de cada pessoa.'),
+      h('p', { class: 'muted small' }, 'Veja quem já respondeu e cobre quem falta.'),
       h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { abrirEquipe('fase1'); } }, 'Ver quem respondeu'));
   }
   function cardLiderados(H) {
@@ -771,18 +921,27 @@ body.ocupado { cursor: progress; }
       aberta ? h('button', { class: 'btn ' + (falta ? 'btn-primario' : 'btn-sec'), type: 'button', onclick: function () { abrirEquipe('fase2'); } }, e.avaliados ? 'Continuar avaliações' : 'Começar avaliações')
         : h('p', { class: 'muted small' }, 'A coordenação abre esta etapa depois da avaliação dos líderes.'));
   }
+  function cardCronograma(H) {
+    var e = H.equipe;
+    return h('section', { class: 'card card-acao' + (e.atrasados ? ' destaque' : '') },
+      h('div', { class: 'card-cab' }, h('span', { class: 'rotulo' }, 'Cronograma de feedback'),
+        e.atrasados ? chip('bad', plural(e.atrasados, 'atrasado', 'atrasados')) : e.semData ? chip('warn', plural(e.semData, 'sem data', 'sem data')) : chip('ok', 'Em dia')),
+      h('h2', null, e.proximos7 ? plural(e.proximos7, 'conversa', 'conversas') + ' nos próximos 7 dias' : 'Nenhuma conversa nos próximos 7 dias'),
+      h('p', { class: 'muted small' }, 'Marque o dia do feedback de cada liderado. O sistema sugere datas e os acompanhamentos mensais.'),
+      h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { abrirEquipe('agenda'); } }, 'Abrir cronograma'));
+  }
   function cardResultado() {
     return h('section', { class: 'card card-acao' },
       h('div', { class: 'card-cab' }, h('span', { class: 'rotulo' }, 'Resultado')),
       h('h2', null, 'Como a equipe me avaliou'),
-      h('p', { class: 'muted small' }, 'Média por item e comentários, sem identificação. Aparece quando a coordenação libera.'),
+      h('p', { class: 'muted small' }, 'Média por item e a avaliação de cada pessoa, com o porquê das notas. Aparece quando a coordenação libera.'),
       h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { abrirResultados(); } }, 'Ver resultado'));
   }
   function cardGestao(H) {
     return h('section', { class: 'card card-acao' },
       h('div', { class: 'card-cab' }, h('span', { class: 'rotulo' }, H.eu.perfil === 'RH' ? 'RH' : 'Coordenação')),
       h('h2', null, 'Painel de gestão'),
-      h('p', { class: 'muted small' }, 'Participação por líder, resultados, cadastro, importação da base e abertura das fases.'),
+      h('p', { class: 'muted small' }, 'Participação, resultados, cronograma, análises para o RH, cadastro e abertura das fases.'),
       h('button', { class: 'btn btn-primario', type: 'button', onclick: function () { abrirAdmin('painel'); } }, 'Abrir painel'));
   }
 
@@ -790,7 +949,7 @@ body.ocupado { cursor: progress; }
   function abrirFormLider() {
     chamar('formLider').then(function (d) {
       S.fl = d;
-      S.rl = { notas: {}, fortes: ['', '', ''], fracos: ['', '', ''], consideracoes: '' };
+      S.rl = { notas: {}, porques: {}, fortes: ['', '', ''], fracos: ['', '', ''], consideracoes: '' };
       ir('formLider');
     }).catch(falha);
   }
@@ -812,10 +971,10 @@ body.ocupado { cursor: progress; }
     return h('div', { class: 'stack' },
       botaoVoltar(),
       h('div', { class: 'stack', style: 'gap:6px' }, h('span', { class: 'rotulo' }, 'Liderado x Líder · ' + F.cicloRotulo), h('h1', null, 'Avaliação de ' + F.lider.nome)),
-      aviso('info', 'Sua avaliação é anônima. ' + primeiro(F.lider.nome) + ' vê só que você respondeu, nunca as suas notas ou comentários. O resultado aparece agrupado, com no mínimo ' + plural(F.minimo, 'resposta', 'respostas') + ', depois que a avaliação encerrar.', 'cadeado'),
+      aviso('info', primeiro(F.lider.nome) + ' vai ver a sua avaliação com o seu nome, para conversar com você no feedback. Seja sincero e respeitoso e explique o porquê das notas. Nota ' + faixaCritica(F.notaCritica) + ' precisa do porquê.'),
       legenda(F.escala),
       prog,
-      h('div', { class: 'stack', style: 'gap:12px' }, F.criterios.map(function (c, i) { return itemNota(c, i, R.notas, F.escala, atualizar); })),
+      h('div', { class: 'stack', style: 'gap:12px' }, F.criterios.map(function (c, i) { return itemNota(c, i, R.notas, F.escala, atualizar, R.porques, F.notaCritica); })),
       F.extras ? blocoExtras(R) : null,
       campoTexto('cons', 'Considerações finais', 'Opcional. O que a liderança deve manter, o que deve mudar, sugestões.', R.consideracoes, 1500, function (v) { R.consideracoes = v; }),
       enviar);
@@ -841,6 +1000,7 @@ body.ocupado { cursor: progress; }
   function enviarLider(btn) {
     var F = S.fl, R = S.rl;
     if (marcarFaltando(F.criterios, R.notas)) return;
+    if (faltaPorque(F.criterios, R.notas, R.porques, F.notaCritica)) return;
     if (F.extras) {
       var fo = R.fortes.filter(function (x) { return x.trim(); }).length;
       var fr = R.fracos.filter(function (x) { return x.trim(); }).length;
@@ -852,21 +1012,21 @@ body.ocupado { cursor: progress; }
         return;
       }
     }
-    confirmar('Enviar avaliação?', 'Depois de enviada, a avaliação não pode ser alterada. Ela é gravada sem o seu nome.', 'Enviar', function () {
+    confirmar('Enviar avaliação?', 'Depois de enviada, a avaliação não pode ser alterada. ' + primeiro(F.lider.nome) + ' vai ver as suas notas e o porquê quando a coordenação liberar o resultado.', 'Enviar', function () {
       btn.disabled = true;
-      chamar('enviarLider', { notas: R.notas, fortes: R.fortes, fracos: R.fracos, consideracoes: R.consideracoes }).then(function () {
+      chamar('enviarLider', { notas: R.notas, porques: R.porques, fortes: R.fortes, fracos: R.fracos, consideracoes: R.consideracoes }).then(function () {
         S.home.avaliouLider = true;
         S.home.avaliouLiderEm = hojeISO();
         ir('obrigado');
-      }).catch(function (e) { btn.disabled = false; falha(e); });
+      }).catch(function (e) { btn.disabled = false; falha(e); marcarCampo(e); });
     });
   }
   function vObrigado() {
     return h('section', { class: 'card stack centro' },
       h('div', { class: 'selo-ok' }, ico('check', 34)),
       h('h1', null, 'Avaliação enviada'),
-      h('p', null, 'Obrigado, ' + S.home.eu.primeiroNome + '. Sua resposta foi registrada sem identificação.'),
-      h('p', { class: 'muted small' }, 'O líder só vê o resultado agrupado, depois que a avaliação encerrar.'),
+      h('p', null, 'Obrigado, ' + S.home.eu.primeiroNome + '. Sua avaliação foi registrada.'),
+      h('p', { class: 'muted small' }, 'O seu líder vê as respostas da equipe quando a coordenação liberar o resultado do ciclo, para conversar com cada um no feedback.'),
       h('button', { class: 'btn btn-primario', type: 'button', onclick: abrirInicio }, 'Voltar ao início'));
   }
 
@@ -877,10 +1037,32 @@ body.ocupado { cursor: progress; }
       ir('equipe');
     }).catch(falha);
   }
+  function recarregarEquipe() {
+    return chamar('equipe').then(function (d) { S.eq = d; if (S.view === 'equipe') render(); }).catch(falha);
+  }
   function vEquipe() {
-    var E = S.eq, aba = S.eqAba, pessoas = E.pessoas;
+    var E = S.eq, aba = S.eqAba;
+    var trocar = function (id) { return function () { S.eqAba = id; S.eqFiltro = 'todos'; render(); }; };
+    var corpo = aba === 'agenda' ? equipeAgenda(E) : aba === 'painel' ? equipePainel(E) : equipeLista(E, aba);
+    return h('div', { class: 'stack' },
+      botaoVoltar(),
+      h('h1', null, 'Minha equipe'),
+      h('div', { class: 'abas', role: 'tablist' },
+        abaBtn('fase1', 'Quem avaliou você', aba, trocar('fase1')),
+        abaBtn('fase2', 'Avaliar liderados', aba, trocar('fase2')),
+        abaBtn('agenda', 'Cronograma', aba, trocar('agenda')),
+        abaBtn('painel', 'Painel da equipe', aba, trocar('painel'))),
+      corpo);
+  }
+  function chipFrequencia(f) {
+    if (!f) return null;
+    return f.tipo === 'MENSAL' ? chip('warn', 'Mensal') : chip('ok', 'Semestral');
+  }
+  function equipeLista(E, aba) {
+    var pessoas = E.pessoas;
     var campoStatus = aba === 'fase1' ? 'respondeu' : 'avaliado';
     var feitos = pessoas.filter(function (p) { return p[campoStatus]; }).length;
+    var mensais = pessoas.filter(function (p) { return p.frequencia && p.frequencia.tipo === 'MENSAL'; }).length;
     var listaEl = h('div', { class: 'lista' });
     function desenhar() {
       limpar(listaEl);
@@ -888,6 +1070,7 @@ body.ocupado { cursor: progress; }
       var vis = pessoas.filter(function (p) {
         if (S.eqFiltro === 'pendentes' && p[campoStatus]) return false;
         if (S.eqFiltro === 'feitos' && !p[campoStatus]) return false;
+        if (S.eqFiltro === 'mensal' && !(p.frequencia && p.frequencia.tipo === 'MENSAL')) return false;
         return !q || normalizar(p.nome).indexOf(q) >= 0 || p.mat.indexOf(q) >= 0;
       });
       if (!vis.length) { listaEl.appendChild(h('p', { class: 'vazio' }, 'Ninguém nesta lista.')); return; }
@@ -896,20 +1079,18 @@ body.ocupado { cursor: progress; }
     desenhar();
     var filtros = [['todos', 'Todos (' + pessoas.length + ')'], ['pendentes', 'Pendentes (' + (pessoas.length - feitos) + ')'],
       ['feitos', (aba === 'fase1' ? 'Responderam' : 'Avaliados') + ' (' + feitos + ')']];
+    if (aba === 'fase2' && mensais) filtros.push(['mensal', 'Mensal (' + mensais + ')']);
     var busca = h('input', { class: 'input', type: 'search', placeholder: 'Buscar por nome ou matrícula', 'aria-label': 'Buscar na equipe', value: S.eqBusca || '' });
     busca.addEventListener('input', function () { S.eqBusca = busca.value; desenhar(); });
     var resumo = aba === 'fase1'
       ? [h('h2', null, feitos + ' de ' + pessoas.length + ' avaliaram você'), barra(feitos, pessoas.length, true),
-        aviso('info', 'Você vê só quem já respondeu. Notas e comentários são anônimos e aparecem agrupados no seu resultado, quando a coordenação liberar.', 'cadeado')]
+        aviso('info', E.resultadoLiberado ? 'O resultado deste ciclo está liberado: veja as notas e o porquê de cada pessoa em "Como a equipe me avaliou".'
+          : 'Aqui você vê quem já respondeu. As notas e o porquê de cada pessoa aparecem em "Como a equipe me avaliou" quando a coordenação liberar o resultado.')]
       : [h('h2', null, feitos + ' de ' + pessoas.length + ' liderados avaliados'), barra(feitos, pessoas.length, true),
-        E.fases.down !== 'ABERTA' ? aviso('warn', 'A coordenação ainda não abriu a avaliação dos liderados. Quando abrir, os botões de avaliar aparecem aqui.') : null];
+        E.fases.down !== 'ABERTA' ? aviso('warn', 'A coordenação ainda não abriu a avaliação dos liderados. Quando abrir, os botões de avaliar aparecem aqui.')
+          : h('p', { class: 'muted small' }, 'Registre a avaliação no dia da conversa presencial. O liderado vê o feedback a partir da data informada e confirma que conversou com você.')];
     var pend = pessoas.filter(function (p) { return !p.respondeu; });
     return h('div', { class: 'stack' },
-      botaoVoltar(),
-      h('h1', null, 'Minha equipe'),
-      h('div', { class: 'abas', role: 'tablist' },
-        abaBtn('fase1', 'Quem avaliou você', aba, function () { S.eqAba = 'fase1'; S.eqFiltro = 'todos'; render(); }),
-        abaBtn('fase2', 'Avaliar liderados', aba, function () { S.eqAba = 'fase2'; S.eqFiltro = 'todos'; render(); })),
       resumo,
       h('div', { class: 'filtros' },
         h('div', { class: 'chips-filtro' }, filtros.map(function (f) {
@@ -927,10 +1108,13 @@ body.ocupado { cursor: progress; }
     else {
       var aberta = E.fases.down === 'ABERTA';
       dir = [p.avaliado ? chip('ok', 'Avaliado · ' + n1(p.media)) : chip('warn', 'A avaliar'),
+        chipFrequencia(p.frequencia),
+        p.avaliado ? (p.ciencia ? chip('info', 'Ciente') : null) : null,
         aberta ? h('button', { class: 'btn btn-sm ' + (p.avaliado ? 'btn-sec' : 'btn-primario'), type: 'button', onclick: function () { abrirFormLiderado(p.mat); } }, p.avaliado ? 'Editar' : 'Avaliar') : null];
     }
     return h('div', { class: 'linha-pessoa' },
-      h('div', { class: 'quem' }, h('div', { class: 'nome' }, p.nome), h('div', { class: 'sub' }, 'Mat. ' + p.mat + ' · ' + p.cc)),
+      h('div', { class: 'quem' }, h('div', { class: 'nome' }, p.nome, p.lider ? h('span', { class: 'chip info', style: 'margin-left:8px' }, 'Líder') : null),
+        h('div', { class: 'sub' }, 'Mat. ' + p.mat + (p.cc ? ' · ' + p.cc : ''))),
       h('div', { class: 'dir' }, dir));
   }
   function textoPendentes(grupos, cicloRotulo) {
@@ -940,8 +1124,192 @@ body.ocupado { cursor: progress; }
       g.pessoas.forEach(function (p) { linhas.push('• ' + p.nome + ' (' + p.mat + ')'); });
       linhas.push('');
     });
-    linhas.push('Ainda faltam responder. Entre no link com matrícula e CPF. Leva uns 3 minutos e é anônimo.');
+    linhas.push('Ainda faltam responder. Entre no link com matrícula e CPF. Leva uns 5 minutos.');
     return linhas.join('\n');
+  }
+
+  // ---- cronograma do líder
+  var TIPO_AG = { FEEDBACK: 'Feedback', ACOMPANHAMENTO: 'Acompanhamento mensal' };
+  function chipAgenda(a) {
+    if (a.status === 'REALIZADO') return chip('ok', 'Feito' + (a.realizadoEm ? ' em ' + dataBR(a.realizadoEm) : ''));
+    if (a.status === 'CANCELADO') return chip('', 'Cancelado');
+    return a.atrasado ? chip('bad', 'Atrasado') : chip('info', 'Marcado');
+  }
+  function maiuscula(t) { return t ? t.charAt(0).toUpperCase() + t.slice(1) : t; }
+  function dataCelula(iso, rotulo) {
+    return h('div', { class: 'ag-data' }, iso ? dataBR(iso).slice(0, 5) : '—', h('small', null, rotulo || (iso ? maiuscula(diaSemana(iso)) : 'Sem data')));
+  }
+  function equipeAgenda(E) {
+    var hoje = E.hoje, em7 = somarDias(hoje, 7);
+    var itens = [];
+    E.pessoas.forEach(function (p) { p.agenda.forEach(function (a) { itens.push(a); }); });
+    var marcados = itens.filter(function (a) { return a.status === 'AGENDADO'; });
+    var atrasados = marcados.filter(function (a) { return a.atrasado; }).length;
+    var prox7 = marcados.filter(function (a) { return a.data >= hoje && a.data <= em7; }).length;
+    var feitos = E.pessoas.filter(function (p) { return p.agenda.some(function (a) { return a.tipo === 'FEEDBACK' && a.status === 'REALIZADO'; }); }).length;
+    var semData = E.pessoas.filter(function (p) { return !p.agenda.some(function (a) { return a.tipo === 'FEEDBACK'; }); }).length;
+    var ordenadas = E.pessoas.slice().sort(function (a, b) {
+      var da = a.proximo ? a.proximo.data : '9999', db = b.proximo ? b.proximo.data : '9999';
+      return da < db ? -1 : da > db ? 1 : (a.nome < b.nome ? -1 : 1);
+    });
+    return h('div', { class: 'stack' },
+      h('div', { class: 'kpis' },
+        kpi(feitos + ' de ' + E.pessoas.length, 'já tiveram a conversa de feedback'),
+        kpi(String(prox7), 'conversas marcadas para os próximos 7 dias'),
+        kpi(String(atrasados), atrasados === 1 ? 'conversa atrasada' : 'conversas atrasadas', atrasados ? 'var(--bad)' : null),
+        kpi(String(semData), 'liderados sem data de feedback', semData ? 'var(--warn)' : null)),
+      h('div', { class: 'linha-botoes' },
+        h('button', { class: 'btn ' + (semData ? 'btn-primario' : 'btn-sec'), type: 'button', onclick: function () { modalSugerirDatas(E); } }, 'Sugerir datas'),
+        marcados.length ? h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { copiarComAviso(textoCronograma(E, marcados), 'Cronograma copiado. Cole no grupo da equipe.'); } }, ico('copiar', 18), 'Copiar próximas conversas') : null),
+      h('p', { class: 'muted small' }, 'Quem ficou com acompanhamento mensal ganha uma conversa por mês depois do feedback. Ao registrar a avaliação no dia da conversa, o feedback é marcado como feito.'),
+      h('div', { class: 'lista' }, ordenadas.map(function (p) {
+        var prox = p.proximo, itemProx = prox ? p.agenda.filter(function (a) { return a.id === prox.id; })[0] : null;
+        var feito = p.agenda.filter(function (a) { return a.tipo === 'FEEDBACK' && a.status === 'REALIZADO'; })[0];
+        var acoes = [];
+        if (itemProx) {
+          acoes.push(h('button', { class: 'btn btn-primario btn-sm', type: 'button', onclick: function () { concluirEncontro(p, itemProx); } }, 'Feito'));
+          acoes.push(h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () { modalEncontro(p, itemProx); } }, 'Remarcar'));
+        } else {
+          acoes.push(h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () { modalEncontro(p, null); } }, 'Marcar data'));
+        }
+        if (p.agenda.length) acoes.push(h('button', { class: 'btn-link', type: 'button', onclick: function () { modalHistoricoAgenda(p); } }, 'Ver tudo'));
+        return h('div', { class: 'linha-pessoa' },
+          prox ? dataCelula(prox.data) : feito ? dataCelula(feito.realizadoEm || feito.data, 'Feito') : dataCelula(''),
+          h('div', { class: 'quem' }, h('div', { class: 'nome' }, p.nome),
+            h('div', { class: 'sub' }, [prox ? TIPO_AG[prox.tipo] : (feito ? 'Feedback feito em ' + dataBR(feito.realizadoEm || feito.data) : 'Sem conversa marcada'),
+              p.realizados ? plural(p.realizados, 'conversa feita', 'conversas feitas') : null].filter(Boolean).join(' · '))),
+          h('div', { class: 'dir' }, itemProx ? chipAgenda(itemProx) : (feito ? null : chip('warn', 'Sem data')), chipFrequencia(p.frequencia), acoes));
+      })));
+  }
+  function textoCronograma(E, marcados) {
+    var nomes = {};
+    E.pessoas.forEach(function (p) { nomes[p.mat] = p.nome; });
+    var lista = marcados.filter(function (a) { return a.data >= E.hoje; }).sort(function (a, b) { return a.data < b.data ? -1 : 1; }).slice(0, 40);
+    var linhas = ['*Cronograma de feedback · ' + E.cicloRotulo + '*', ''];
+    lista.forEach(function (a) { linhas.push('• ' + dataBR(a.data).slice(0, 5) + ' (' + diaSemana(a.data) + ') · ' + nomes[a.liderado] + ' · ' + TIPO_AG[a.tipo]); });
+    linhas.push('', 'A conversa é individual e presencial. Se não puder no dia, me avise para remarcar.');
+    return linhas.join('\n');
+  }
+  function salvarEncontro(dados, msg, m) {
+    return chamar('salvarAgenda', dados).then(function () {
+      if (m) m.fechar();
+      toast(msg);
+      return recarregarEquipe();
+    }).catch(falha);
+  }
+  function modalEncontro(p, item) {
+    var E = S.eq;
+    var data = h('input', { class: 'input', type: 'date', id: 'agData', value: item ? item.data : proximoDiaUtil(somarDias(E.hoje, 1)) });
+    var tipo = h('select', { class: 'input', id: 'agTipo' }, [['FEEDBACK', 'Feedback'], ['ACOMPANHAMENTO', 'Acompanhamento mensal']].map(function (o) {
+      return h('option', { value: o[0], selected: (item ? item.tipo : (p.avaliado ? 'ACOMPANHAMENTO' : 'FEEDBACK')) === o[0] }, o[1]);
+    }));
+    var obs = h('input', { class: 'input', id: 'agObs', maxlength: '300', value: item ? item.obs : '', placeholder: 'Ex.: na base de Irecê, depois da saída das equipes' });
+    var salvar = h('button', { class: 'btn btn-primario', type: 'button' }, item ? 'Salvar nova data' : 'Marcar');
+    var acoes = [h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { m.fechar(); } }, 'Voltar')];
+    if (item) acoes.unshift(h('button', { class: 'btn btn-sec', type: 'button', onclick: function () {
+      salvarEncontro({ id: item.id, liderado: p.mat, data: item.data, tipo: item.tipo, status: 'CANCELADO', obs: obs.value }, 'Conversa cancelada.', m);
+    } }, 'Cancelar conversa'));
+    acoes.push(salvar);
+    var m = modal((item ? 'Remarcar conversa · ' : 'Marcar conversa · ') + primeiro(p.nome), [
+      h('p', { class: 'muted' }, p.nome + ' · matrícula ' + p.mat),
+      h('div', { class: 'grade-2' }, campo('agData', 'Dia', data), campo('agTipo', 'Tipo', tipo)),
+      campo('agObs', 'Observação (opcional)', obs)
+    ], acoes);
+    salvar.addEventListener('click', function () {
+      if (!data.value) { toast('Escolha o dia.', 'erro'); return; }
+      salvar.disabled = true;
+      salvarEncontro({ id: item ? item.id : '', liderado: p.mat, data: data.value, tipo: tipo.value, status: 'AGENDADO', obs: obs.value },
+        (item ? 'Conversa remarcada para ' : 'Conversa marcada para ') + dataBR(data.value) + '.', m).then(function () { salvar.disabled = false; });
+    });
+  }
+  function concluirEncontro(p, item) {
+    var E = S.eq;
+    if (item.tipo === 'FEEDBACK' && !p.avaliado && E.fases.down === 'ABERTA') {
+      confirmar('Registrar o feedback de ' + primeiro(p.nome) + '?', 'O feedback fica como feito quando você registra a avaliação com a data da conversa. Vamos abrir a avaliação agora.', 'Abrir avaliação', function () { abrirFormLiderado(p.mat); });
+      return;
+    }
+    var quando = h('input', { class: 'input', type: 'date', id: 'agFeito', value: item.data <= E.hoje ? item.data : E.hoje, max: E.hoje });
+    var obs = h('input', { class: 'input', id: 'agObsF', maxlength: '300', value: item.obs || '', placeholder: 'Ex.: combinamos revisar as rotas na próxima conversa' });
+    var ok = h('button', { class: 'btn btn-primario', type: 'button' }, 'Marcar como feita');
+    var m = modal('Conversa feita · ' + primeiro(p.nome), [
+      h('p', { class: 'muted' }, TIPO_AG[item.tipo] + ' marcado para ' + dataBR(item.data) + '.'),
+      campo('agFeito', 'Dia em que conversaram', quando),
+      campo('agObsF', 'Observação (opcional)', obs)
+    ], [h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { m.fechar(); } }, 'Voltar'), ok]);
+    ok.addEventListener('click', function () {
+      if (!quando.value || quando.value > E.hoje) { toast('Informe um dia até hoje.', 'erro'); return; }
+      ok.disabled = true;
+      salvarEncontro({ id: item.id, liderado: p.mat, data: item.data, tipo: item.tipo, status: 'REALIZADO', realizadoEm: quando.value, obs: obs.value }, 'Conversa registrada como feita.', m)
+        .then(function () { ok.disabled = false; });
+    });
+  }
+  function modalHistoricoAgenda(p) {
+    var m = modal('Conversas · ' + p.nome, [
+      h('div', { class: 'lista' }, p.agenda.slice().sort(function (a, b) { return a.data < b.data ? -1 : 1; }).map(function (a) {
+        return h('div', { class: 'linha-pessoa' }, dataCelula(a.data),
+          h('div', { class: 'quem' }, h('div', { class: 'nome' }, TIPO_AG[a.tipo]), a.obs ? h('div', { class: 'sub' }, a.obs) : null),
+          h('div', { class: 'dir' }, chipAgenda(a),
+            a.status === 'AGENDADO' ? h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () { m.fechar(); modalEncontro(p, a); } }, 'Remarcar') : null));
+      }))
+    ], [h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { m.fechar(); modalEncontro(p, null); } }, ico('mais', 18), 'Marcar outra conversa')], true);
+  }
+  function modalSugerirDatas(E) {
+    var inicio = h('input', { class: 'input', type: 'date', id: 'sgInicio', value: proximoDiaUtil(somarDias(E.hoje, 1)), min: E.hoje });
+    var porDia = h('input', { class: 'input', type: 'number', id: 'sgPorDia', min: '1', max: '20', value: '4' });
+    var ok = h('button', { class: 'btn btn-primario', type: 'button' }, 'Sugerir datas');
+    var m = modal('Sugerir datas', [
+      h('p', null, 'O sistema marca o feedback de quem ainda não tem data, em dias úteis, na ordem alfabética. Para quem ficou com acompanhamento mensal, marca uma conversa por mês depois do feedback.'),
+      h('div', { class: 'grade-2' }, campo('sgInicio', 'Começar em', inicio), campo('sgPorDia', 'Conversas por dia', porDia)),
+      h('p', { class: 'muted small' }, 'Datas já marcadas não mudam. Depois você pode remarcar qualquer uma.')
+    ], [h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { m.fechar(); } }, 'Cancelar'), ok]);
+    ok.addEventListener('click', function () {
+      ok.disabled = true;
+      chamar('gerarAgenda', { inicio: inicio.value, porDia: Number(porDia.value) || 4 }).then(function (r) {
+        m.fechar();
+        toast(r.feedbacks || r.acompanhamentos
+          ? 'Marcados ' + plural(r.feedbacks, 'feedback', 'feedbacks') + ' e ' + plural(r.acompanhamentos, 'acompanhamento', 'acompanhamentos') + '.'
+          : 'Todos já têm data. Nada novo para marcar.');
+        return recarregarEquipe();
+      }).catch(function (e) { ok.disabled = false; falha(e); });
+    });
+  }
+
+  // ---- painel da equipe (médias das avaliações que o líder fez)
+  function barrasItens(itens, sub) {
+    var m = limite();
+    return h('div', { class: 'res-lista' }, itens.map(function (i) {
+      var abaixo = i.media !== null && i.media !== undefined && i.media < m;
+      return h('div', { class: 'res-item' },
+        h('div', null, i.texto, abaixo ? h('div', { class: 'res-sub alerta' }, ico('alerta', 14), 'abaixo de ' + n1(m)) : null, sub ? sub(i) : null),
+        h('div', { class: 'res-barra', role: 'img', title: i.texto + ': ' + n1(i.media) + (i.n ? ' · ' + plural(i.n, 'nota', 'notas') : ''), 'aria-label': i.texto + ': média ' + n1(i.media) + ' de 5' },
+          h('i', { style: 'width:' + (i.media ? i.media / 5 * 100 : 0) + '%' }), h('b', { style: 'left:' + (m / 5 * 100) + '%' })),
+        h('div', { class: 'res-v' }, n1(i.media)));
+    }));
+  }
+  function notaBarras() { return h('p', { class: 'muted small' }, 'Barras de 0 a 5. A linha fina marca o limite do acompanhamento mensal (' + n1(limite()) + ').'); }
+  function separarItens(itens) {
+    var lid = itens.filter(function (i) { return /^LL/.test(i.id); }), out = itens.filter(function (i) { return !/^LL/.test(i.id); });
+    return { lideranca: lid, liderado: out };
+  }
+  function equipePainel(E) {
+    var P = E.painel;
+    if (!P.avaliados) return aviso('info', 'Quando você registrar as avaliações dos liderados, as médias da equipe aparecem aqui.');
+    var grupos = separarItens(P.itens);
+    return h('div', { class: 'stack' },
+      h('div', { class: 'kpis' },
+        kpi(n1(P.media), 'média da equipe nas suas avaliações'),
+        kpi(P.avaliados + ' de ' + E.pessoas.length, 'liderados avaliados'),
+        kpi(String(P.mensal), P.mensal === 1 ? 'com acompanhamento mensal' : 'com acompanhamento mensal', P.mensal ? 'var(--warn)' : null),
+        kpi(String(P.semestral), 'com feedback semestral')),
+      grupos.liderado.length ? h('section', { class: 'card stack' }, h('h2', null, 'Média por item'), barrasItens(grupos.liderado), notaBarras()) : null,
+      grupos.lideranca.length ? h('section', { class: 'card stack' }, h('h2', null, 'Itens de liderança (líderes da sua equipe)'), barrasItens(grupos.lideranca), notaBarras()) : null,
+      h('section', { class: 'card stack' }, h('h2', null, 'Acompanhamento mensal'),
+        P.mensais.length ? h('div', { class: 'lista' }, P.mensais.map(function (x) {
+          return h('div', { class: 'linha-pessoa' }, h('div', { class: 'quem' }, h('div', { class: 'nome' }, x.nome), h('div', { class: 'sub' }, x.motivos.join(' · '))),
+            h('div', { class: 'dir' }, pilulaNota(x.media)));
+        })) : h('p', { class: 'muted' }, 'Ninguém da equipe precisa de acompanhamento mensal até agora.'),
+        h('p', { class: 'muted small' }, 'Vai para o mensal quem tem média abaixo de ' + n1(E.limiteMensal) + ' ou nota ' + faixaCritica(S.home.notaCritica || 2) + ' em algum item. Para líderes, conta também a média que a equipe deu a eles.')),
+      E.resultadoLiberado ? h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { abrirResultados(); } }, 'Ver como a equipe me avaliou') : null);
   }
 
   // ------------------------------------------------------------ Líder x Liderado
@@ -949,9 +1317,11 @@ body.ocupado { cursor: progress; }
     chamar('formLiderado', { mat: mat }).then(function (d) {
       S.fd = d;
       var a = d.atual;
+      var tres = function (l) { l = (l || []).slice(0, 3); while (l.length < 3) l.push(''); return l; };
       S.rd = {
         notas: a ? Object.assign({}, a.notas) : {}, obs: a ? Object.assign({}, a.obs) : {},
-        consideracoes: a ? a.consideracoes : '', dataFeedback: a ? a.dataFeedback : d.hoje, dataReavaliacao: a ? (a.dataReavaliacao || '') : ''
+        fortes: tres(a && a.fortes), fracos: tres(a && a.fracos), plano: tres(a && a.plano),
+        consideracoes: a ? a.consideracoes : '', dataFeedback: a ? a.dataFeedback : d.dataSugerida, dataReavaliacao: a ? (a.dataReavaliacao || '') : ''
       };
       ir('formLiderado');
     }).catch(falha);
@@ -962,8 +1332,11 @@ body.ocupado { cursor: progress; }
     function atualizar() {
       var vals = F.criterios.map(function (c) { return R.notas[c.id]; }).filter(Boolean);
       var m = vals.length ? vals.reduce(function (a, b) { return a + b; }, 0) / vals.length : null;
+      var critica = F.notaCritica > 0 && vals.some(function (v) { return v <= F.notaCritica; });
+      var previsto = vals.length === total ? (m < limite() || critica ? 'acompanhamento mensal' : 'feedback semestral') : '';
       limpar(prog);
-      anexar(prog, [h('div', { class: 'linha' }, h('span', null, vals.length + ' de ' + total + ' itens'), h('span', null, 'Média ', h('b', null, n1(m)))),
+      anexar(prog, [h('div', { class: 'linha' }, h('span', null, vals.length + ' de ' + total + ' itens'),
+        h('span', null, 'Média ', h('b', null, n1(m)), previsto ? ' · ' + previsto : '')),
         barra(vals.length, total, true)]);
     }
     atualizar();
@@ -971,41 +1344,66 @@ body.ocupado { cursor: progress; }
     dataF.addEventListener('input', function () { R.dataFeedback = dataF.value; });
     var dataR = h('input', { class: 'input', type: 'date', id: 'dataR', value: R.dataReavaliacao || '' });
     dataR.addEventListener('input', function () { R.dataReavaliacao = dataR.value; });
-    var atalhos = h('div', { class: 'atalhos' }, [3, 6].map(function (m) {
+    var atalhos = h('div', { class: 'atalhos' }, [1, 3, 6].map(function (m) {
       return h('button', { type: 'button', class: 'filtro', onclick: function () {
         if (!R.dataFeedback) { toast('Preencha antes a data do feedback.', 'erro'); return; }
         R.dataReavaliacao = somarMeses(R.dataFeedback, m); dataR.value = R.dataReavaliacao;
-      } }, '+' + m + ' meses');
+      } }, '+' + m + (m === 1 ? ' mês' : ' meses'));
     }));
     var salvar = h('button', { class: 'btn btn-primario', type: 'button' }, 'Salvar avaliação');
     var proximo = h('button', { class: 'btn btn-sec', type: 'button' }, 'Salvar e ir para o próximo');
     salvar.addEventListener('click', function () { salvarLiderado(false, salvar); });
     proximo.addEventListener('click', function () { salvarLiderado(true, proximo); });
+    var plano = h('fieldset', { class: 'card stack grupo-extra' },
+      h('legend', null, 'Plano combinado'),
+      h('p', { class: 'muted small' }, 'Opcional. Até 3 combinados para a próxima conversa. O liderado vê no feedback dele.'),
+      [0, 1, 2].map(function (i) {
+        var id = 'plano-' + i;
+        return h('div', { class: 'campo-linha' }, h('label', { for: id, class: 'num-extra' }, String(i + 1)),
+          h('input', { class: 'input', id: id, maxlength: '200', value: R.plano[i], placeholder: i === 0 ? 'Ex.: fazer o check-list de EPI antes de cada serviço' : '', 'aria-label': 'Combinado ' + (i + 1), oninput: function (ev) { R.plano[i] = ev.target.value; } }));
+      }));
     return h('div', { class: 'stack' },
       botaoVoltar('Minha equipe', function () { abrirEquipe('fase2'); }),
-      h('div', { class: 'stack', style: 'gap:6px' }, h('span', { class: 'rotulo' }, 'Líder x Liderado · ' + F.cicloRotulo), h('h1', null, P.nome),
+      h('div', { class: 'stack', style: 'gap:6px' }, h('span', { class: 'rotulo' }, (F.lideranca ? 'Avaliação de liderança · ' : 'Líder x Liderado · ') + F.cicloRotulo), h('h1', null, P.nome),
         h('p', { class: 'muted' }, ['Matrícula ' + P.mat, P.cc, P.utd ? 'UTD ' + P.utd : null].filter(Boolean).join(' · '))),
       !aberta ? aviso('warn', 'A avaliação dos liderados está fechada. Você pode consultar, mas não salvar.') : null,
+      F.lideranca ? aviso('info', primeiro(P.nome) + ' lidera uma equipe, então a avaliação usa os itens de liderança e pede 3 pontos fortes e 3 pontos fracos.') : null,
+      F.atual && F.atual.cienciaEm ? aviso('ok', primeiro(P.nome) + ' confirmou a conversa em ' + dataBR(F.atual.cienciaEm) + '. Se você alterar a avaliação, ele precisa confirmar de novo.', 'check') : null,
       h('div', { class: 'card grade-2' },
-        campo('dataF', 'Data do feedback', dataF, 'Dia da conversa com o liderado.'),
+        campo('dataF', 'Data do feedback', dataF, 'Dia da conversa presencial. O liderado vê a avaliação a partir desse dia.'),
         h('div', { class: 'campo' }, h('label', { for: 'dataR' }, 'Data da reavaliação'), dataR, atalhos, h('span', { class: 'ajuda' }, 'Opcional.'))),
       legenda(F.escala),
       prog,
-      h('div', { class: 'stack', style: 'gap:12px' }, F.criterios.map(function (c, i) { return itemNota(c, i, R.notas, F.escala, atualizar, R.obs); })),
-      campoTexto('consD', 'Considerações finais', 'Resumo da conversa, combinados e próximos passos.', R.consideracoes, 1500, function (v) { R.consideracoes = v; }),
+      h('div', { class: 'stack', style: 'gap:12px' }, F.criterios.map(function (c, i) { return itemNota(c, i, R.notas, F.escala, atualizar, R.obs, F.notaCritica); })),
+      F.extras ? blocoExtras(R) : null,
+      plano,
+      campoTexto('consD', 'Considerações finais', 'Resumo da conversa e próximos passos. O liderado vê este texto.', R.consideracoes, 1500, function (v) { R.consideracoes = v; }),
       aberta ? h('div', { class: 'linha-botoes' }, salvar, proximo) : null);
   }
   function salvarLiderado(irProximo, btn) {
     var F = S.fd, R = S.rd;
     if (marcarFaltando(F.criterios, R.notas)) return;
+    if (faltaPorque(F.criterios, R.notas, R.obs, F.notaCritica)) return;
+    if (F.extras) {
+      var fo = R.fortes.filter(function (x) { return x.trim(); }).length;
+      var fr = R.fracos.filter(function (x) { return x.trim(); }).length;
+      if (fo < 3 || fr < 3) {
+        if (fo < 3) document.getElementById('grupo-fortes').classList.add('falta');
+        if (fr < 3) document.getElementById('grupo-fracos').classList.add('falta');
+        rolarAte(document.getElementById(fo < 3 ? 'grupo-fortes' : 'grupo-fracos'), 'start');
+        toast('Preencha os 3 pontos fortes e os 3 pontos fracos.', 'erro');
+        return;
+      }
+    }
     if (!R.dataFeedback) { toast('Informe a data do feedback.', 'erro'); document.getElementById('dataF').focus(); return; }
     if (R.dataReavaliacao && R.dataReavaliacao < R.dataFeedback) { toast('A reavaliação precisa ser depois da data do feedback.', 'erro'); return; }
     btn.disabled = true;
     chamar('salvarLiderado', {
-      mat: F.liderado.mat, notas: R.notas, obs: R.obs, consideracoes: R.consideracoes,
+      mat: F.liderado.mat, notas: R.notas, obs: R.obs, fortes: R.fortes, fracos: R.fracos, plano: R.plano, consideracoes: R.consideracoes,
       dataFeedback: R.dataFeedback, dataReavaliacao: R.dataReavaliacao
     }).then(function (d) {
-      toast('Avaliação de ' + primeiro(F.liderado.nome) + ' salva. Média ' + n1(d.media) + '.');
+      var f = d.frequencia;
+      toast('Avaliação de ' + primeiro(F.liderado.nome) + ' salva. Média ' + n1(d.media) + (f ? (f.tipo === 'MENSAL' ? ' · acompanhamento mensal.' : ' · feedback semestral.') : '.'));
       return chamar('equipe');
     }).then(function (eq) {
       S.eq = eq;
@@ -1016,7 +1414,67 @@ body.ocupado { cursor: progress; }
       }
       S.eqAba = 'fase2'; S.eqFiltro = 'todos'; S.eqBusca = '';
       ir('equipe');
-    }).catch(function (e) { btn.disabled = false; falha(e); });
+    }).catch(function (e) { btn.disabled = false; falha(e); marcarCampo(e); });
+  }
+
+  // ------------------------------------------------------------ meu feedback (o que o liderado recebeu)
+  function abrirMeuFeedback(ciclo) {
+    chamar('meuFeedback', { ciclo: ciclo || '' }).then(function (d) { S.mf = d; ir('meuFeedback'); }).catch(falha);
+  }
+  function linhasNotas(itens) {
+    return h('div', null, itens.map(function (it) {
+      return h('div', { class: 'nota-linha' }, h('span', { class: 'nota-q n' + it.nota, 'aria-label': 'Nota ' + it.nota }, String(it.nota)),
+        h('div', null, h('div', null, it.texto), it.porque ? h('div', { class: 'porque-txt' }, it.porque) : null));
+    }));
+  }
+  function vMeuFeedback() {
+    var M = S.mf;
+    var cab = h('div', { class: 'cab-linha' },
+      h('div', { class: 'stack', style: 'gap:6px' }, h('span', { class: 'rotulo' }, 'Líder x Liderado · ' + M.cicloRotulo), h('h1', null, 'Meu feedback')),
+      seletorCiclo(M.ciclos, M.ciclo, function (c) { abrirMeuFeedback(c); }));
+    var corpo;
+    if (M.status === 'AGUARDANDO') {
+      corpo = aviso('info', 'Seu líder ainda não registrou o feedback deste ciclo.' + (M.proximo ? ' Conversa marcada para ' + dataBR(M.proximo.data) + ' (' + diaSemana(M.proximo.data) + ').' : ''));
+    } else if (M.status === 'MARCADO') {
+      corpo = aviso('info', 'Seu feedback já foi registrado e aparece aqui a partir de ' + dataBR(M.dataFeedback) + ', dia da conversa com o seu líder.', 'cadeado');
+    } else {
+      var F = M.feedback, f = M.frequencia;
+      var ciencia = F.cienciaEm
+        ? aviso('ok', 'Você confirmou a conversa em ' + dataBR(F.cienciaEm) + '.', 'check')
+        : h('section', { class: 'card stack destaque card-acao' },
+          h('h2', null, 'Confirme a conversa'),
+          h('p', null, 'Confirme que você conversou com ' + primeiro(F.avaliador) + ' sobre este feedback. Confirmar não quer dizer que você concorda com tudo: só registra que a conversa aconteceu.'),
+          h('button', { class: 'btn btn-primario', type: 'button', onclick: function (ev) {
+            ev.currentTarget.disabled = true;
+            chamar('darCiencia', { ciclo: M.ciclo }).then(function () {
+              toast('Obrigado! Conversa confirmada.');
+              if (S.home && S.home.meuFeedback) S.home.meuFeedback.ciencia = true;
+              abrirMeuFeedback(M.ciclo);
+            }).catch(falha);
+          } }, 'Confirmar que conversamos'));
+      corpo = [
+        h('section', { class: 'card stack' },
+          h('div', { class: 'hero' },
+            h('div', null, h('div', { class: 'rotulo' }, 'Sua média'), h('div', { class: 'hero-num' }, n1(F.media), h('small', null, ' de 5'))),
+            h('div', { class: 'stack', style: 'gap:6px;flex:1 1 240px' },
+              h('div', null, f ? (f.tipo === 'MENSAL' ? chip('warn', 'Acompanhamento mensal') : chip('ok', 'Feedback semestral')) : null),
+              h('p', { class: 'small' }, 'Avaliado por ' + F.avaliador + ' · conversa em ' + dataBR(F.dataFeedback) + (F.dataReavaliacao ? ' · reavaliação em ' + dataBR(F.dataReavaliacao) : '')),
+              M.proximo ? h('p', { class: 'small' }, h('b', null, 'Próxima conversa: '), dataBR(M.proximo.data) + ' (' + diaSemana(M.proximo.data) + ')') : null,
+              M.mediaEquipe !== null && M.mediaEquipe !== undefined ? h('p', { class: 'small' }, h('b', null, 'Média que a sua equipe deu a você: '), n1(M.mediaEquipe)) : null)),
+          f && f.tipo === 'MENSAL' ? aviso('warn', 'Você vai ter uma conversa por mês com o seu líder até a próxima avaliação, porque: ' + f.motivos.join('; ') + '.')
+            : f ? aviso('ok', 'Seu próximo feedback é no próximo semestre. Continue assim!', 'check') : null),
+        h('section', { class: 'card stack' }, h('h2', null, 'Notas por item'), linhasNotas(F.itens)),
+        F.fortes.length || F.fracos.length ? h('div', { class: 'grade-2', style: 'grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))' },
+          h('section', { class: 'card stack' }, h('h2', null, 'Pontos fortes'), h('ul', { class: 'lista-simples' }, F.fortes.map(function (x) { return h('li', null, x); }))),
+          h('section', { class: 'card stack' }, h('h2', null, 'Pontos a melhorar'), h('ul', { class: 'lista-simples' }, F.fracos.map(function (x) { return h('li', null, x); })))) : null,
+        F.plano.length ? h('section', { class: 'card stack' }, h('h2', null, 'Plano combinado'), h('ol', { class: 'lista-simples' }, F.plano.map(function (x) { return h('li', null, x); }))) : null,
+        F.consideracoes ? h('section', { class: 'card stack' }, h('h2', null, 'Considerações do líder'), h('blockquote', { class: 'citacao' }, F.consideracoes)) : null,
+        M.historico.length > 1 ? h('section', { class: 'card stack' }, h('h2', null, 'Sua evolução'),
+          barrasItens(M.historico.map(function (x) { return { id: x.ciclo, texto: x.rotulo, media: x.media }; })), notaBarras()) : null,
+        ciencia
+      ];
+    }
+    return h('div', { class: 'stack' }, botaoVoltar(), cab, corpo);
   }
 
   // ------------------------------------------------------------ resultados
@@ -1047,26 +1505,33 @@ body.ocupado { cursor: progress; }
   }
   function blocoResultado(R) {
     if (R.oculto) return aviso('info', R.motivo, 'cadeado');
-    if (R.insuficiente) {
-      return aviso('warn', R.n === 0 ? 'Ainda não há respostas neste ciclo.'
-        : 'Foram ' + plural(R.n, 'resposta', 'respostas') + '. Para proteger o anonimato, o resultado aparece a partir de ' + plural(R.minimo, 'resposta', 'respostas') + '.', 'cadeado');
-    }
+    if (R.vazio || !R.n) return aviso('info', 'Ainda não há respostas neste ciclo.');
     var ordenados = R.itens.filter(function (i) { return i.media !== null; }).slice().sort(function (a, b) { return b.media - a.media; });
     var melhor = ordenados[0], pior = ordenados[ordenados.length - 1];
+    var filtro = S.resFiltro || 'todos';
+    var lista = h('div');
+    function desenhar() {
+      limpar(lista);
+      var vis = R.respostas.filter(function (r) {
+        return filtro === 'todos' || r.itens.some(function (i) { return i.nota <= 2; });
+      });
+      if (!vis.length) { lista.appendChild(h('p', { class: 'muted' }, 'Ninguém deu nota 1 ou 2.')); return; }
+      vis.forEach(function (r) { lista.appendChild(respostaDetalhe(r)); });
+    }
+    desenhar();
+    var baixas = R.respostas.filter(function (r) { return r.itens.some(function (i) { return i.nota <= 2; }); }).length;
     var blocos = [
       h('div', { class: 'kpis' },
-        kpi(n1(R.media), 'média geral, numa escala de 1 a 5', corNota(R.media)),
-        kpi(String(R.n), 'respostas recebidas'),
-        melhor ? kpi(n1(melhor.media), 'ponto mais forte: ' + melhor.texto, corNota(melhor.media)) : null,
-        pior && pior !== melhor ? kpi(n1(pior.media), 'ponto a desenvolver: ' + pior.texto, corNota(pior.media)) : null),
+        kpi(n1(R.media), 'média geral, numa escala de 1 a 5'),
+        kpi(String(R.n), R.n === 1 ? 'pessoa avaliou' : 'pessoas avaliaram'),
+        melhor ? kpi(n1(melhor.media), 'ponto mais forte: ' + melhor.texto) : null,
+        pior && pior !== melhor ? kpi(n1(pior.media), 'ponto a desenvolver: ' + pior.texto) : null),
       h('section', { class: 'card stack' }, h('h2', null, 'Média por item'),
-        h('div', { class: 'res-lista' }, R.itens.map(function (i) {
-          return h('div', { class: 'res-item' },
-            h('div', null, i.texto),
-            h('div', { class: 'res-barra', role: 'img', 'aria-label': 'Média ' + n1(i.media) + ' de 5' }, h('i', { style: 'width:' + (i.media ? i.media / 5 * 100 : 0) + '%;background:' + corNota(i.media) })),
-            h('div', { class: 'res-v' }, n1(i.media)));
-        })),
-        h('p', { class: 'muted small' }, 'Barras numa escala de 0 a 5. Cada item mostra a média das notas recebidas.'))
+        barrasItens(R.itens, function (i) {
+          var b = i.dist ? i.dist[0] + i.dist[1] : 0;
+          return b ? h('div', { class: 'res-sub' }, plural(b, 'pessoa deu', 'pessoas deram') + ' nota 1 ou 2') : null;
+        }),
+        notaBarras())
     ];
     if ((R.fortes && R.fortes.length) || (R.fracos && R.fracos.length)) {
       blocos.push(h('div', { class: 'stack', style: 'gap:8px' },
@@ -1075,16 +1540,32 @@ body.ocupado { cursor: progress; }
           h('section', { class: 'card stack' }, h('h2', null, 'Pontos fracos'), h('ul', { class: 'lista-simples' }, agrupar(R.fracos).map(itemAgrupado)))),
         h('p', { class: 'muted small' }, 'Itens iguais aparecem uma vez, com o número de pessoas que citaram.')));
     }
-    blocos.push(h('section', { class: 'card stack' }, h('h2', null, 'Considerações finais'),
-      R.comentarios.length ? h('div', { class: 'citacoes' }, agrupar(R.comentarios).map(function (g) {
-        return h('blockquote', { class: 'citacao' }, g.texto, g.n > 1 ? h('span', { class: 'vezes' }, '×' + g.n) : null);
-      }))
-        : h('p', { class: 'muted' }, 'Ninguém escreveu considerações neste ciclo.')));
+    blocos.push(h('section', { class: 'card stack' },
+      h('div', { class: 'cab-linha' }, h('h2', null, 'Avaliação de cada pessoa'),
+        baixas ? h('div', { class: 'chips-filtro' }, [['todos', 'Todas (' + R.respostas.length + ')'], ['baixas', 'Com nota 1 ou 2 (' + baixas + ')']].map(function (f) {
+          return h('button', { type: 'button', class: 'filtro' + (filtro === f[0] ? ' on' : ''), 'aria-pressed': filtro === f[0] ? 'true' : 'false', onclick: function () { S.resFiltro = f[0]; render(); } }, f[1]);
+        })) : null),
+      h('p', { class: 'muted small' }, 'Use na conversa de feedback: abra o nome para ver as notas, o porquê e as considerações de cada pessoa.'),
+      lista));
     return h('div', { class: 'stack' }, blocos);
+  }
+  function respostaDetalhe(r) {
+    var baixas = r.itens.filter(function (i) { return i.nota <= 2; }).length;
+    return h('details', { class: 'resp' },
+      h('summary', null,
+        h('div', { class: 'quem' }, h('div', { class: 'nome' }, r.avaliadorNome || 'Sem nome'), h('div', { class: 'sub' }, (r.avaliador ? 'Mat. ' + r.avaliador : '') + (r.data ? ' · respondeu em ' + dataBR(r.data) : ''))),
+        baixas ? chip('bad', plural(baixas, 'nota baixa', 'notas baixas')) : null,
+        pilulaNota(r.media)),
+      h('div', { class: 'resp-corpo' },
+        linhasNotas(r.itens),
+        r.fortes.length ? h('div', null, h('b', null, 'Pontos fortes: '), r.fortes.join(' · ')) : null,
+        r.fracos.length ? h('div', null, h('b', null, 'Pontos fracos: '), r.fracos.join(' · ')) : null,
+        r.consideracoes ? h('blockquote', { class: 'citacao' }, r.consideracoes) : null));
   }
 
   // ------------------------------------------------------------ painel de gestão
-  var ABAS_ADM = [['painel', 'Visão geral'], ['participacao', 'Participação'], ['resultados', 'Liderado x Líder'], ['ll', 'Líder x Liderado'], ['pessoas', 'Pessoas'], ['config', 'Fases e ciclo']];
+  var ABAS_ADM = [['painel', 'Visão geral'], ['participacao', 'Participação'], ['resultados', 'Liderado x Líder'], ['ll', 'Líder x Liderado'],
+    ['cronograma', 'Cronograma'], ['analises', 'Análises'], ['pessoas', 'Pessoas'], ['config', 'Fases e ciclo']];
   function abrirAdmin(aba) { S.adm.aba = aba || S.adm.aba || 'painel'; S.view = 'admin'; carregarAba(); }
   function carregarAba() {
     var A = S.adm, c = A.ciclo || '';
@@ -1101,6 +1582,8 @@ body.ocupado { cursor: progress; }
       });
     }
     else if (A.aba === 'll') p = chamar('liderLiderado', { ciclo: c }).then(function (d) { A.ll = d; A.ciclo = d.ciclo; });
+    else if (A.aba === 'cronograma') p = chamar('agendaGeral', { ciclo: c }).then(function (d) { A.ag = d; A.ciclo = d.ciclo; });
+    else if (A.aba === 'analises') p = chamar('analises', { ciclo: c }).then(function (d) { A.an = d; A.ciclo = d.ciclo; });
     else if (A.aba === 'pessoas') p = chamar('pessoas').then(function (d) { A.pessoas = d; });
     else p = chamar('config').then(function (d) { A.config = d; });
     A.carregando = true;
@@ -1127,7 +1610,7 @@ body.ocupado { cursor: progress; }
   function progressoCelula(a, b) {
     return h('div', { class: 'prog-cel' }, h('span', { class: 'num-cel' }, a + ' de ' + b + ' · ' + pct(a, b) + '%'), barra(a, b, true));
   }
-  function pilulaNota(v) { return h('span', { class: 'nota-pill', style: 'background:' + corNota(v) + ';color:' + tintaNota(v) }, n1(v)); }
+  function pilulaNota(v) { return h('span', { class: 'nota-pill ' + classeMedia(v), title: 'Média ' + n1(v) }, n1(v)); }
 
   function admPainel() {
     var P = S.adm.painel;
@@ -1142,11 +1625,12 @@ body.ocupado { cursor: progress; }
         kpi(pct(t.avaliados, t.comLider) + '%', t.avaliados + ' de ' + t.comLider + ' foram avaliados pelo líder', 'var(--primary)'),
         kpi(String(t.ativos), 'pessoas ativas no cadastro'),
         t.semCpf ? kpi(String(t.semCpf), 'sem CPF cadastrado: não conseguem entrar', 'var(--bad)') : null),
-      !P.resultadosVisiveis ? aviso('info', P.motivo, 'cadeado') : null,
+      P.atual ? aviso(P.liberado ? 'ok' : 'info', P.liberado ? 'O resultado deste ciclo está liberado: cada líder vê as respostas da equipe, com nome e o porquê das notas.'
+        : 'A gestão vê tudo a qualquer momento. Os líderes só veem as respostas da equipe depois que você liberar em "Fases e ciclo".', P.liberado ? 'check' : 'info') : null,
       h('h2', null, 'Por líder'),
       h('div', { class: 'tabela-wrap' }, h('table', null,
         h('thead', null, h('tr', null, h('th', null, 'Líder'), h('th', null, 'UTD'), h('th', { class: 'num' }, 'Equipe'),
-          h('th', null, 'Avaliaram o líder'), h('th', null, 'Avaliados pelo líder'), h('th', { class: 'num' }, 'Média recebida'))),
+          h('th', null, 'Avaliaram o líder'), h('th', null, 'Avaliados pelo líder'), h('th', { class: 'num' }, 'Média recebida'), h('th', { class: 'num' }, 'Média dada à equipe'))),
         h('tbody', null, P.lideres.map(function (l) {
           return h('tr', { class: 'clicavel', tabindex: '0', onkeydown: enterClica, onclick: function () { S.adm.liderSel = l.mat; S.adm.aba = 'resultados'; carregarAba(); } },
             h('td', null, h('div', { class: 'nome' }, l.nome), l.perfil === 'COORDENACAO' ? h('div', { class: 'sub' }, 'Coordenação') : null),
@@ -1154,9 +1638,11 @@ body.ocupado { cursor: progress; }
             h('td', { class: 'num' }, String(l.equipe)),
             h('td', null, progressoCelula(l.responderam, l.equipe)),
             h('td', null, progressoCelula(l.avaliados, l.equipe)),
-            h('td', { class: 'num' }, l.mediaUp !== null ? pilulaNota(l.mediaUp) : h('span', { class: 'muted small' }, P.resultadosVisiveis ? 'menos de ' + P.minimo + ' respostas' : 'oculta')));
+            h('td', { class: 'num' }, l.mediaUp !== null ? pilulaNota(l.mediaUp) : h('span', { class: 'muted small' }, 'sem respostas')),
+            h('td', { class: 'num' }, l.mediaDown !== null ? pilulaNota(l.mediaDown) : h('span', { class: 'muted small' }, '–')));
         })))),
-      h('p', { class: 'muted small' }, 'Clique num líder para ver o resultado detalhado.'));
+      escalaDivergente(),
+      h('p', { class: 'muted small' }, 'Clique num líder para ver as respostas da equipe.'));
   }
 
   function admParticipacao() {
@@ -1175,6 +1661,8 @@ body.ocupado { cursor: progress; }
         if (F.status === 'ok1' && !p.respondeu) return false;
         if (F.status === 'pend2' && (p.avaliado || !p.liderMat)) return false;
         if (F.status === 'ok2' && !p.avaliado) return false;
+        if (F.status === 'mensal' && p.frequencia !== 'MENSAL') return false;
+        if (F.status === 'semciencia' && (!p.avaliado || p.ciencia)) return false;
         return !q || normalizar(p.nome).indexOf(q) >= 0 || p.mat.indexOf(q) >= 0;
       });
     }
@@ -1189,9 +1677,11 @@ body.ocupado { cursor: progress; }
           h('td', null, p.utd || '–'),
           h('td', null, p.lider || h('span', { class: 'muted' }, 'sem líder')),
           h('td', null, p.liderMat ? (p.respondeu ? chip('ok', 'Respondeu' + (p.respondeuEm ? ' · ' + dataBR(p.respondeuEm) : '')) : chip('warn', 'Pendente')) : '–'),
-          h('td', null, p.liderMat ? (p.avaliado ? chip('ok', 'Avaliado · ' + n1(p.mediaDown)) : chip('', 'A avaliar')) : '–')));
+          h('td', null, p.liderMat ? (p.avaliado ? chip('ok', 'Avaliado · ' + n1(p.mediaDown)) : chip('', 'A avaliar')) : '–'),
+          h('td', null, p.frequencia === 'MENSAL' ? chip('warn', 'Mensal') : p.frequencia === 'SEMESTRAL' ? chip('ok', 'Semestral') : h('span', { class: 'muted' }, '–')),
+          h('td', null, p.avaliado ? (p.ciencia ? chip('info', 'Ciente') : chip('', 'Ainda não')) : h('span', { class: 'muted' }, '–'))));
       });
-      if (!vis.length) tbody.appendChild(h('tr', null, h('td', { colspan: '6', class: 'vazio' }, 'Ninguém com esses filtros.')));
+      if (!vis.length) tbody.appendChild(h('tr', null, h('td', { colspan: '8', class: 'vazio' }, 'Ninguém com esses filtros.')));
     }
     function sel(id, rotulo, valor, opcoes, chave) {
       return campo(id, rotulo, h('select', { class: 'input input-sm', id: id, onchange: function (ev) { F[chave] = ev.target.value; desenhar(); } },
@@ -1204,7 +1694,7 @@ body.ocupado { cursor: progress; }
       h('div', { class: 'grade-2', style: 'grid-template-columns:repeat(auto-fit,minmax(180px,1fr))' },
         sel('fLider', 'Líder', F.lider, [['', 'Todos']].concat(Object.keys(lideres).map(function (m) { return [m, lideres[m]]; }).sort(function (a, b) { return a[1] < b[1] ? -1 : 1; })), 'lider'),
         sel('fUtd', 'UTD', F.utd, [['*', 'Todas']].concat(Object.keys(utds).sort().map(function (u) { return [u, u || 'Sem UTD']; })), 'utd'),
-        sel('fStatus', 'Situação', F.status, [['todos', 'Todos'], ['pend1', 'Não avaliaram o líder'], ['ok1', 'Avaliaram o líder'], ['pend2', 'Ainda não avaliados pelo líder'], ['ok2', 'Já avaliados pelo líder']], 'status'),
+        sel('fStatus', 'Situação', F.status, [['todos', 'Todos'], ['pend1', 'Não avaliaram o líder'], ['ok1', 'Avaliaram o líder'], ['pend2', 'Ainda não avaliados pelo líder'], ['ok2', 'Já avaliados pelo líder'], ['mensal', 'Acompanhamento mensal'], ['semciencia', 'Avaliados sem ciência']], 'status'),
         campo('buscaPart', 'Buscar', busca),
         seletorCiclo(D.ciclos, D.ciclo, trocarCiclo)),
       h('div', { class: 'cab-linha' }, contagem, h('div', { class: 'linha-botoes' },
@@ -1217,7 +1707,7 @@ body.ocupado { cursor: progress; }
         } }, ico('copiar', 16), 'Copiar pendentes'),
         botaoExportar('participacao', 'Exportar'))),
       h('div', { class: 'tabela-wrap' }, h('table', null,
-        h('thead', null, h('tr', null, h('th', null, 'Mat.'), h('th', null, 'Nome'), h('th', null, 'UTD'), h('th', null, 'Líder'), h('th', null, 'Avaliou o líder'), h('th', null, 'Avaliado pelo líder'))),
+        h('thead', null, h('tr', null, h('th', null, 'Mat.'), h('th', null, 'Nome'), h('th', null, 'UTD'), h('th', null, 'Líder'), h('th', null, 'Avaliou o líder'), h('th', null, 'Avaliado pelo líder'), h('th', null, 'Frequência'), h('th', null, 'Ciência'))),
         tbody)));
   }
 
@@ -1231,7 +1721,7 @@ body.ocupado { cursor: progress; }
     return h('div', { class: 'stack' },
       h('div', { class: 'cab-linha' }, h('div', { style: 'flex:1 1 280px' }, campo('selLider', 'Líder avaliado', sel)), seletorCiclo(P.ciclos, A.ciclo, trocarCiclo)),
       R ? h('div', { class: 'stack' }, h('h2', null, R.lider.nome + (R.coordenacao ? ' · Coordenação' : '')), blocoResultado(R)) : null,
-      h('div', { class: 'linha-botoes' }, botaoExportar('liderado_lider', 'Exportar respostas anônimas')));
+      h('div', { class: 'linha-botoes' }, botaoExportar('liderado_lider', 'Exportar respostas')));
   }
 
   function admLL() {
@@ -1250,30 +1740,197 @@ body.ocupado { cursor: progress; }
         seletorCiclo(D.ciclos, D.ciclo, trocarCiclo),
         botaoExportar('lider_liderado', 'Exportar')),
       regs.length ? h('div', { class: 'tabela-wrap' }, h('table', null,
-        h('thead', null, h('tr', null, h('th', null, 'Liderado'), h('th', null, 'Líder'), h('th', null, 'Data do feedback'), h('th', null, 'Reavaliação'), h('th', { class: 'num' }, 'Média'))),
+        h('thead', null, h('tr', null, h('th', null, 'Liderado'), h('th', null, 'Líder'), h('th', null, 'Data do feedback'), h('th', null, 'Frequência'), h('th', null, 'Ciência'), h('th', { class: 'num' }, 'Média'))),
         h('tbody', null, regs.map(function (r) {
-          return h('tr', { class: 'clicavel', tabindex: '0', onkeydown: enterClica, onclick: function () { detalheLL(r, D.criterios); } },
-            h('td', null, h('div', { class: 'nome' }, r.avaliadoNome), h('div', { class: 'sub' }, 'Mat. ' + r.avaliado + (r.utd ? ' · UTD ' + r.utd : ''))),
+          return h('tr', { class: 'clicavel', tabindex: '0', onkeydown: enterClica, onclick: function () { detalheLL(r); } },
+            h('td', null, h('div', { class: 'nome' }, r.avaliadoNome, r.tipo === 'LIDERANCA' ? h('span', { class: 'chip info', style: 'margin-left:8px' }, 'Liderança') : null),
+              h('div', { class: 'sub' }, 'Mat. ' + r.avaliado + (r.utd ? ' · UTD ' + r.utd : ''))),
             h('td', null, r.avaliadorNome),
             h('td', null, dataBR(r.dataFeedback)),
-            h('td', null, r.dataReavaliacao ? dataBR(r.dataReavaliacao) : h('span', { class: 'muted' }, '–')),
+            h('td', null, chipFrequencia(r.frequencia) || h('span', { class: 'muted' }, '–')),
+            h('td', null, r.cienciaEm ? chip('info', dataBR(r.cienciaEm)) : chip('', 'Ainda não')),
             h('td', { class: 'num' }, pilulaNota(r.media)));
         }))))
         : aviso('info', 'Nenhuma avaliação de liderado registrada neste ciclo.'),
       regs.length ? h('p', { class: 'muted small' }, plural(regs.length, 'avaliação registrada', 'avaliações registradas') + '. Clique numa linha para ver os detalhes.') : null);
   }
-  function detalheLL(r, criterios) {
+  function detalheLL(r) {
     modal(r.avaliadoNome, [
       h('p', { class: 'muted' }, 'Avaliado por ' + r.avaliadorNome + ' · feedback em ' + dataBR(r.dataFeedback) + (r.dataReavaliacao ? ' · reavaliação em ' + dataBR(r.dataReavaliacao) : '')),
-      h('div', { class: 'res-lista' }, criterios.map(function (c) {
-        var v = r.notas[c.id];
-        return h('div', { class: 'res-item', style: 'grid-template-columns:minmax(0,1fr) 46px' },
-          h('div', null, c.texto, r.obs[c.id] ? h('div', { class: 'sub' }, r.obs[c.id]) : null),
-          h('div', { class: 'res-v' }, v ? String(v) : '–'));
-      })),
-      h('p', null, h('b', null, 'Média: '), n1(r.media)),
+      h('div', { class: 'linha-botoes' }, pilulaNota(r.media), chipFrequencia(r.frequencia), r.cienciaEm ? chip('info', 'Ciente em ' + dataBR(r.cienciaEm)) : chip('', 'Sem ciência ainda')),
+      r.frequencia && r.frequencia.tipo === 'MENSAL' ? aviso('warn', 'Acompanhamento mensal: ' + r.frequencia.motivos.join('; ') + '.') : null,
+      linhasNotas(r.itens),
+      r.fortes.length ? h('p', null, h('b', null, 'Pontos fortes: '), r.fortes.join(' · ')) : null,
+      r.fracos.length ? h('p', null, h('b', null, 'Pontos fracos: '), r.fracos.join(' · ')) : null,
+      r.plano.length ? h('div', null, h('b', null, 'Plano combinado'), h('ol', { class: 'lista-simples' }, r.plano.map(function (x) { return h('li', null, x); }))) : null,
       r.consideracoes ? h('blockquote', { class: 'citacao' }, r.consideracoes) : null
     ], [], true);
+  }
+
+  // ---- cronograma geral (RH e coordenação acompanham)
+  function admCronograma() {
+    var D = S.adm.ag;
+    if (!D) return null;
+    var F = S.adm.agF || (S.adm.agF = { lider: '', status: 'pendentes' });
+    var t = D.totais, em7 = somarDias(D.hoje, 7);
+    var tbody = h('tbody'), contagem = h('p', { class: 'muted small' });
+    function filtrados() {
+      return D.itens.filter(function (a) {
+        if (F.lider && a.lider !== F.lider) return false;
+        if (F.status === 'pendentes' && a.status !== 'AGENDADO') return false;
+        if (F.status === 'atrasados' && !a.atrasado) return false;
+        if (F.status === 'proximos' && !(a.status === 'AGENDADO' && a.data >= D.hoje && a.data <= em7)) return false;
+        if (F.status === 'feitos' && a.status !== 'REALIZADO') return false;
+        return true;
+      });
+    }
+    function desenhar() {
+      limpar(tbody);
+      var vis = filtrados();
+      contagem.textContent = plural(vis.length, 'conversa', 'conversas') + ' na lista';
+      vis.forEach(function (a) {
+        tbody.appendChild(h('tr', null,
+          h('td', null, dataCelula(a.data)),
+          h('td', null, h('div', { class: 'nome' }, a.lideradoNome), h('div', { class: 'sub' }, 'Mat. ' + a.liderado)),
+          h('td', null, a.liderNome),
+          h('td', null, TIPO_AG[a.tipo] || a.tipo),
+          h('td', null, chipAgenda(a), a.obs ? h('div', { class: 'sub' }, a.obs) : null)));
+      });
+      if (!vis.length) tbody.appendChild(h('tr', null, h('td', { colspan: '5', class: 'vazio' }, 'Nada com esses filtros.')));
+    }
+    desenhar();
+    var selLider = h('select', { class: 'input input-sm', id: 'agLider', onchange: function (ev) { F.lider = ev.target.value; desenhar(); } },
+      [h('option', { value: '' }, 'Todos')].concat(D.lideres.map(function (l) { return h('option', { value: l.mat, selected: l.mat === F.lider }, l.nome); })));
+    var selStatus = h('select', { class: 'input input-sm', id: 'agStatus', onchange: function (ev) { F.status = ev.target.value; desenhar(); } },
+      [['pendentes', 'Marcadas'], ['atrasados', 'Atrasadas'], ['proximos', 'Próximos 7 dias'], ['feitos', 'Feitas'], ['todos', 'Todas']].map(function (o) {
+        return h('option', { value: o[0], selected: o[0] === F.status }, o[1]);
+      }));
+    return h('div', { class: 'stack' },
+      h('div', { class: 'cab-linha' }, h('h2', null, 'Cronograma de feedback'), seletorCiclo(D.ciclos, D.ciclo, trocarCiclo)),
+      h('div', { class: 'kpis' },
+        kpi(String(t.realizados), t.realizados === 1 ? 'conversa feita' : 'conversas feitas'),
+        kpi(String(t.agendados), 'marcadas'),
+        kpi(String(t.proximos7), 'nos próximos 7 dias'),
+        kpi(String(t.atrasados), t.atrasados === 1 ? 'atrasada' : 'atrasadas', t.atrasados ? 'var(--bad)' : null)),
+      h('h3', null, 'Por líder'),
+      h('div', { class: 'tabela-wrap' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', null, 'Líder'), h('th', null, 'Liderados com data'), h('th', { class: 'num' }, 'Feitas'), h('th', { class: 'num' }, 'Marcadas'), h('th', { class: 'num' }, 'Próximos 7 dias'), h('th', null, 'Atrasadas'))),
+        h('tbody', null, D.lideres.map(function (l) {
+          return h('tr', { class: 'clicavel', tabindex: '0', onkeydown: enterClica, onclick: function () { F.lider = l.mat; F.status = 'todos'; render(); } },
+            h('td', null, h('div', { class: 'nome' }, l.nome), h('div', { class: 'sub' }, 'Equipe de ' + l.equipe)),
+            h('td', null, progressoCelula(l.comData, l.equipe)),
+            h('td', { class: 'num' }, String(l.realizados)),
+            h('td', { class: 'num' }, String(l.agendados)),
+            h('td', { class: 'num' }, String(l.proximos7)),
+            h('td', null, l.atrasados ? chip('bad', String(l.atrasados)) : chip('ok', 'Nenhuma')));
+        })))),
+      h('div', { class: 'cab-linha' }, h('h3', null, 'Conversas'),
+        h('div', { class: 'linha-botoes' },
+          t.atrasados ? h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () {
+            var grupos = {};
+            D.itens.filter(function (a) { return a.atrasado; }).forEach(function (a) { (grupos[a.liderNome] = grupos[a.liderNome] || []).push(a); });
+            var linhas = ['*Feedbacks atrasados · ' + D.cicloRotulo + '*', ''];
+            Object.keys(grupos).sort().forEach(function (l) {
+              linhas.push('*' + l + '*');
+              grupos[l].forEach(function (a) { linhas.push('• ' + a.lideradoNome + ' · marcado para ' + dataBR(a.data)); });
+              linhas.push('');
+            });
+            linhas.push('Por favor, façam a conversa ou remarquem no cronograma.');
+            copiarComAviso(linhas.join('\n'), 'Atrasados copiados, separados por líder.');
+          } }, ico('copiar', 16), 'Copiar atrasados') : null,
+          botaoExportar('cronograma', 'Exportar'))),
+      h('div', { class: 'grade-2', style: 'grid-template-columns:repeat(auto-fit,minmax(200px,1fr))' }, campo('agLider', 'Líder', selLider), campo('agStatus', 'Situação', selStatus)),
+      contagem,
+      h('div', { class: 'tabela-wrap' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', null, 'Data'), h('th', null, 'Liderado'), h('th', null, 'Líder'), h('th', null, 'Tipo'), h('th', null, 'Situação'))),
+        tbody)));
+  }
+
+  // ---- análises para o RH
+  function deltaEl(atual, antes) {
+    if (atual === null || atual === undefined || antes === null || antes === undefined) return null;
+    var d = Math.round((atual - antes) * 10) / 10;
+    if (Math.abs(d) < 0.1) return h('span', { class: 'delta muted', title: 'Igual ao ciclo anterior' }, '= ciclo anterior');
+    return h('span', { class: 'delta ' + (d > 0 ? 'sobe' : 'desce'), title: 'Ciclo anterior: ' + n1(antes) }, (d > 0 ? '▲ +' : '▼ ') + n1(d) + ' vs. anterior');
+  }
+  function mapaCalor(linhas, itens, rotuloLinha) {
+    var cols = itens.map(function (it, i) { return { id: it.id, n: i + 1, texto: it.texto }; });
+    return h('div', { class: 'stack', style: 'gap:10px' },
+      h('div', { class: 'tabela-wrap mapa' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', null, rotuloLinha), h('th', { class: 'num' }, 'Média'),
+          cols.map(function (c) { return h('th', { class: 'col', title: c.texto, scope: 'col' }, String(c.n)); }))),
+        h('tbody', null, linhas.map(function (l) {
+          return h('tr', null,
+            h('td', { class: 'quem' }, h('div', { class: 'nome' }, l.nome), h('div', { class: 'sub' }, plural(l.n, 'avaliação', 'avaliações'))),
+            h('td', { class: 'num' }, pilulaNota(l.media)),
+            cols.map(function (c) {
+              var v = l.itens[c.id];
+              var tem = v !== undefined && v !== null;
+              return h('td', { class: 'cel ' + (tem ? classeMedia(v) : 'vazia'), title: l.nome + ' · ' + c.texto + ': ' + (tem ? n1(v) : 'sem nota') }, tem ? n1(v) : '–');
+            }));
+        })))),
+      escalaDivergente(),
+      h('ol', { class: 'legenda-itens' }, cols.map(function (c) { return h('li', null, h('b', null, c.n + '.'), ' ' + c.texto); })));
+  }
+  function maisFracos(itens, comp, n) {
+    return itens.slice().sort(function (a, b) { return a.media - b.media; }).slice(0, n || 5).map(function (i) {
+      return { id: i.id, texto: i.texto, media: i.media, n: i.n, antes: comp ? comp[i.id] : undefined };
+    });
+  }
+  function admAnalises() {
+    var A = S.adm.an;
+    if (!A) return null;
+    var comp = A.comparacao;
+    var L = A.liderancas, D = A.liderados, G = A.gestao, Fq = A.frequencia;
+    var subDelta = function (mapa) { return function (i) { return comp && mapa ? deltaEl(i.media, mapa[i.id]) : null; }; };
+    return h('div', { class: 'stack' },
+      h('div', { class: 'cab-linha' }, h('h2', null, 'Análises · ' + A.cicloRotulo), seletorCiclo(A.ciclos, A.ciclo, trocarCiclo)),
+      A.destaques.length ? h('section', { class: 'card stack' }, h('h2', null, 'Pontos de atenção'),
+        h('ul', { class: 'lista-simples' }, A.destaques.map(function (d) { return h('li', null, d); }))) : null,
+      h('div', { class: 'kpis' },
+        kpi(n1(L.media), 'média das lideranças (' + plural(L.n, 'avaliação', 'avaliações') + ' da equipe)'),
+        kpi(n1(D.media), 'média dos liderados (' + plural(D.n, 'avaliação', 'avaliações') + ' dos líderes)'),
+        kpi(String(Fq.mensal), 'com acompanhamento mensal', Fq.mensal ? 'var(--warn)' : null),
+        kpi(A.cronograma.realizados + ' / ' + (A.cronograma.realizados + A.cronograma.agendados), 'conversas feitas / previstas' + (A.cronograma.atrasados ? ' · ' + A.cronograma.atrasados + ' atrasadas' : ''))),
+      comp ? h('p', { class: 'muted small' }, 'Comparação com ' + comp.rotulo + ': lideranças ' + n1(comp.liderancas.media) + ' → ' + n1(L.media) + '; liderados ' + n1(comp.liderados.media) + ' → ' + n1(D.media) + '.') : null,
+
+      h('section', { class: 'card stack' }, h('h2', null, 'Lideranças: o que a equipe pede para melhorar'),
+        L.n ? [h('h3', null, 'Itens mais fracos'), barrasItens(maisFracos(L.itens, null, 5), subDelta(comp && comp.liderancas.itens)), notaBarras(),
+          h('h3', null, 'Mapa por líder'), h('p', { class: 'muted small' }, 'Cada célula é a média que a equipe deu ao líder naquele item. Líderes em ordem da menor para a maior média.'),
+          mapaCalor(L.lideres, L.itens, 'Líder')]
+          : h('p', { class: 'muted' }, 'Ainda não há avaliações das lideranças neste ciclo.')),
+
+      G.n ? h('section', { class: 'card stack' }, h('h2', null, 'Gestão avaliando os líderes'),
+        h('p', { class: 'muted small' }, 'Avaliação que a coordenação fez de cada supervisor, com os itens de liderança.'),
+        h('div', { class: 'tabela-wrap' }, h('table', null,
+          h('thead', null, h('tr', null, h('th', null, 'Líder'), h('th', null, 'Avaliado por'), h('th', { class: 'num' }, 'Média'), h('th', null, 'Pontos fortes'), h('th', null, 'Pontos fracos'))),
+          h('tbody', null, G.registros.map(function (r) {
+            return h('tr', null, h('td', { class: 'nome' }, r.nome), h('td', null, r.avaliador), h('td', { class: 'num' }, pilulaNota(r.media)),
+              h('td', { class: 'small' }, r.fortes.join(' · ')), h('td', { class: 'small' }, r.fracos.join(' · ')));
+          }))))) : null,
+
+      h('section', { class: 'card stack' }, h('h2', null, 'Liderados: o que mais precisa de desenvolvimento'),
+        D.n ? [h('h3', null, 'Itens mais fracos'), barrasItens(maisFracos(D.itens, null, 5), subDelta(comp && comp.liderados.itens)), notaBarras(),
+          h('h3', null, 'Distribuição das médias'),
+          h('div', { class: 'res-lista' }, D.faixas.map(function (f) {
+            return h('div', { class: 'res-item' }, h('div', null, 'Média ' + f.rotulo),
+              h('div', { class: 'res-barra', role: 'img', 'aria-label': plural(f.n, 'pessoa', 'pessoas') }, h('i', { style: 'width:' + pct(f.n, D.n) + '%' })),
+              h('div', { class: 'res-v' }, String(f.n)));
+          })),
+          h('h3', null, 'Mapa por equipe'), h('p', { class: 'muted small' }, 'Média das notas que cada líder deu à própria equipe, item a item. Se uma equipe destoa muito das outras, vale conferir se os líderes estão usando a escala do mesmo jeito.'),
+          mapaCalor(D.equipes, D.itens, 'Equipe de')]
+          : h('p', { class: 'muted' }, 'Ainda não há avaliações de liderados neste ciclo.')),
+
+      h('section', { class: 'card stack' }, h('h2', null, 'Acompanhamento mensal'),
+        h('p', { class: 'muted small' }, 'Mensal: média abaixo de ' + n1(Fq.limite) + (Fq.notaCritica ? ' ou nota ' + faixaCritica(Fq.notaCritica) + ' em algum item' : '') + '. Para líderes, conta também a média dada pela equipe. ' +
+          plural(Fq.semestral, 'pessoa está', 'pessoas estão') + ' no semestral e ' + plural(Fq.semAvaliacao, 'ainda não foi avaliada', 'ainda não foram avaliadas') + '.'),
+        Fq.lista.length ? h('div', { class: 'tabela-wrap' }, h('table', null,
+          h('thead', null, h('tr', null, h('th', null, 'Pessoa'), h('th', null, 'Líder'), h('th', { class: 'num' }, 'Média'), h('th', null, 'Motivo'))),
+          h('tbody', null, Fq.lista.map(function (x) {
+            return h('tr', null, h('td', null, h('div', { class: 'nome' }, x.nome), h('div', { class: 'sub' }, 'Mat. ' + x.mat)), h('td', null, x.lider),
+              h('td', { class: 'num' }, pilulaNota(x.media)), h('td', { class: 'small' }, x.motivos.join('; ')));
+          })))) : h('p', { class: 'muted' }, 'Ninguém em acompanhamento mensal neste ciclo.'),
+        h('div', { class: 'linha-botoes' }, botaoExportar('lider_liderado', 'Exportar avaliações'), botaoExportar('liderado_lider', 'Exportar avaliações dos líderes'))));
   }
 
   function admPessoas() {
@@ -1413,7 +2070,7 @@ body.ocupado { cursor: progress; }
           return h('div', { class: 'linha-pessoa' }, h('div', { class: 'quem' }, h('div', { class: 'nome' }, l.nome), h('div', { class: 'sub' }, plural(l.liderados, 'liderado', 'liderados'))),
             h('div', { class: 'dir' }, l.encontrado ? chip('ok', 'Cadastrado') : chip('warn', 'Sem cadastro')));
         }))),
-      pend.length ? aviso('warn', 'Quem aparece como "Sem cadastro" precisa ser cadastrado com o mesmo nome (em Nova pessoa ou no menu da planilha). Até lá, os liderados dele ficam sem líder.') : null
+      pend.length ? aviso('warn', 'Quem aparece como "Sem cadastro" precisa ser cadastrado com o mesmo nome (em Nova pessoa). Até lá, os liderados dele ficam sem líder.') : null
     ];
   }
   function abrirImportacao() {
@@ -1508,27 +2165,35 @@ body.ocupado { cursor: progress; }
     if (!D) return null;
     var C = D.config;
     var novoCiclo = h('input', { class: 'input input-sm', id: 'novoCiclo', placeholder: 'ex.: 2027-1', maxlength: '6', style: 'max-width:160px' });
-    var minimo = h('input', { class: 'input input-sm', id: 'minimo', type: 'number', min: '1', max: '20', value: String(C.minimoRespostas), style: 'max-width:110px' });
+    var limiteInp = h('input', { class: 'input input-sm', id: 'limiteMensal', type: 'number', min: '1', max: '5', step: '0.1', value: String(C.limiteMensal), style: 'max-width:110px' });
+    var critica = h('select', { class: 'input input-sm', id: 'notaCritica', style: 'max-width:220px' }, [[0, 'Não usar'], [1, 'Nota 1'], [2, 'Notas 1 e 2'], [3, 'Notas 1 a 3']].map(function (o) {
+      return h('option', { value: String(o[0]), selected: o[0] === C.notaCritica }, o[1]);
+    }));
     return h('div', { class: 'stack' },
       h('section', { class: 'card stack' },
         h('div', null, h('span', { class: 'rotulo' }, 'Ciclo atual'), h('h2', null, D.cicloRotulo)),
         h('div', { class: 'linha-config' },
-          h('div', null, h('h3', { id: 'tFase1' }, '1. Liderado x Líder'), h('p', { class: 'muted small' }, 'Colaboradores avaliam o próprio líder. Quem é liderado direto da coordenação também escreve 3 pontos fortes e 3 fracos. Ao fechar, os resultados ficam visíveis para a gestão.')),
+          h('div', null, h('h3', { id: 'tFase1' }, '1. Liderado x Líder'), h('p', { class: 'muted small' }, 'Cada pessoa avalia o próprio líder, com o porquê das notas. Quem é liderado direto da coordenação também escreve 3 pontos fortes e 3 fracos. A gestão acompanha as respostas a qualquer momento.')),
           interruptor('tFase1', C.faseLideradoLider, function (v) {
-            if (v === 'FECHADA') confirmar('Fechar a avaliação do líder?', 'Ninguém mais consegue responder neste ciclo e os resultados agrupados passam a aparecer para a gestão.', 'Fechar avaliação', function () { salvarConfig({ faseLideradoLider: v }, 'Avaliação do líder fechada.'); });
+            if (v === 'FECHADA') confirmar('Fechar a avaliação do líder?', 'Ninguém mais consegue responder neste ciclo. Depois, libere o resultado para os líderes prepararem as conversas.', 'Fechar avaliação', function () { salvarConfig({ faseLideradoLider: v }, 'Avaliação do líder fechada.'); });
             else salvarConfig({ faseLideradoLider: v }, 'Avaliação do líder aberta.');
           })),
         h('div', { class: 'linha-config' },
-          h('div', null, h('h3', { id: 'tFase2' }, '2. Líder x Liderado'), h('p', { class: 'muted small' }, 'Líderes avaliam cada liderado e registram a data do feedback e da reavaliação.')),
+          h('div', null, h('h3', { id: 'tFase2' }, '2. Líder x Liderado'), h('p', { class: 'muted small' }, 'Líderes avaliam cada liderado no dia da conversa presencial, com o porquê das notas e o plano combinado. Quem lidera uma equipe é avaliado com os itens de liderança e 3 pontos fortes e 3 fracos.')),
           interruptor('tFase2', C.faseLiderLiderado, function (v) { salvarConfig({ faseLiderLiderado: v }, v === 'ABERTA' ? 'Avaliação dos liderados aberta.' : 'Avaliação dos liderados fechada.'); })),
         h('div', { class: 'linha-config' },
-          h('div', null, h('h3', null, 'Resultado para os líderes'), h('p', { class: 'muted small' }, 'Cada líder vê o próprio resultado (agrupado e anônimo) quando a fase 1 estiver fechada e você liberar aqui.')),
+          h('div', null, h('h3', null, 'Resultado para os líderes'), h('p', { class: 'muted small' }, 'Depois de liberar, cada líder vê as respostas da equipe com o nome de quem respondeu e o porquê de cada nota. O ideal é liberar quando a avaliação do líder fechar.')),
           h('button', { class: 'btn btn-sm ' + (D.liberado ? 'btn-sec' : 'btn-primario'), type: 'button', onclick: function () {
             salvarConfig({ liberar: !D.liberado }, D.liberado ? 'Resultado recolhido.' : 'Resultado liberado para os líderes.');
           } }, D.liberado ? 'Recolher resultado' : 'Liberar resultado')),
         h('div', { class: 'linha-config' },
-          h('div', null, h('label', { for: 'minimo', class: 'campo-rotulo' }, 'Mínimo de respostas para mostrar um resultado'), h('p', { class: 'muted small' }, 'Protege o anonimato de equipes pequenas. O padrão é 3.')),
-          h('div', { class: 'linha-botoes' }, minimo, h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () { salvarConfig({ minimoRespostas: Number(minimo.value) }); } }, 'Salvar')))),
+          h('div', null, h('h3', null, 'Frequência do feedback'), h('p', { class: 'muted small' }, 'Depois das notas, cada pessoa fica com acompanhamento mensal (uma conversa por mês) ou feedback semestral. Vai para o mensal quem tem média abaixo do limite ou recebe a nota crítica em algum item. Para líderes, conta também a média que a equipe deu. A nota crítica também obriga a explicar o porquê.')),
+          h('div', { class: 'linha-botoes', style: 'align-items:flex-end' },
+            campo('limiteMensal', 'Média mínima', limiteInp),
+            campo('notaCritica', 'Nota crítica', critica),
+            h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () {
+              salvarConfig({ limiteMensal: limiteInp.value, notaCritica: Number(critica.value) }, 'Regra de frequência salva.');
+            } }, 'Salvar')))),
       h('section', { class: 'card stack' },
         h('h2', null, 'Novo ciclo'),
         h('p', { class: 'muted small' }, 'Use no próximo semestre. As respostas do ciclo atual ficam guardadas no histórico e as duas fases começam fechadas.'),
@@ -1566,14 +2231,15 @@ body.ocupado { cursor: progress; }
         } }, ico('mais', 16), 'Adicionar item')));
   }
 
-  var ADM = { painel: admPainel, participacao: admParticipacao, resultados: admResultados, ll: admLL, pessoas: admPessoas, config: admConfig };
+  var ADM = { painel: admPainel, participacao: admParticipacao, resultados: admResultados, ll: admLL, cronograma: admCronograma, analises: admAnalises, pessoas: admPessoas, config: admConfig };
   var VIEWS = {
-    carregando: vCarregando, semServidor: vSemServidor, login: vLogin, inicio: vInicio, formLider: vFormLider, obrigado: vObrigado,
-    equipe: vEquipe, formLiderado: vFormLiderado, resultados: vResultados, admin: vAdmin
+    carregando: vCarregando, semServidor: vSemServidor, configurar: vConfigurar, login: vLogin, inicio: vInicio, formLider: vFormLider, obrigado: vObrigado,
+    equipe: vEquipe, formLiderado: vFormLiderado, meuFeedback: vMeuFeedback, resultados: vResultados, admin: vAdmin
   };
 
   function iniciar() {
     if (!temServidor()) { ir('semServidor'); return; }
+    if (location.hash === '#configurar') { ir('configurar'); return; }
     var t = tokenGuardado();
     if (!t) { ir('login'); return; }
     S.token = t;
