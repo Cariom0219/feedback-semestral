@@ -1,0 +1,8 @@
+node_modules/
+tmp/
+dist/
+*.local.*
+*.xlsx
+*.xls
+*.csv
+.DS_Store

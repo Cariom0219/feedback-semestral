@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feedback Semestral</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  /* Feedback Semestral · azul-noite de operação + amarelo de segurança (faixa de EPI).
+     Layout: coluna única no celular para quem responde; painel largo com abas para a gestão. */
+  --bg: #eef2f6;
+  --surface: #ffffff;
+  --surface-2: #f4f7fa;
+  --ink: #0f1d2e;
+  --muted: #566476;
+  --line: #d7dee7;
+  --brand: #13345a;
+  --brand-ink: #ffffff;
+  --primary: #13345a;
+  --primary-hover: #1d4a7e;
+  --primary-ink: #ffffff;
+  --accent: #f2b705;
+  --accent-ink: #1b1400;
+  --ok: #1b7443; --ok-bg: #e1f2e8;
+  --warn: #8f5400; --warn-bg: #fcefd6;
+  --bad: #b3261e; --bad-bg: #fbe4e2;
+  --info: #1f5b99; --info-bg: #e4eefa;
+  --n1: #c62828; --n2: #e46c0a; --n3: #e3b007; --n4: #5c9a2c; --n5: #1b7443;
+  --n3-ink: #1b1400;
+  --focus: #2b7de9;
+  --shadow: 0 1px 2px rgba(15, 29, 46, .06), 0 6px 18px rgba(15, 29, 46, .06);
+  --radius: 12px;
+  --font-display: 'Barlow Semi Condensed', 'Arial Narrow', Arial, sans-serif;
+  --font-body: 'Barlow', 'Segoe UI', Roboto, Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b131e; --surface: #111c2a; --surface-2: #17253a; --ink: #e6edf5; --muted: #9eabbc; --line: #26374c;
+    --brand: #0d2742; --brand-ink: #ffffff; --primary: #5594dc; --primary-hover: #70a8e8; --primary-ink: #04101d;
+    --accent: #f2b705; --accent-ink: #1b1400;
+    --ok: #63c891; --ok-bg: #12301f; --warn: #f2b45a; --warn-bg: #352610; --bad: #f28b82; --bad-bg: #3b1714; --info: #85b6ee; --info-bg: #13283f;
+    --n1: #e0574f; --n2: #f08a3a; --n3: #e8c22e; --n4: #7cbf4b; --n5: #3fae6f; --n3-ink: #1b1400;
+    --focus: #85b6ee; --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 6px 18px rgba(0, 0, 0, .25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b131e; --surface: #111c2a; --surface-2: #17253a; --ink: #e6edf5; --muted: #9eabbc; --line: #26374c;
+  --brand: #0d2742; --brand-ink: #ffffff; --primary: #5594dc; --primary-hover: #70a8e8; --primary-ink: #04101d;
+  --accent: #f2b705; --accent-ink: #1b1400;
+  --ok: #63c891; --ok-bg: #12301f; --warn: #f2b45a; --warn-bg: #352610; --bad: #f28b82; --bad-bg: #3b1714; --info: #85b6ee; --info-bg: #13283f;
+  --n1: #e0574f; --n2: #f08a3a; --n3: #e8c22e; --n4: #7cbf4b; --n5: #3fae6f; --n3-ink: #1b1400;
+  --focus: #85b6ee; --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 6px 18px rgba(0, 0, 0, .25);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.5 var(--font-body); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; }
+h1 { font: 700 28px/1.12 var(--font-display); letter-spacing: .005em; }
+h2 { font: 600 21px/1.2 var(--font-display); }
+h3 { font: 600 17px/1.3 var(--font-body); }
+p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.ico { display: inline-flex; flex: none; }
+.ico svg { display: block; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+.nome { font-weight: 600; }
+.sub { font-size: 13.5px; color: var(--muted); }
+.rotulo { font-size: 12.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.linha-botoes { display: flex; gap: 10px; flex-wrap: wrap; }
+.cab-linha { display: flex; gap: 12px 20px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; }
+.grade-2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+/* faixa de demonstração e topo */
+.demo-faixa { background: var(--accent); color: var(--accent-ink); font-size: 14px; font-weight: 600; padding: 8px 16px; display: flex; gap: 6px 14px; justify-content: center; flex-wrap: wrap; text-align: center; }
+.demo-faixa button { background: none; border: 0; padding: 0; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; color: inherit; }
+.topo { background: var(--brand); color: var(--brand-ink); border-bottom: 4px solid var(--accent); }
+.topo-in { max-width: 1180px; margin: 0 auto; padding: 11px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.marca { display: flex; align-items: center; gap: 10px; min-width: 0; background: none; border: 0; color: inherit; padding: 0; cursor: pointer; text-align: left; }
+.marca-txt { display: flex; flex-direction: column; min-width: 0; }
+.marca-t { font: 700 19px/1.1 var(--font-display); letter-spacing: .01em; }
+.marca-s { font-size: 13px; opacity: .82; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topo-dir { display: flex; align-items: center; gap: 10px; flex: none; }
+.ciclo { font-size: 13px; font-weight: 600; background: rgba(255, 255, 255, .13); padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
+.btn-topo { background: transparent; color: inherit; border: 1px solid rgba(255, 255, 255, .4); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.btn-topo:hover { background: rgba(255, 255, 255, .1); }
+.main { max-width: 760px; margin: 0 auto; padding: 22px 16px 48px; }
+.main.largo { max-width: 1180px; }
+.rodape { text-align: center; color: var(--muted); font-size: 13px; padding: 0 16px 28px; }
+@media (max-width: 460px) { .ciclo { display: none; } h1 { font-size: 25px; } }
+
+/* cartões */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+.grid-cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
+.card-acao { display: flex; flex-direction: column; gap: 10px; }
+.card-acao > .btn { margin-top: auto; align-self: flex-start; }
+.card-acao.destaque { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--shadow); }
+.card-cab { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.saudacao { display: grid; gap: 4px; }
+
+/* botões */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; border: 1.5px solid transparent; padding: 10px 18px; font-weight: 600; cursor: pointer; min-height: 46px; text-decoration: none; transition: background-color .15s, border-color .15s; }
+.btn-primario { background: var(--primary); color: var(--primary-ink); }
+.btn-primario:hover { background: var(--primary-hover); }
+.btn-sec { background: var(--surface); color: var(--ink); border-color: var(--line); }
+.btn-sec:hover { border-color: var(--primary); }
+.btn-perigo { background: var(--bad); color: #fff; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-bloco { width: 100%; }
+.btn-sm { min-height: 36px; padding: 5px 12px; font-size: 14px; border-radius: 8px; }
+.btn-link { background: none; border: 0; padding: 4px 0; color: var(--primary); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.btn-voltar { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; padding: 4px 6px 4px 0; color: var(--primary); font-weight: 600; cursor: pointer; }
+
+/* chips e barras */
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 99px; white-space: nowrap; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+.chip::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.chip.ok { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
+.chip.warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+.chip.bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
+.chip.info { background: var(--info-bg); color: var(--info); border-color: transparent; }
+.barra { height: 8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+.barra > i { display: block; height: 100%; background: var(--primary); border-radius: 99px; }
+.barra.ok > i { background: var(--ok); }
+.prog-cel { display: grid; gap: 4px; min-width: 120px; }
+.prog-cel .num-cel { font-size: 14px; font-variant-numeric: tabular-nums; }
+.nota-pill { display: inline-block; min-width: 44px; text-align: center; font: 700 15px/1 var(--font-display); padding: 5px 8px; border-radius: 99px; color: #fff; font-variant-numeric: tabular-nums; }
+
+/* formulários */
+.campo { display: flex; flex-direction: column; gap: 6px; }
+.campo > label, .campo-rotulo { font-weight: 600; font-size: 15px; }
+.ajuda { font-size: 13.5px; color: var(--muted); }
+.input { width: 100%; border: 1.5px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 14px; font-size: 17px; min-height: 48px; }
+.input:focus { border-color: var(--primary); }
+.input-grande { font: 600 24px/1.2 var(--font-display); letter-spacing: .08em; text-align: center; }
+.input-sm { min-height: 38px; padding: 6px 10px; font-size: 15px; border-radius: 8px; }
+select.input { padding-right: 34px; }
+textarea.input { min-height: 112px; resize: vertical; font-size: 16px; line-height: 1.5; }
+.contador { align-self: flex-end; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.linha-ajuda { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.erro { color: var(--bad); font-weight: 600; background: var(--bad-bg); padding: 10px 12px; border-radius: 10px; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-weight: 500; cursor: pointer; }
+.check input { width: 20px; height: 20px; margin: 2px 0 0; flex: none; }
+fieldset { margin: 0; min-width: 0; }
+fieldset legend { padding: 0; font: 600 21px/1.2 var(--font-display); float: left; width: 100%; }
+fieldset legend + * { clear: both; }
+
+/* login */
+.login-wrap { display: grid; gap: 18px; max-width: 460px; margin: 6px auto 0; }
+.passos { display: flex; gap: 6px; }
+.passos span { flex: 1; height: 5px; border-radius: 99px; background: var(--line); }
+.passos span.on { background: var(--accent); }
+.confirma-nome { font: 700 27px/1.15 var(--font-display); }
+
+/* itens com nota 1 a 5 */
+.item { background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; scroll-margin-top: 96px; }
+.item.falta { border-color: var(--bad); background: var(--bad-bg); }
+.item-top { display: flex; gap: 10px; align-items: baseline; }
+.item-n { font: 700 15px/1 var(--font-display); color: var(--muted); min-width: 22px; font-variant-numeric: tabular-nums; }
+.item-t { font-weight: 600; flex: 1; }
+.item-v { font-size: 13px; font-weight: 700; white-space: nowrap; color: var(--muted); }
+.notas { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.nota { min-height: 50px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface-2); font: 700 21px/1 var(--font-display); cursor: pointer; color: var(--ink); transition: background-color .12s, border-color .12s; }
+.nota:hover { border-color: var(--primary); }
+.nota.sel { color: #fff; }
+.nota.sel.n1 { background: var(--n1); border-color: var(--n1); }
+.nota.sel.n2 { background: var(--n2); border-color: var(--n2); }
+.nota.sel.n3 { background: var(--n3); border-color: var(--n3); color: var(--n3-ink); }
+.nota.sel.n4 { background: var(--n4); border-color: var(--n4); }
+.nota.sel.n5 { background: var(--n5); border-color: var(--n5); }
+.escala { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); }
+.legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; color: var(--muted); }
+.legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.leg-n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; color: #fff; font: 700 14px/1 var(--font-display); }
+.leg-n.n1 { background: var(--n1); } .leg-n.n2 { background: var(--n2); } .leg-n.n3 { background: var(--n3); color: var(--n3-ink); } .leg-n.n4 { background: var(--n4); } .leg-n.n5 { background: var(--n5); }
+.progresso { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 0 12px; display: grid; gap: 6px; border-bottom: 1px solid var(--line); }
+.progresso .linha { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; font-weight: 600; }
+.obs-toggle { justify-self: start; }
+.grupo-extra { gap: 10px; }
+.grupo-extra.falta { border-color: var(--bad); background: var(--bad-bg); }
+.campo-linha { display: grid; grid-template-columns: 28px 1fr; align-items: center; gap: 10px; }
+.num-extra { font: 700 18px/1 var(--font-display); color: var(--muted); text-align: center; }
+.atalhos { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* avisos e telas de conclusão */
+.aviso { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: var(--radius); background: var(--info-bg); }
+.aviso > .ico { color: var(--info); margin-top: 1px; }
+.aviso.warn { background: var(--warn-bg); } .aviso.warn > .ico { color: var(--warn); }
+.aviso.ok { background: var(--ok-bg); } .aviso.ok > .ico { color: var(--ok); }
+.centro { align-items: center; text-align: center; padding: 32px 20px; }
+.selo-ok { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--ok-bg); color: var(--ok); }
+
+/* abas e filtros */
+.abas { display: flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--line); padding: 4px; border-radius: 12px; overflow-x: auto; }
+.aba { border: 0; background: transparent; padding: 9px 14px; border-radius: 9px; font-weight: 600; cursor: pointer; white-space: nowrap; color: var(--muted); flex: 1 0 auto; }
+.aba.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.filtros { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.filtros .input { flex: 1 1 220px; width: auto; }
+.chips-filtro { display: flex; gap: 6px; flex-wrap: wrap; }
+.filtro { border: 1.5px solid var(--line); background: var(--surface); border-radius: 99px; padding: 6px 12px; font-weight: 600; font-size: 14px; cursor: pointer; }
+.filtro.on { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
+
+/* listas e tabelas */
+.lista { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+.linha-pessoa { display: flex; align-items: center; gap: 10px 12px; padding: 12px 14px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.linha-pessoa:first-child { border-top: 0; }
+.linha-pessoa .quem { min-width: 0; flex: 1 1 200px; }
+.linha-pessoa .dir { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
+.vazio { padding: 18px; color: var(--muted); text-align: center; }
+.tabela-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 15px; }
+th { text-align: left; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 700; padding: 10px 12px; background: var(--surface-2); border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 10px 12px; border-top: 1px solid var(--line); vertical-align: middle; }
+tbody tr:first-child td { border-top: 0; }
+tr.clicavel { cursor: pointer; }
+tr.clicavel:hover td, tr.clicavel:focus td { background: var(--surface-2); }
+.num { text-align: right; }
+
+/* indicadores e resultados */
+.kpis { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 4px; align-content: start; box-shadow: var(--shadow); }
+.kpi .v { font: 700 32px/1.05 var(--font-display); font-variant-numeric: tabular-nums; }
+.kpi .t { font-size: 14px; color: var(--muted); font-weight: 500; }
+.res-lista { display: grid; }
+.res-item { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 36%) 46px; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.res-item:first-child { border-top: 0; }
+.res-barra { height: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+.res-barra i { display: block; height: 100%; border-radius: 99px; }
+.res-v { font: 700 19px/1 var(--font-display); text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) { .res-item { grid-template-columns: minmax(0, 1fr) 46px; row-gap: 6px; } .res-barra { grid-column: 1 / -1; grid-row: 2; } }
+.citacoes { display: grid; gap: 10px; }
+.citacao { margin: 0; padding: 12px 14px; background: var(--surface-2); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.lista-simples { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.vezes { display: inline-block; margin-left: 8px; font: 700 13px/1 var(--font-display); color: var(--muted); background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; padding: 3px 7px; vertical-align: 1px; }
+.fases { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* configurações */
+.linha-config { display: flex; gap: 14px 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.linha-config > div:first-child { flex: 1 1 280px; display: grid; gap: 4px; }
+.interruptor { display: inline-flex; border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; }
+.interruptor button { border: 0; background: var(--surface); padding: 9px 16px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.interruptor button + button { border-left: 1.5px solid var(--line); }
+.interruptor button.on { background: var(--primary); color: var(--primary-ink); }
+.crit-lista { display: grid; gap: 8px; }
+.crit { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.crit.inativo .input { text-decoration: line-through; color: var(--muted); }
+.crit-id { font: 700 14px/1 var(--font-display); color: var(--muted); }
+.crit-acoes { display: flex; gap: 6px; flex-wrap: wrap; }
+@media (max-width: 640px) { .crit { grid-template-columns: 40px minmax(0, 1fr); } .crit-acoes { grid-column: 2; } }
+
+/* modal, aviso flutuante e carregamento */
+.modal-fundo { position: fixed; inset: 0; background: rgba(6, 14, 24, .55); display: flex; align-items: flex-end; justify-content: center; z-index: 50; padding: 12px; }
+@media (min-width: 640px) { .modal-fundo { align-items: center; } }
+.modal { background: var(--surface); color: var(--ink); width: 100%; max-width: 580px; max-height: calc(100% - 12px); overflow: auto; border-radius: 16px; padding: 20px; display: grid; gap: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, .3); }
+.modal.largo { max-width: 760px; }
+.modal-cab { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.modal-x { background: none; border: 0; padding: 4px; cursor: pointer; color: var(--muted); border-radius: 8px; }
+.modal-acoes { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+body.com-modal { overflow: hidden; }
+#toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 60; display: grid; gap: 8px; width: min(92vw, 460px); pointer-events: none; }
+.toast { background: var(--ink); color: var(--bg); padding: 12px 16px; border-radius: 10px; box-shadow: var(--shadow); font-weight: 500; pointer-events: auto; }
+.toast.erro { background: var(--bad); color: #fff; }
+#carregando { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 70; overflow: hidden; display: none; }
+body.ocupado #carregando { display: block; }
+body.ocupado { cursor: progress; }
+#carregando i { position: absolute; top: 0; bottom: 0; width: 40%; background: var(--accent); animation: corre 1s ease-in-out infinite; }
+@keyframes corre { from { left: -40%; } to { left: 100%; } }
+@media (prefers-reduced-motion: reduce) {
+  #carregando i { animation: none; left: 0; width: 100%; opacity: .7; }
+  * { transition: none !important; scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body>
+<div id="carregando" aria-hidden="true"><i></i></div>
+<div id="app"></div>
+<div id="toast" aria-live="polite"></div>
+<script src="config.js"></script>
+<script>
+(function () {
+  'use strict';
+  var DEMO = !!window.FB_DEMO;
+
+  // ------------------------------------------------------------ ícones e elementos
+  var SVG = '<svg viewBox="0 0 24 24" width="S" height="S" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+  var ICONES = {
+    cadeado: '<rect x="4.5" y="11" width="15" height="10" rx="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    voltar: '<path d="M15 18l-6-6 6-6"/>',
+    copiar: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>',
+    baixar: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+    subir: '<path d="M12 16V5M7 10l5-5 5 5M5 20h14"/>',
+    mais: '<path d="M12 5v14M5 12h14"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/>',
+    alerta: '<path d="M12 3.5l9 16h-18z"/><path d="M12 10v4.5M12 17.2h.01"/>',
+    fechar: '<path d="M6 6l12 12M18 6L6 18"/>'
+  };
+  function ico(nome, tam) {
+    var s = document.createElement('span');
+    s.className = 'ico';
+    s.innerHTML = SVG.replace(/S/g, String(tam || 20)) + ICONES[nome] + '</svg>';
+    return s;
+  }
+  function logo() {
+    var s = document.createElement('span');
+    s.className = 'ico';
+    s.innerHTML = '<svg viewBox="0 0 32 32" width="34" height="34" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#f2b705"/>' +
+      '<g fill="#13345a"><rect x="5.3" y="19" width="3" height="6.5" rx="1"/><rect x="9.9" y="16" width="3" height="9.5" rx="1"/>' +
+      '<rect x="14.5" y="13" width="3" height="12.5" rx="1"/><rect x="19.1" y="10" width="3" height="15.5" rx="1"/><rect x="23.7" y="6.5" width="3" height="19" rx="1"/></g></svg>';
+    return s;
+  }
+  function h(tag, attrs) {
+    var el = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      var v = attrs[k];
+      if (v === null || v === undefined || v === false) return;
+      if (k === 'class') el.className = v;
+      else if (k.slice(0, 2) === 'on' && typeof v === 'function') el.addEventListener(k.slice(2), v);
+      else if (k === 'value') el.value = v;
+      else if (k === 'checked') el.checked = !!v;
+      else if (k === 'selected') el.selected = !!v;
+      else if (k === 'disabled') el.disabled = !!v;
+      else el.setAttribute(k, v === true ? '' : v);
+    });
+    for (var i = 2; i < arguments.length; i++) anexar(el, arguments[i]);
+    return el;
+  }
+  function anexar(el, c) {
+    if (c === null || c === undefined || c === false) return;
+    if (Array.isArray(c)) { c.forEach(function (x) { anexar(el, x); }); return; }
+    if (typeof c === 'object' && c.nodeType) el.appendChild(c);
+    else el.appendChild(document.createTextNode(String(c)));
+  }
+  function limpar(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+
+  // ------------------------------------------------------------ formatação
+  function n1(x) {
+    if (x === null || x === undefined || x === '' || isNaN(Number(x))) return '–';
+    return Number(x).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  }
+  function pct(a, b) { return b ? Math.round(a / b * 100) : 0; }
+  function dataBR(iso) {
+    if (!iso) return '';
+    var p = String(iso).slice(0, 10).split('-');
+    return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : String(iso);
+  }
+  function hojeISO() {
+    var d = new Date();
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function somarMeses(iso, m) {
+    var p = iso.split('-').map(Number);
+    var d = new Date(p[0], p[1] - 1 + m, p[2]);
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function corNota(v) {
+    if (v === null || v === undefined) return 'var(--line)';
+    if (v >= 4.5) return 'var(--n5)';
+    if (v >= 3.75) return 'var(--n4)';
+    if (v >= 3) return 'var(--n3)';
+    if (v >= 2) return 'var(--n2)';
+    return 'var(--n1)';
+  }
+  function tintaNota(v) { return v !== null && v !== undefined && v >= 3 && v < 3.75 ? 'var(--n3-ink)' : '#fff'; }
+  function mascaraCpf(v) {
+    var d = String(v).replace(/\D/g, '').slice(0, 11), o = d.slice(0, 3);
+    if (d.length > 3) o += '.' + d.slice(3, 6);
+    if (d.length > 6) o += '.' + d.slice(6, 9);
+    if (d.length > 9) o += '-' + d.slice(9);
+    return o;
+  }
+  function normalizar(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+  function primeiro(nome) { return String(nome || '').split(' ')[0]; }
+  function plural(n, um, varios) { return n + ' ' + (n === 1 ? um : varios); }
+  function reduzMovimento() { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
+  function rolarAte(el, bloco) { if (el) el.scrollIntoView({ behavior: reduzMovimento() ? 'auto' : 'smooth', block: bloco || 'center' }); }
+
+  // ------------------------------------------------------------ avisos e carregamento
+  function toast(msg, tipo) {
+    var box = document.getElementById('toast');
+    var t = h('div', { class: 'toast' + (tipo ? ' ' + tipo : ''), role: tipo === 'erro' ? 'alert' : 'status' }, msg);
+    box.appendChild(t);
+    setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, tipo === 'erro' ? 6000 : 3500);
+  }
+  var pendentes = 0;
+  function ocupado(on) {
+    pendentes = Math.max(0, pendentes + (on ? 1 : -1));
+    document.body.classList.toggle('ocupado', pendentes > 0);
+  }
+
+  // ------------------------------------------------------------ servidor
+  var S = { token: null, home: null, view: 'carregando', login: novoLogin(), adm: { aba: 'painel' } };
+  function novoLogin() { return { passo: 1, mat: '', nome: '', utd: '', erro: '', cpf: '' }; }
+
+  // Dentro do Apps Script (e na demonstração) a página fala com o servidor por google.script.run.
+  // Publicada fora dele (GitHub Pages), fala com o mesmo Apps Script pela internet (doPost).
+  var API_URL = String(window.FB_API_URL || '').trim();
+  function temGoogleRun() { return !!(window.google && window.google.script && window.google.script.run); }
+  function temServidor() { return temGoogleRun() || !!API_URL; }
+  function transporte(acao, dados, token) {
+    if (temGoogleRun()) {
+      return new Promise(function (resolve, reject) {
+        window.google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)
+          .api(acao, JSON.stringify(dados || {}), token || '');
+      });
+    }
+    if (!API_URL) return Promise.reject(new Error('sem servidor'));
+    return fetch(API_URL, { method: 'POST', redirect: 'follow', body: JSON.stringify({ acao: acao, dados: dados || {}, token: token || '' }) })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); });
+  }
+  function chamar(acao, dados) {
+    ocupado(true);
+    return transporte(acao, dados, S.token).then(function (txt) {
+      ocupado(false);
+      var r;
+      try { r = typeof txt === 'string' ? JSON.parse(txt) : txt; } catch (e) { r = null; }
+      if (r && r.ok) return r.data;
+      r = r || { code: 'ERRO', message: 'Resposta inválida do servidor.' };
+      if (r.code === 'SESSAO') sessaoExpirada(r.message);
+      throw r;
+    }, function () {
+      ocupado(false);
+      throw { code: 'REDE', message: 'Sem conexão com o servidor. Confira a internet e tente de novo.' };
+    });
+  }
+  function falha(e) {
+    if (e && e.code === 'SESSAO') return;
+    toast((e && e.message) || 'Erro inesperado.', 'erro');
+  }
+  function guardarToken(t) {
+    try { if (t) sessionStorage.setItem('fbs_token', t); else sessionStorage.removeItem('fbs_token'); } catch (e) { /* sem armazenamento */ }
+  }
+  function tokenGuardado() { try { return sessionStorage.getItem('fbs_token'); } catch (e) { return null; } }
+  function sessaoExpirada(msg) {
+    S.token = null; guardarToken(null); S.home = null; S.login = novoLogin();
+    S.login.erro = msg || 'Sua sessão expirou. Entre novamente.';
+    ir('login');
+  }
+  function sair() {
+    var t = S.token;
+    S.token = null; guardarToken(null); S.home = null; S.login = novoLogin(); S.adm = { aba: 'painel' };
+    ir('login');
+    if (t) transporte('sair', {}, t).catch(function () { /* sessão expira sozinha */ });
+  }
+
+  // ------------------------------------------------------------ desenho geral
+  function render(rolarTopo) {
+    var app = document.getElementById('app');
+    limpar(app);
+    if (DEMO) app.appendChild(faixaDemo());
+    app.appendChild(topo());
+    var main = h('main', { class: 'main' + (S.view === 'admin' ? ' largo' : ''), id: 'conteudo' });
+    anexar(main, (VIEWS[S.view] || vCarregando)());
+    app.appendChild(main);
+    app.appendChild(h('footer', { class: 'rodape' }, 'Feedback Semestral · ' + (S.home ? S.home.organizacao : 'Sirtec · Operação Centro-BA')));
+    if (rolarTopo) window.scrollTo(0, 0);
+  }
+  function ir(view) { S.view = view; render(true); }
+
+  function faixaDemo() {
+    return h('div', { class: 'demo-faixa', role: 'note' },
+      h('span', null, 'Demonstração com dados fictícios. As respostas ficam salvas só neste navegador.'),
+      h('button', { type: 'button', onclick: function () {
+        if (window.FB_DEMO_RESET) window.FB_DEMO_RESET();
+        S.token = null; guardarToken(null); S.home = null; S.login = novoLogin(); S.adm = { aba: 'painel' };
+        ir('login');
+        toast('Dados da demonstração restaurados.');
+      } }, 'Restaurar dados'));
+  }
+  function topo() {
+    var H = S.home;
+    return h('header', { class: 'topo' }, h('div', { class: 'topo-in' },
+      h('button', { class: 'marca', type: 'button', 'aria-label': 'Ir para o início', onclick: function () { if (S.token) abrirInicio(); } },
+        logo(), h('span', { class: 'marca-txt' }, h('span', { class: 'marca-t' }, 'Feedback Semestral'),
+          h('span', { class: 'marca-s' }, H ? H.organizacao : 'Sirtec · Operação Centro-BA'))),
+      H ? h('div', { class: 'topo-dir' }, h('span', { class: 'ciclo' }, H.cicloRotulo), h('button', { class: 'btn-topo', type: 'button', onclick: sair }, 'Sair')) : null));
+  }
+  function vCarregando() { return h('div', { class: 'card muted' }, 'Carregando…'); }
+  function vSemServidor() {
+    return h('div', { class: 'login-wrap' },
+      h('h1', null, 'Avaliação de liderança'),
+      h('section', { class: 'card stack' },
+        aviso('warn', 'O aplicativo ainda não está ligado ao servidor, então ainda não dá para entrar.'),
+        h('p', null, 'A coordenação precisa publicar o Apps Script (a parte que guarda as respostas na Planilha Google) e colar o endereço dele no arquivo config.js deste site.'),
+        h('a', { class: 'btn btn-sec', href: 'demo/' }, 'Ver a demonstração')));
+  }
+
+  // ------------------------------------------------------------ peças reutilizáveis
+  function chip(tipo, texto) { return h('span', { class: 'chip' + (tipo ? ' ' + tipo : '') }, texto); }
+  function barra(a, b, ok) {
+    var p = pct(a, b);
+    return h('div', { class: 'barra' + (ok && b && a >= b ? ' ok' : ''), role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(b), 'aria-valuenow': String(a), 'aria-label': a + ' de ' + b },
+      h('i', { style: 'width:' + p + '%' }));
+  }
+  function aviso(tipo, texto, icone) {
+    return h('div', { class: 'aviso ' + (tipo || 'info') }, ico(icone || (tipo === 'warn' ? 'alerta' : tipo === 'ok' ? 'check' : 'info'), 20), h('p', null, texto));
+  }
+  function botaoVoltar(rotulo, acao) {
+    return h('button', { class: 'btn-voltar', type: 'button', onclick: acao || abrirInicio }, ico('voltar', 18), rotulo || 'Início');
+  }
+  function campo(id, rotulo, controle, ajuda) {
+    return h('div', { class: 'campo' }, h('label', { for: id }, rotulo), controle, ajuda ? h('span', { class: 'ajuda' }, ajuda) : null);
+  }
+  function kpi(valor, texto, cor) {
+    return h('div', { class: 'kpi', style: cor ? 'border-left:5px solid ' + cor : null }, h('div', { class: 'v' }, valor), h('div', { class: 't' }, texto));
+  }
+  function abaBtn(id, rotulo, atual, acao) {
+    return h('button', { class: 'aba' + (id === atual ? ' on' : ''), type: 'button', role: 'tab', 'aria-selected': id === atual ? 'true' : 'false', onclick: acao }, rotulo);
+  }
+  function legenda(escala) {
+    return h('div', { class: 'legenda', 'aria-label': 'Escala de notas' }, escala.map(function (t, i) {
+      return h('span', null, h('b', { class: 'leg-n n' + (i + 1) }, String(i + 1)), t);
+    }));
+  }
+  function seletorCiclo(ciclos, atual, aoTrocar) {
+    if (!ciclos || ciclos.length < 2) return null;
+    return campo('selCiclo', 'Ciclo', h('select', { class: 'input input-sm', id: 'selCiclo', onchange: function (ev) { aoTrocar(ev.target.value); } },
+      ciclos.map(function (c) { return h('option', { value: c.id, selected: c.id === atual }, c.rotulo); })));
+  }
+  function enterClica(ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ev.currentTarget.click(); } }
+  function campoTexto(id, rotulo, ajuda, valor, max, aoDigitar) {
+    var cont = h('span', { class: 'contador' }, (valor || '').length + '/' + max);
+    var ta = h('textarea', { class: 'input', id: id, maxlength: String(max), rows: '4', oninput: function (ev) { aoDigitar(ev.target.value); cont.textContent = ev.target.value.length + '/' + max; } });
+    ta.value = valor || '';
+    return h('div', { class: 'campo card' }, h('label', { for: id }, rotulo), h('span', { class: 'ajuda' }, ajuda), ta, cont);
+  }
+
+  function itemNota(c, i, notas, escala, aoMudar, obs) {
+    var valor = h('span', { class: 'item-v' }, notas[c.id] ? notas[c.id] + ' · ' + escala[notas[c.id] - 1] : '');
+    var grupo = h('div', { class: 'notas', role: 'radiogroup', 'aria-labelledby': 'q-' + c.id });
+    var item = h('div', { class: 'item', id: 'item-' + c.id },
+      h('div', { class: 'item-top' }, h('span', { class: 'item-n' }, ('0' + (i + 1)).slice(-2)), h('p', { class: 'item-t', id: 'q-' + c.id }, c.texto), valor),
+      grupo,
+      h('div', { class: 'escala', 'aria-hidden': 'true' }, h('span', null, escala[0]), h('span', null, escala[4])));
+    [1, 2, 3, 4, 5].forEach(function (v) {
+      var b = h('button', { type: 'button', class: 'nota n' + v + (notas[c.id] === v ? ' sel' : ''), role: 'radio', 'aria-checked': notas[c.id] === v ? 'true' : 'false', 'aria-label': v + ', ' + escala[v - 1] }, String(v));
+      b.addEventListener('click', function () {
+        notas[c.id] = v;
+        Array.prototype.forEach.call(grupo.children, function (x, j) {
+          x.classList.toggle('sel', j + 1 === v);
+          x.setAttribute('aria-checked', j + 1 === v ? 'true' : 'false');
+        });
+        valor.textContent = v + ' · ' + escala[v - 1];
+        item.classList.remove('falta');
+        aoMudar();
+      });
+      grupo.appendChild(b);
+    });
+    if (obs) {
+      var area = h('textarea', { class: 'input', id: 'obs-' + c.id, rows: '2', maxlength: '500', 'aria-label': 'Observação sobre ' + c.texto, oninput: function (ev) { obs[c.id] = ev.target.value; } });
+      area.value = obs[c.id] || '';
+      if (!obs[c.id]) area.hidden = true;
+      var tog = h('button', { type: 'button', class: 'btn-link obs-toggle' + (obs[c.id] ? '' : ''), onclick: function () {
+        area.hidden = !area.hidden;
+        tog.textContent = area.hidden ? 'Adicionar observação' : 'Ocultar observação';
+        if (!area.hidden) area.focus();
+      } }, obs[c.id] ? 'Ocultar observação' : 'Adicionar observação');
+      item.appendChild(tog);
+      item.appendChild(area);
+    }
+    return item;
+  }
+  function marcarFaltando(criterios, notas) {
+    var falta = criterios.filter(function (c) { return !notas[c.id]; });
+    falta.forEach(function (c) { var el = document.getElementById('item-' + c.id); if (el) el.classList.add('falta'); });
+    if (falta.length) {
+      rolarAte(document.getElementById('item-' + falta[0].id));
+      toast('Falta' + (falta.length === 1 ? ' 1 item' : 'm ' + falta.length + ' itens') + ' sem nota.', 'erro');
+    }
+    return falta.length;
+  }
+
+  function modal(titulo, corpo, acoes, largo) {
+    var anterior = document.activeElement;
+    var fundo = h('div', { class: 'modal-fundo' });
+    var fecharBtn = h('button', { class: 'modal-x', type: 'button', 'aria-label': 'Fechar janela', onclick: fechar }, ico('fechar', 22));
+    var caixa = h('div', { class: 'modal' + (largo ? ' largo' : ''), role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'modal-t' },
+      h('div', { class: 'modal-cab' }, h('h2', { id: 'modal-t' }, titulo), fecharBtn),
+      h('div', { class: 'stack' }, corpo),
+      acoes && acoes.length ? h('div', { class: 'modal-acoes' }, acoes) : null);
+    fundo.appendChild(caixa);
+    fundo.addEventListener('click', function (ev) { if (ev.target === fundo) fechar(); });
+    function tecla(ev) { if (ev.key === 'Escape') fechar(); }
+    document.addEventListener('keydown', tecla);
+    document.body.appendChild(fundo);
+    document.body.classList.add('com-modal');
+    setTimeout(function () {
+      var alvo = caixa.querySelector('input:not([type=hidden]):not([readonly]), select, textarea') || caixa.querySelector('.modal-acoes .btn-primario') || fecharBtn;
+      alvo.focus();
+    }, 0);
+    function fechar() {
+      document.removeEventListener('keydown', tecla);
+      if (fundo.parentNode) fundo.parentNode.removeChild(fundo);
+      if (!document.querySelector('.modal-fundo')) document.body.classList.remove('com-modal');
+      if (anterior && anterior.focus && document.body.contains(anterior)) { try { anterior.focus(); } catch (e) { /* nada */ } }
+    }
+    return { fechar: fechar, caixa: caixa };
+  }
+  function confirmar(titulo, texto, rotuloOk, aoConfirmar) {
+    var m = modal(titulo, [h('p', null, texto)], [
+      h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { m.fechar(); } }, 'Cancelar'),
+      h('button', { class: 'btn btn-primario', type: 'button', onclick: function () { m.fechar(); aoConfirmar(); } }, rotuloOk)
+    ]);
+  }
+  function copiarTexto(texto) {
+    function alternativa() {
+      return new Promise(function (resolve, reject) {
+        var ta = h('textarea', { style: 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0', readonly: true });
+        ta.value = texto;
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+        document.body.removeChild(ta);
+        if (ok) resolve(); else reject(new Error('copiar'));
+      });
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(texto).catch(alternativa);
+    return alternativa();
+  }
+  function copiarComAviso(texto, msg) {
+    copiarTexto(texto).then(function () { toast(msg); }).catch(function () {
+      var ta = h('textarea', { class: 'input', rows: '10', readonly: true });
+      ta.value = texto;
+      modal('Copie o texto', [h('p', { class: 'small' }, 'Não consegui copiar sozinho. Selecione o texto abaixo e copie.'), ta], []);
+      setTimeout(function () { ta.select(); }, 50);
+    });
+  }
+
+  // ------------------------------------------------------------ entrada
+  function vLogin() {
+    var L = S.login;
+    var conteudo = L.passo === 1 ? passoMatricula(L) : L.passo === 2 ? passoConfirma(L) : passoCpf(L);
+    return h('div', { class: 'login-wrap' },
+      h('div', { class: 'stack', style: 'gap:8px' },
+        h('h1', null, 'Avaliação de liderança'),
+        h('p', { class: 'muted' }, 'Entre com sua matrícula e seu CPF. A avaliação que você faz do seu líder é anônima.')),
+      h('section', { class: 'card stack', 'aria-label': 'Entrar' },
+        h('div', { class: 'passos', 'aria-hidden': 'true' }, [1, 2, 3].map(function (n) { return h('span', { class: n <= L.passo ? 'on' : '' }); })),
+        conteudo,
+        L.erro ? h('p', { class: 'erro', role: 'alert' }, L.erro) : null),
+      DEMO ? acessosDemo() : null);
+  }
+  function passoMatricula(L) {
+    var inp = h('input', { class: 'input input-grande', id: 'mat', inputmode: 'numeric', autocomplete: 'off', maxlength: '12', value: L.mat, 'aria-describedby': 'mat-ajuda' });
+    var btn = h('button', { class: 'btn btn-primario btn-bloco', type: 'submit' }, 'Continuar');
+    var form = h('form', { class: 'stack', novalidate: true },
+      h('div', { class: 'campo' }, h('label', { for: 'mat' }, 'Sua matrícula'), inp, h('span', { class: 'ajuda', id: 'mat-ajuda' }, 'O número do seu crachá ou contracheque.')),
+      btn);
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var mat = inp.value.trim();
+      if (!mat) { L.erro = 'Digite sua matrícula.'; render(); return; }
+      btn.disabled = true;
+      chamar('lookup', { mat: mat }).then(function (d) {
+        S.login = { passo: 2, mat: d.mat, nome: d.nome, utd: d.utd, erro: '', cpf: '' };
+        render();
+      }).catch(function (e) { L.mat = mat; L.erro = e.message; render(); });
+    });
+    setTimeout(function () { inp.focus(); }, 0);
+    return form;
+  }
+  function passoConfirma(L) {
+    var sim = h('button', { class: 'btn btn-primario', type: 'button', onclick: function () { L.passo = 3; L.erro = ''; render(); } }, 'Sim, sou eu');
+    setTimeout(function () { sim.focus(); }, 0);
+    return h('div', { class: 'stack' },
+      h('p', { class: 'muted' }, 'Matrícula ' + L.mat + '. É você?'),
+      h('div', null, h('div', { class: 'confirma-nome' }, L.nome), L.utd ? h('div', { class: 'muted' }, 'UTD ' + L.utd) : null),
+      h('div', { class: 'linha-botoes' }, sim,
+        h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { S.login = novoLogin(); render(); } }, 'Não sou eu')));
+  }
+  function passoCpf(L) {
+    var inp = h('input', { class: 'input input-grande', id: 'cpf', type: 'password', inputmode: 'numeric', autocomplete: 'off', placeholder: '000.000.000-00', 'aria-describedby': 'cpf-ajuda' });
+    inp.value = L.cpf || '';
+    inp.addEventListener('input', function () { inp.value = mascaraCpf(inp.value); });
+    var ver = h('button', { type: 'button', class: 'btn-link', onclick: function () {
+      var mostrar = inp.type === 'password';
+      inp.type = mostrar ? 'text' : 'password';
+      ver.textContent = mostrar ? 'Ocultar CPF' : 'Mostrar CPF';
+    } }, 'Mostrar CPF');
+    var btn = h('button', { class: 'btn btn-primario btn-bloco', type: 'submit' }, 'Entrar');
+    var form = h('form', { class: 'stack', novalidate: true },
+      h('div', null, h('div', { class: 'muted small' }, 'Entrando como'), h('div', { class: 'nome' }, L.nome)),
+      h('div', { class: 'campo' }, h('label', { for: 'cpf' }, 'Seu CPF (é a sua senha)'), inp,
+        h('div', { class: 'linha-ajuda' }, h('span', { class: 'ajuda', id: 'cpf-ajuda' }, 'Só os números. Depois de 5 erros o acesso trava por 15 minutos.'), ver)),
+      btn,
+      h('button', { type: 'button', class: 'btn-link', onclick: function () { S.login = novoLogin(); render(); } }, 'Trocar matrícula'));
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var cpf = inp.value.replace(/\D/g, '');
+      if (cpf.length !== 11) { L.erro = 'O CPF tem 11 números.'; L.cpf = inp.value; render(); return; }
+      btn.disabled = true;
+      chamar('login', { mat: L.mat, cpf: cpf }).then(function (d) {
+        S.token = d.token; guardarToken(d.token); S.home = d.home; S.login = novoLogin();
+        ir('inicio');
+      }).catch(function (e) { L.erro = e.message; L.cpf = ''; render(); });
+    });
+    setTimeout(function () { inp.focus(); }, 0);
+    return form;
+  }
+  function acessosDemo() {
+    var lista = window.FB_DEMO_ACESSOS || [];
+    return h('section', { class: 'card stack' },
+      h('h2', null, 'Acessos de teste'),
+      h('p', { class: 'muted small' }, 'Escolha um perfil. Nomes, matrículas e CPFs desta demonstração são fictícios.'),
+      h('div', { class: 'lista' }, lista.map(function (a) {
+        return h('div', { class: 'linha-pessoa' },
+          h('div', { class: 'quem' }, h('div', { class: 'nome' }, a.perfil), h('div', { class: 'sub' }, a.nome + ' · matrícula ' + a.mat + ' · CPF ' + a.cpf)),
+          h('div', { class: 'dir' }, h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () {
+            chamar('lookup', { mat: a.mat }).then(function (d) {
+              S.login = { passo: 2, mat: d.mat, nome: d.nome, utd: d.utd, erro: '', cpf: a.cpf };
+              render(true);
+            }).catch(falha);
+          } }, 'Usar')));
+      })));
+  }
+
+  // ------------------------------------------------------------ início
+  function abrirInicio() { chamar('home').then(function (d) { S.home = d; ir('inicio'); }).catch(falha); }
+  function vInicio() {
+    var H = S.home, cards = [];
+    if (H.meuLider) cards.push(cardMeuLider(H));
+    else if (!H.eu.admin && !H.equipe) cards.push(h('div', { class: 'card' }, aviso('warn', 'Não encontramos o seu líder no cadastro. Procure o RH.')));
+    if (H.equipe) { cards.push(cardLiderados(H)); cards.push(cardEquipe(H)); cards.push(cardResultado()); }
+    if (H.eu.admin) cards.push(cardGestao(H));
+    var papel = H.eu.perfil === 'COORDENACAO' ? 'Coordenação' : H.eu.perfil === 'RH' ? 'RH' : H.eu.lider ? 'Líder' : 'Colaborador';
+    return h('div', { class: 'stack' },
+      h('div', { class: 'saudacao' }, h('h1', null, 'Olá, ' + H.eu.primeiroNome),
+        h('p', { class: 'muted' }, [papel, 'Matrícula ' + H.eu.mat, H.eu.utd ? 'UTD ' + H.eu.utd : null].filter(Boolean).join(' · '))),
+      h('div', { class: 'grid-cards' }, cards));
+  }
+  function cardMeuLider(H) {
+    var aberta = H.fases.up === 'ABERTA';
+    var pend = !H.avaliouLider && aberta;
+    return h('section', { class: 'card card-acao' + (pend ? ' destaque' : '') },
+      h('div', { class: 'card-cab' }, h('span', { class: 'rotulo' }, 'Liderado x Líder'),
+        H.avaliouLider ? chip('ok', 'Enviada em ' + dataBR(H.avaliouLiderEm)) : aberta ? chip('warn', 'Pendente') : chip('', 'Fechada')),
+      h('h2', null, 'Avaliar meu líder'),
+      h('p', { class: 'nome' }, H.meuLider.nome),
+      h('p', { class: 'muted small' }, H.meuLider.coordenacao
+        ? 'Notas de 1 a 5, 3 pontos fortes, 3 pontos fracos e considerações finais.'
+        : 'Notas de 1 a 5 e considerações finais. Leva uns 3 minutos.'),
+      pend ? h('button', { class: 'btn btn-primario', type: 'button', onclick: abrirFormLider }, 'Começar avaliação')
+        : h('p', { class: 'muted small' }, H.avaliouLider ? 'Obrigado! Sua resposta foi registrada sem identificação.' : 'A avaliação do líder não está aberta agora.'));
+  }
+  function cardEquipe(H) {
+    var e = H.equipe;
+    return h('section', { class: 'card card-acao' },
+      h('div', { class: 'card-cab' }, h('span', { class: 'rotulo' }, 'Minha equipe'), H.fases.up === 'ABERTA' ? chip('info', 'Avaliação do líder aberta') : chip('', 'Avaliação do líder fechada')),
+      h('h2', null, e.responderam + ' de ' + e.total + ' avaliaram você'),
+      barra(e.responderam, e.total, true),
+      h('p', { class: 'muted small' }, 'Você vê quem já respondeu, nunca as notas de cada pessoa.'),
+      h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { abrirEquipe('fase1'); } }, 'Ver quem respondeu'));
+  }
+  function cardLiderados(H) {
+    var e = H.equipe, aberta = H.fases.down === 'ABERTA', falta = e.avaliados < e.total;
+    return h('section', { class: 'card card-acao' + (aberta && falta ? ' destaque' : '') },
+      h('div', { class: 'card-cab' }, h('span', { class: 'rotulo' }, 'Líder x Liderado'),
+        aberta ? (falta ? chip('warn', 'Pendente') : chip('ok', 'Concluída')) : chip('', 'Ainda não aberta')),
+      h('h2', null, 'Avaliar meus liderados'),
+      h('p', null, e.avaliados + ' de ' + e.total + ' avaliados'),
+      barra(e.avaliados, e.total, true),
+      aberta ? h('button', { class: 'btn ' + (falta ? 'btn-primario' : 'btn-sec'), type: 'button', onclick: function () { abrirEquipe('fase2'); } }, e.avaliados ? 'Continuar avaliações' : 'Começar avaliações')
+        : h('p', { class: 'muted small' }, 'A coordenação abre esta etapa depois da avaliação dos líderes.'));
+  }
+  function cardResultado() {
+    return h('section', { class: 'card card-acao' },
+      h('div', { class: 'card-cab' }, h('span', { class: 'rotulo' }, 'Resultado')),
+      h('h2', null, 'Como a equipe me avaliou'),
+      h('p', { class: 'muted small' }, 'Média por item e comentários, sem identificação. Aparece quando a coordenação libera.'),
+      h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { abrirResultados(); } }, 'Ver resultado'));
+  }
+  function cardGestao(H) {
+    return h('section', { class: 'card card-acao' },
+      h('div', { class: 'card-cab' }, h('span', { class: 'rotulo' }, H.eu.perfil === 'RH' ? 'RH' : 'Coordenação')),
+      h('h2', null, 'Painel de gestão'),
+      h('p', { class: 'muted small' }, 'Participação por líder, resultados, cadastro, importação da base e abertura das fases.'),
+      h('button', { class: 'btn btn-primario', type: 'button', onclick: function () { abrirAdmin('painel'); } }, 'Abrir painel'));
+  }
+
+  // ------------------------------------------------------------ Liderado x Líder
+  function abrirFormLider() {
+    chamar('formLider').then(function (d) {
+      S.fl = d;
+      S.rl = { notas: {}, fortes: ['', '', ''], fracos: ['', '', ''], consideracoes: '' };
+      ir('formLider');
+    }).catch(falha);
+  }
+  function vFormLider() {
+    var F = S.fl, R = S.rl;
+    if (F.enviada) return h('div', { class: 'stack' }, botaoVoltar(), aviso('ok', 'Você já enviou a avaliação do seu líder neste ciclo. Obrigado!'));
+    if (F.fase !== 'ABERTA') return h('div', { class: 'stack' }, botaoVoltar(), aviso('warn', 'A avaliação do líder não está aberta agora.'));
+    var total = F.criterios.length;
+    var prog = h('div', { class: 'progresso' });
+    function atualizar() {
+      var feitos = F.criterios.filter(function (c) { return R.notas[c.id]; }).length;
+      limpar(prog);
+      anexar(prog, [h('div', { class: 'linha' }, h('span', null, feitos + ' de ' + total + ' itens'),
+        h('span', { class: 'muted' }, feitos === total ? 'Todos com nota' : 'Faltam ' + (total - feitos))), barra(feitos, total, true)]);
+    }
+    atualizar();
+    var enviar = h('button', { class: 'btn btn-primario btn-bloco', type: 'button' }, 'Enviar avaliação');
+    enviar.addEventListener('click', function () { enviarLider(enviar); });
+    return h('div', { class: 'stack' },
+      botaoVoltar(),
+      h('div', { class: 'stack', style: 'gap:6px' }, h('span', { class: 'rotulo' }, 'Liderado x Líder · ' + F.cicloRotulo), h('h1', null, 'Avaliação de ' + F.lider.nome)),
+      aviso('info', 'Sua avaliação é anônima. ' + primeiro(F.lider.nome) + ' vê só que você respondeu, nunca as suas notas ou comentários. O resultado aparece agrupado, com no mínimo ' + plural(F.minimo, 'resposta', 'respostas') + ', depois que a avaliação encerrar.', 'cadeado'),
+      legenda(F.escala),
+      prog,
+      h('div', { class: 'stack', style: 'gap:12px' }, F.criterios.map(function (c, i) { return itemNota(c, i, R.notas, F.escala, atualizar); })),
+      F.extras ? blocoExtras(R) : null,
+      campoTexto('cons', 'Considerações finais', 'Opcional. O que a liderança deve manter, o que deve mudar, sugestões.', R.consideracoes, 1500, function (v) { R.consideracoes = v; }),
+      enviar);
+  }
+  function blocoExtras(R) {
+    function grupo(titulo, ajuda, chave) {
+      return h('fieldset', { class: 'card stack grupo-extra', id: 'grupo-' + chave },
+        h('legend', null, titulo),
+        h('p', { class: 'muted small' }, ajuda),
+        [0, 1, 2].map(function (i) {
+          var id = chave + '-' + i;
+          return h('div', { class: 'campo-linha' }, h('label', { for: id, class: 'num-extra' }, String(i + 1)),
+            h('input', { class: 'input', id: id, maxlength: '160', value: R[chave][i], 'aria-label': titulo + ' ' + (i + 1), oninput: function (ev) {
+              R[chave][i] = ev.target.value;
+              document.getElementById('grupo-' + chave).classList.remove('falta');
+            } }));
+        }));
+    }
+    return h('div', { class: 'stack', id: 'extras' },
+      grupo('3 pontos fortes', 'O que essa liderança faz bem e deve continuar fazendo.', 'fortes'),
+      grupo('3 pontos fracos', 'O que precisa melhorar. Seja específico e respeitoso.', 'fracos'));
+  }
+  function enviarLider(btn) {
+    var F = S.fl, R = S.rl;
+    if (marcarFaltando(F.criterios, R.notas)) return;
+    if (F.extras) {
+      var fo = R.fortes.filter(function (x) { return x.trim(); }).length;
+      var fr = R.fracos.filter(function (x) { return x.trim(); }).length;
+      if (fo < 3 || fr < 3) {
+        if (fo < 3) document.getElementById('grupo-fortes').classList.add('falta');
+        if (fr < 3) document.getElementById('grupo-fracos').classList.add('falta');
+        rolarAte(document.getElementById(fo < 3 ? 'grupo-fortes' : 'grupo-fracos'), 'start');
+        toast('Preencha os 3 pontos fortes e os 3 pontos fracos.', 'erro');
+        return;
+      }
+    }
+    confirmar('Enviar avaliação?', 'Depois de enviada, a avaliação não pode ser alterada. Ela é gravada sem o seu nome.', 'Enviar', function () {
+      btn.disabled = true;
+      chamar('enviarLider', { notas: R.notas, fortes: R.fortes, fracos: R.fracos, consideracoes: R.consideracoes }).then(function () {
+        S.home.avaliouLider = true;
+        S.home.avaliouLiderEm = hojeISO();
+        ir('obrigado');
+      }).catch(function (e) { btn.disabled = false; falha(e); });
+    });
+  }
+  function vObrigado() {
+    return h('section', { class: 'card stack centro' },
+      h('div', { class: 'selo-ok' }, ico('check', 34)),
+      h('h1', null, 'Avaliação enviada'),
+      h('p', null, 'Obrigado, ' + S.home.eu.primeiroNome + '. Sua resposta foi registrada sem identificação.'),
+      h('p', { class: 'muted small' }, 'O líder só vê o resultado agrupado, depois que a avaliação encerrar.'),
+      h('button', { class: 'btn btn-primario', type: 'button', onclick: abrirInicio }, 'Voltar ao início'));
+  }
+
+  // ------------------------------------------------------------ equipe do líder
+  function abrirEquipe(aba) {
+    chamar('equipe').then(function (d) {
+      S.eq = d; S.eqAba = aba || S.eqAba || 'fase1'; S.eqFiltro = 'todos'; S.eqBusca = '';
+      ir('equipe');
+    }).catch(falha);
+  }
+  function vEquipe() {
+    var E = S.eq, aba = S.eqAba, pessoas = E.pessoas;
+    var campoStatus = aba === 'fase1' ? 'respondeu' : 'avaliado';
+    var feitos = pessoas.filter(function (p) { return p[campoStatus]; }).length;
+    var listaEl = h('div', { class: 'lista' });
+    function desenhar() {
+      limpar(listaEl);
+      var q = normalizar(S.eqBusca);
+      var vis = pessoas.filter(function (p) {
+        if (S.eqFiltro === 'pendentes' && p[campoStatus]) return false;
+        if (S.eqFiltro === 'feitos' && !p[campoStatus]) return false;
+        return !q || normalizar(p.nome).indexOf(q) >= 0 || p.mat.indexOf(q) >= 0;
+      });
+      if (!vis.length) { listaEl.appendChild(h('p', { class: 'vazio' }, 'Ninguém nesta lista.')); return; }
+      vis.forEach(function (p) { listaEl.appendChild(linhaEquipe(p, aba, E)); });
+    }
+    desenhar();
+    var filtros = [['todos', 'Todos (' + pessoas.length + ')'], ['pendentes', 'Pendentes (' + (pessoas.length - feitos) + ')'],
+      ['feitos', (aba === 'fase1' ? 'Responderam' : 'Avaliados') + ' (' + feitos + ')']];
+    var busca = h('input', { class: 'input', type: 'search', placeholder: 'Buscar por nome ou matrícula', 'aria-label': 'Buscar na equipe', value: S.eqBusca || '' });
+    busca.addEventListener('input', function () { S.eqBusca = busca.value; desenhar(); });
+    var resumo = aba === 'fase1'
+      ? [h('h2', null, feitos + ' de ' + pessoas.length + ' avaliaram você'), barra(feitos, pessoas.length, true),
+        aviso('info', 'Você vê só quem já respondeu. Notas e comentários são anônimos e aparecem agrupados no seu resultado, quando a coordenação liberar.', 'cadeado')]
+      : [h('h2', null, feitos + ' de ' + pessoas.length + ' liderados avaliados'), barra(feitos, pessoas.length, true),
+        E.fases.down !== 'ABERTA' ? aviso('warn', 'A coordenação ainda não abriu a avaliação dos liderados. Quando abrir, os botões de avaliar aparecem aqui.') : null];
+    var pend = pessoas.filter(function (p) { return !p.respondeu; });
+    return h('div', { class: 'stack' },
+      botaoVoltar(),
+      h('h1', null, 'Minha equipe'),
+      h('div', { class: 'abas', role: 'tablist' },
+        abaBtn('fase1', 'Quem avaliou você', aba, function () { S.eqAba = 'fase1'; S.eqFiltro = 'todos'; render(); }),
+        abaBtn('fase2', 'Avaliar liderados', aba, function () { S.eqAba = 'fase2'; S.eqFiltro = 'todos'; render(); })),
+      resumo,
+      h('div', { class: 'filtros' },
+        h('div', { class: 'chips-filtro' }, filtros.map(function (f) {
+          return h('button', { type: 'button', class: 'filtro' + (S.eqFiltro === f[0] ? ' on' : ''), 'aria-pressed': S.eqFiltro === f[0] ? 'true' : 'false', onclick: function () { S.eqFiltro = f[0]; render(); } }, f[1]);
+        })),
+        busca),
+      listaEl,
+      aba === 'fase1' && pend.length && E.fases.up === 'ABERTA' ? h('button', { class: 'btn btn-sec', type: 'button', onclick: function () {
+        copiarComAviso(textoPendentes([{ lider: S.home.eu.nome, pessoas: pend }], E.cicloRotulo), 'Lista copiada. Cole no grupo do WhatsApp.');
+      } }, ico('copiar', 18), 'Copiar pendentes para o WhatsApp') : null);
+  }
+  function linhaEquipe(p, aba, E) {
+    var dir;
+    if (aba === 'fase1') dir = p.respondeu ? chip('ok', 'Respondeu') : chip('warn', 'Pendente');
+    else {
+      var aberta = E.fases.down === 'ABERTA';
+      dir = [p.avaliado ? chip('ok', 'Avaliado · ' + n1(p.media)) : chip('warn', 'A avaliar'),
+        aberta ? h('button', { class: 'btn btn-sm ' + (p.avaliado ? 'btn-sec' : 'btn-primario'), type: 'button', onclick: function () { abrirFormLiderado(p.mat); } }, p.avaliado ? 'Editar' : 'Avaliar') : null];
+    }
+    return h('div', { class: 'linha-pessoa' },
+      h('div', { class: 'quem' }, h('div', { class: 'nome' }, p.nome), h('div', { class: 'sub' }, 'Mat. ' + p.mat + ' · ' + p.cc)),
+      h('div', { class: 'dir' }, dir));
+  }
+  function textoPendentes(grupos, cicloRotulo) {
+    var linhas = ['*Feedback Semestral · avaliação do líder*', cicloRotulo, ''];
+    grupos.forEach(function (g) {
+      if (grupos.length > 1) linhas.push('*' + g.lider + '* (' + g.pessoas.length + ')');
+      g.pessoas.forEach(function (p) { linhas.push('• ' + p.nome + ' (' + p.mat + ')'); });
+      linhas.push('');
+    });
+    linhas.push('Ainda faltam responder. Entre no link com matrícula e CPF. Leva uns 3 minutos e é anônimo.');
+    return linhas.join('\n');
+  }
+
+  // ------------------------------------------------------------ Líder x Liderado
+  function abrirFormLiderado(mat) {
+    chamar('formLiderado', { mat: mat }).then(function (d) {
+      S.fd = d;
+      var a = d.atual;
+      S.rd = {
+        notas: a ? Object.assign({}, a.notas) : {}, obs: a ? Object.assign({}, a.obs) : {},
+        consideracoes: a ? a.consideracoes : '', dataFeedback: a ? a.dataFeedback : d.hoje, dataReavaliacao: a ? (a.dataReavaliacao || '') : ''
+      };
+      ir('formLiderado');
+    }).catch(falha);
+  }
+  function vFormLiderado() {
+    var F = S.fd, R = S.rd, P = F.liderado, aberta = F.fase === 'ABERTA', total = F.criterios.length;
+    var prog = h('div', { class: 'progresso' });
+    function atualizar() {
+      var vals = F.criterios.map(function (c) { return R.notas[c.id]; }).filter(Boolean);
+      var m = vals.length ? vals.reduce(function (a, b) { return a + b; }, 0) / vals.length : null;
+      limpar(prog);
+      anexar(prog, [h('div', { class: 'linha' }, h('span', null, vals.length + ' de ' + total + ' itens'), h('span', null, 'Média ', h('b', null, n1(m)))),
+        barra(vals.length, total, true)]);
+    }
+    atualizar();
+    var dataF = h('input', { class: 'input', type: 'date', id: 'dataF', value: R.dataFeedback || '' });
+    dataF.addEventListener('input', function () { R.dataFeedback = dataF.value; });
+    var dataR = h('input', { class: 'input', type: 'date', id: 'dataR', value: R.dataReavaliacao || '' });
+    dataR.addEventListener('input', function () { R.dataReavaliacao = dataR.value; });
+    var atalhos = h('div', { class: 'atalhos' }, [3, 6].map(function (m) {
+      return h('button', { type: 'button', class: 'filtro', onclick: function () {
+        if (!R.dataFeedback) { toast('Preencha antes a data do feedback.', 'erro'); return; }
+        R.dataReavaliacao = somarMeses(R.dataFeedback, m); dataR.value = R.dataReavaliacao;
+      } }, '+' + m + ' meses');
+    }));
+    var salvar = h('button', { class: 'btn btn-primario', type: 'button' }, 'Salvar avaliação');
+    var proximo = h('button', { class: 'btn btn-sec', type: 'button' }, 'Salvar e ir para o próximo');
+    salvar.addEventListener('click', function () { salvarLiderado(false, salvar); });
+    proximo.addEventListener('click', function () { salvarLiderado(true, proximo); });
+    return h('div', { class: 'stack' },
+      botaoVoltar('Minha equipe', function () { abrirEquipe('fase2'); }),
+      h('div', { class: 'stack', style: 'gap:6px' }, h('span', { class: 'rotulo' }, 'Líder x Liderado · ' + F.cicloRotulo), h('h1', null, P.nome),
+        h('p', { class: 'muted' }, ['Matrícula ' + P.mat, P.cc, P.utd ? 'UTD ' + P.utd : null].filter(Boolean).join(' · '))),
+      !aberta ? aviso('warn', 'A avaliação dos liderados está fechada. Você pode consultar, mas não salvar.') : null,
+      h('div', { class: 'card grade-2' },
+        campo('dataF', 'Data do feedback', dataF, 'Dia da conversa com o liderado.'),
+        h('div', { class: 'campo' }, h('label', { for: 'dataR' }, 'Data da reavaliação'), dataR, atalhos, h('span', { class: 'ajuda' }, 'Opcional.'))),
+      legenda(F.escala),
+      prog,
+      h('div', { class: 'stack', style: 'gap:12px' }, F.criterios.map(function (c, i) { return itemNota(c, i, R.notas, F.escala, atualizar, R.obs); })),
+      campoTexto('consD', 'Considerações finais', 'Resumo da conversa, combinados e próximos passos.', R.consideracoes, 1500, function (v) { R.consideracoes = v; }),
+      aberta ? h('div', { class: 'linha-botoes' }, salvar, proximo) : null);
+  }
+  function salvarLiderado(irProximo, btn) {
+    var F = S.fd, R = S.rd;
+    if (marcarFaltando(F.criterios, R.notas)) return;
+    if (!R.dataFeedback) { toast('Informe a data do feedback.', 'erro'); document.getElementById('dataF').focus(); return; }
+    if (R.dataReavaliacao && R.dataReavaliacao < R.dataFeedback) { toast('A reavaliação precisa ser depois da data do feedback.', 'erro'); return; }
+    btn.disabled = true;
+    chamar('salvarLiderado', {
+      mat: F.liderado.mat, notas: R.notas, obs: R.obs, consideracoes: R.consideracoes,
+      dataFeedback: R.dataFeedback, dataReavaliacao: R.dataReavaliacao
+    }).then(function (d) {
+      toast('Avaliação de ' + primeiro(F.liderado.nome) + ' salva. Média ' + n1(d.media) + '.');
+      return chamar('equipe');
+    }).then(function (eq) {
+      S.eq = eq;
+      if (irProximo) {
+        var prox = eq.pessoas.filter(function (p) { return !p.avaliado; })[0];
+        if (prox) { abrirFormLiderado(prox.mat); return; }
+        toast('Todos os liderados foram avaliados.');
+      }
+      S.eqAba = 'fase2'; S.eqFiltro = 'todos'; S.eqBusca = '';
+      ir('equipe');
+    }).catch(function (e) { btn.disabled = false; falha(e); });
+  }
+
+  // ------------------------------------------------------------ resultados
+  function abrirResultados(ciclo) {
+    chamar('meusResultados', { ciclo: ciclo || '' }).then(function (d) { S.res = d; ir('resultados'); }).catch(falha);
+  }
+  function vResultados() {
+    var R = S.res;
+    return h('div', { class: 'stack' },
+      botaoVoltar(),
+      h('div', { class: 'cab-linha' },
+        h('div', { class: 'stack', style: 'gap:6px' }, h('span', { class: 'rotulo' }, 'Liderado x Líder · ' + R.cicloRotulo), h('h1', null, 'Como a equipe me avaliou')),
+        seletorCiclo(R.ciclos, R.ciclo, function (c) { abrirResultados(c); })),
+      blocoResultado(R));
+  }
+  function agrupar(lista) {
+    var mapa = {}, ordem = [];
+    (lista || []).forEach(function (t) {
+      var k = normalizar(t).replace(/[^a-z0-9]+/g, ' ').trim();
+      if (!k) return;
+      if (!mapa[k]) { mapa[k] = { texto: t, n: 0 }; ordem.push(k); }
+      mapa[k].n++;
+    });
+    return ordem.map(function (k) { return mapa[k]; }).sort(function (a, b) { return b.n - a.n || (a.texto < b.texto ? -1 : 1); });
+  }
+  function itemAgrupado(g) {
+    return h('li', null, g.texto, g.n > 1 ? h('span', { class: 'vezes', title: 'Citado ' + g.n + ' vezes' }, '×' + g.n) : null);
+  }
+  function blocoResultado(R) {
+    if (R.oculto) return aviso('info', R.motivo, 'cadeado');
+    if (R.insuficiente) {
+      return aviso('warn', R.n === 0 ? 'Ainda não há respostas neste ciclo.'
+        : 'Foram ' + plural(R.n, 'resposta', 'respostas') + '. Para proteger o anonimato, o resultado aparece a partir de ' + plural(R.minimo, 'resposta', 'respostas') + '.', 'cadeado');
+    }
+    var ordenados = R.itens.filter(function (i) { return i.media !== null; }).slice().sort(function (a, b) { return b.media - a.media; });
+    var melhor = ordenados[0], pior = ordenados[ordenados.length - 1];
+    var blocos = [
+      h('div', { class: 'kpis' },
+        kpi(n1(R.media), 'média geral, numa escala de 1 a 5', corNota(R.media)),
+        kpi(String(R.n), 'respostas recebidas'),
+        melhor ? kpi(n1(melhor.media), 'ponto mais forte: ' + melhor.texto, corNota(melhor.media)) : null,
+        pior && pior !== melhor ? kpi(n1(pior.media), 'ponto a desenvolver: ' + pior.texto, corNota(pior.media)) : null),
+      h('section', { class: 'card stack' }, h('h2', null, 'Média por item'),
+        h('div', { class: 'res-lista' }, R.itens.map(function (i) {
+          return h('div', { class: 'res-item' },
+            h('div', null, i.texto),
+            h('div', { class: 'res-barra', role: 'img', 'aria-label': 'Média ' + n1(i.media) + ' de 5' }, h('i', { style: 'width:' + (i.media ? i.media / 5 * 100 : 0) + '%;background:' + corNota(i.media) })),
+            h('div', { class: 'res-v' }, n1(i.media)));
+        })),
+        h('p', { class: 'muted small' }, 'Barras numa escala de 0 a 5. Cada item mostra a média das notas recebidas.'))
+    ];
+    if ((R.fortes && R.fortes.length) || (R.fracos && R.fracos.length)) {
+      blocos.push(h('div', { class: 'stack', style: 'gap:8px' },
+        h('div', { class: 'grade-2', style: 'grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))' },
+          h('section', { class: 'card stack' }, h('h2', null, 'Pontos fortes'), h('ul', { class: 'lista-simples' }, agrupar(R.fortes).map(itemAgrupado))),
+          h('section', { class: 'card stack' }, h('h2', null, 'Pontos fracos'), h('ul', { class: 'lista-simples' }, agrupar(R.fracos).map(itemAgrupado)))),
+        h('p', { class: 'muted small' }, 'Itens iguais aparecem uma vez, com o número de pessoas que citaram.')));
+    }
+    blocos.push(h('section', { class: 'card stack' }, h('h2', null, 'Considerações finais'),
+      R.comentarios.length ? h('div', { class: 'citacoes' }, agrupar(R.comentarios).map(function (g) {
+        return h('blockquote', { class: 'citacao' }, g.texto, g.n > 1 ? h('span', { class: 'vezes' }, '×' + g.n) : null);
+      }))
+        : h('p', { class: 'muted' }, 'Ninguém escreveu considerações neste ciclo.')));
+    return h('div', { class: 'stack' }, blocos);
+  }
+
+  // ------------------------------------------------------------ painel de gestão
+  var ABAS_ADM = [['painel', 'Visão geral'], ['participacao', 'Participação'], ['resultados', 'Liderado x Líder'], ['ll', 'Líder x Liderado'], ['pessoas', 'Pessoas'], ['config', 'Fases e ciclo']];
+  function abrirAdmin(aba) { S.adm.aba = aba || S.adm.aba || 'painel'; S.view = 'admin'; carregarAba(); }
+  function carregarAba() {
+    var A = S.adm, c = A.ciclo || '';
+    var p;
+    if (A.aba === 'painel') p = chamar('painel', { ciclo: c }).then(function (d) { A.painel = d; A.ciclo = d.ciclo; });
+    else if (A.aba === 'participacao') p = chamar('participacao', { ciclo: c }).then(function (d) { A.part = d; A.ciclo = d.ciclo; });
+    else if (A.aba === 'resultados') {
+      p = chamar('painel', { ciclo: c }).then(function (d) {
+        A.painel = d; A.ciclo = d.ciclo;
+        var existe = d.lideres.some(function (l) { return l.mat === A.liderSel; });
+        if (!existe) A.liderSel = d.lideres.length ? d.lideres[0].mat : null;
+        if (!A.liderSel) { A.res = null; return null; }
+        return chamar('resultadoLider', { lider: A.liderSel, ciclo: A.ciclo }).then(function (r) { A.res = r; });
+      });
+    }
+    else if (A.aba === 'll') p = chamar('liderLiderado', { ciclo: c }).then(function (d) { A.ll = d; A.ciclo = d.ciclo; });
+    else if (A.aba === 'pessoas') p = chamar('pessoas').then(function (d) { A.pessoas = d; });
+    else p = chamar('config').then(function (d) { A.config = d; });
+    A.carregando = true;
+    render(true);
+    p.then(function () { A.carregando = false; if (S.view === 'admin') render(); })
+      .catch(function (e) { A.carregando = false; falha(e); if (S.view === 'admin') render(); });
+  }
+  function trocarCiclo(c) { S.adm.ciclo = c; carregarAba(); }
+  function vAdmin() {
+    var A = S.adm;
+    var corpo = A.carregando ? h('div', { class: 'card muted' }, 'Carregando…') : (ADM[A.aba] || function () { return null; })();
+    return h('div', { class: 'stack' },
+      botaoVoltar(),
+      h('h1', null, 'Painel de gestão'),
+      h('div', { class: 'abas', role: 'tablist' }, ABAS_ADM.map(function (a) {
+        return abaBtn(a[0], a[1], A.aba, function () { A.aba = a[0]; carregarAba(); });
+      })),
+      corpo);
+  }
+  function chipFase(nome, estado, atual) {
+    if (!atual) return chip('', nome + ': ciclo encerrado');
+    return estado === 'ABERTA' ? chip('ok', nome + ' aberta') : chip('', nome + ' fechada');
+  }
+  function progressoCelula(a, b) {
+    return h('div', { class: 'prog-cel' }, h('span', { class: 'num-cel' }, a + ' de ' + b + ' · ' + pct(a, b) + '%'), barra(a, b, true));
+  }
+  function pilulaNota(v) { return h('span', { class: 'nota-pill', style: 'background:' + corNota(v) + ';color:' + tintaNota(v) }, n1(v)); }
+
+  function admPainel() {
+    var P = S.adm.painel;
+    if (!P) return null;
+    var t = P.totais;
+    return h('div', { class: 'stack' },
+      h('div', { class: 'cab-linha' },
+        h('div', { class: 'fases' }, chipFase('Liderado x Líder', P.fases.up, P.atual), chipFase('Líder x Liderado', P.fases.down, P.atual)),
+        seletorCiclo(P.ciclos, P.ciclo, trocarCiclo)),
+      h('div', { class: 'kpis' },
+        kpi(pct(t.responderam, t.comLider) + '%', t.responderam + ' de ' + t.comLider + ' avaliaram o líder', 'var(--accent)'),
+        kpi(pct(t.avaliados, t.comLider) + '%', t.avaliados + ' de ' + t.comLider + ' foram avaliados pelo líder', 'var(--primary)'),
+        kpi(String(t.ativos), 'pessoas ativas no cadastro'),
+        t.semCpf ? kpi(String(t.semCpf), 'sem CPF cadastrado: não conseguem entrar', 'var(--bad)') : null),
+      !P.resultadosVisiveis ? aviso('info', P.motivo, 'cadeado') : null,
+      h('h2', null, 'Por líder'),
+      h('div', { class: 'tabela-wrap' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', null, 'Líder'), h('th', null, 'UTD'), h('th', { class: 'num' }, 'Equipe'),
+          h('th', null, 'Avaliaram o líder'), h('th', null, 'Avaliados pelo líder'), h('th', { class: 'num' }, 'Média recebida'))),
+        h('tbody', null, P.lideres.map(function (l) {
+          return h('tr', { class: 'clicavel', tabindex: '0', onkeydown: enterClica, onclick: function () { S.adm.liderSel = l.mat; S.adm.aba = 'resultados'; carregarAba(); } },
+            h('td', null, h('div', { class: 'nome' }, l.nome), l.perfil === 'COORDENACAO' ? h('div', { class: 'sub' }, 'Coordenação') : null),
+            h('td', null, l.utd || '–'),
+            h('td', { class: 'num' }, String(l.equipe)),
+            h('td', null, progressoCelula(l.responderam, l.equipe)),
+            h('td', null, progressoCelula(l.avaliados, l.equipe)),
+            h('td', { class: 'num' }, l.mediaUp !== null ? pilulaNota(l.mediaUp) : h('span', { class: 'muted small' }, P.resultadosVisiveis ? 'menos de ' + P.minimo + ' respostas' : 'oculta')));
+        })))),
+      h('p', { class: 'muted small' }, 'Clique num líder para ver o resultado detalhado.'));
+  }
+
+  function admParticipacao() {
+    var D = S.adm.part;
+    if (!D) return null;
+    var F = S.adm.pf || (S.adm.pf = { lider: '', utd: '*', status: 'todos', q: '' });
+    var lideres = {}, utds = {};
+    D.pessoas.forEach(function (p) { if (p.liderMat) lideres[p.liderMat] = p.lider; utds[p.utd] = true; });
+    var tbody = h('tbody'), contagem = h('p', { class: 'muted small' });
+    function filtradas() {
+      var q = normalizar(F.q);
+      return D.pessoas.filter(function (p) {
+        if (F.lider && p.liderMat !== F.lider) return false;
+        if (F.utd !== '*' && p.utd !== F.utd) return false;
+        if (F.status === 'pend1' && (p.respondeu || !p.liderMat)) return false;
+        if (F.status === 'ok1' && !p.respondeu) return false;
+        if (F.status === 'pend2' && (p.avaliado || !p.liderMat)) return false;
+        if (F.status === 'ok2' && !p.avaliado) return false;
+        return !q || normalizar(p.nome).indexOf(q) >= 0 || p.mat.indexOf(q) >= 0;
+      });
+    }
+    function desenhar() {
+      limpar(tbody);
+      var vis = filtradas();
+      contagem.textContent = plural(vis.length, 'pessoa', 'pessoas') + ' na lista';
+      vis.forEach(function (p) {
+        tbody.appendChild(h('tr', null,
+          h('td', null, p.mat),
+          h('td', null, h('div', { class: 'nome' }, p.nome), h('div', { class: 'sub' }, p.cc)),
+          h('td', null, p.utd || '–'),
+          h('td', null, p.lider || h('span', { class: 'muted' }, 'sem líder')),
+          h('td', null, p.liderMat ? (p.respondeu ? chip('ok', 'Respondeu' + (p.respondeuEm ? ' · ' + dataBR(p.respondeuEm) : '')) : chip('warn', 'Pendente')) : '–'),
+          h('td', null, p.liderMat ? (p.avaliado ? chip('ok', 'Avaliado · ' + n1(p.mediaDown)) : chip('', 'A avaliar')) : '–')));
+      });
+      if (!vis.length) tbody.appendChild(h('tr', null, h('td', { colspan: '6', class: 'vazio' }, 'Ninguém com esses filtros.')));
+    }
+    function sel(id, rotulo, valor, opcoes, chave) {
+      return campo(id, rotulo, h('select', { class: 'input input-sm', id: id, onchange: function (ev) { F[chave] = ev.target.value; desenhar(); } },
+        opcoes.map(function (o) { return h('option', { value: o[0], selected: o[0] === valor }, o[1]); })));
+    }
+    var busca = h('input', { class: 'input input-sm', type: 'search', id: 'buscaPart', placeholder: 'Nome ou matrícula', value: F.q });
+    busca.addEventListener('input', function () { F.q = busca.value; desenhar(); });
+    desenhar();
+    return h('div', { class: 'stack' },
+      h('div', { class: 'grade-2', style: 'grid-template-columns:repeat(auto-fit,minmax(180px,1fr))' },
+        sel('fLider', 'Líder', F.lider, [['', 'Todos']].concat(Object.keys(lideres).map(function (m) { return [m, lideres[m]]; }).sort(function (a, b) { return a[1] < b[1] ? -1 : 1; })), 'lider'),
+        sel('fUtd', 'UTD', F.utd, [['*', 'Todas']].concat(Object.keys(utds).sort().map(function (u) { return [u, u || 'Sem UTD']; })), 'utd'),
+        sel('fStatus', 'Situação', F.status, [['todos', 'Todos'], ['pend1', 'Não avaliaram o líder'], ['ok1', 'Avaliaram o líder'], ['pend2', 'Ainda não avaliados pelo líder'], ['ok2', 'Já avaliados pelo líder']], 'status'),
+        campo('buscaPart', 'Buscar', busca),
+        seletorCiclo(D.ciclos, D.ciclo, trocarCiclo)),
+      h('div', { class: 'cab-linha' }, contagem, h('div', { class: 'linha-botoes' },
+        h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () {
+          var grupos = {};
+          filtradas().filter(function (p) { return p.liderMat && !p.respondeu; }).forEach(function (p) { (grupos[p.lider] = grupos[p.lider] || []).push(p); });
+          var lista = Object.keys(grupos).sort().map(function (l) { return { lider: l, pessoas: grupos[l] }; });
+          if (!lista.length) { toast('Ninguém pendente nesta lista.'); return; }
+          copiarComAviso(textoPendentes(lista, D.cicloRotulo), 'Pendentes copiados, separados por líder.');
+        } }, ico('copiar', 16), 'Copiar pendentes'),
+        botaoExportar('participacao', 'Exportar'))),
+      h('div', { class: 'tabela-wrap' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', null, 'Mat.'), h('th', null, 'Nome'), h('th', null, 'UTD'), h('th', null, 'Líder'), h('th', null, 'Avaliou o líder'), h('th', null, 'Avaliado pelo líder'))),
+        tbody)));
+  }
+
+  function admResultados() {
+    var A = S.adm, P = A.painel;
+    if (!P) return null;
+    if (!P.lideres.length) return aviso('info', 'Nenhum líder cadastrado ainda. Importe a base em Pessoas.');
+    var sel = h('select', { class: 'input input-sm', id: 'selLider', onchange: function (ev) { A.liderSel = ev.target.value; carregarAba(); } },
+      P.lideres.map(function (l) { return h('option', { value: l.mat, selected: l.mat === A.liderSel }, l.nome + ' · equipe de ' + l.equipe); }));
+    var R = A.res;
+    return h('div', { class: 'stack' },
+      h('div', { class: 'cab-linha' }, h('div', { style: 'flex:1 1 280px' }, campo('selLider', 'Líder avaliado', sel)), seletorCiclo(P.ciclos, A.ciclo, trocarCiclo)),
+      R ? h('div', { class: 'stack' }, h('h2', null, R.lider.nome + (R.coordenacao ? ' · Coordenação' : '')), blocoResultado(R)) : null,
+      h('div', { class: 'linha-botoes' }, botaoExportar('liderado_lider', 'Exportar respostas anônimas')));
+  }
+
+  function admLL() {
+    var D = S.adm.ll;
+    if (!D) return null;
+    var lideres = {};
+    D.registros.forEach(function (r) { lideres[r.avaliador] = r.avaliadorNome; });
+    var filtro = S.adm.llLider || '';
+    var regs = D.registros.filter(function (r) { return !filtro || r.avaliador === filtro; });
+    return h('div', { class: 'stack' },
+      h('div', { class: 'cab-linha' },
+        h('div', { style: 'flex:1 1 260px' }, campo('fLL', 'Líder', h('select', { class: 'input input-sm', id: 'fLL', onchange: function (ev) { S.adm.llLider = ev.target.value; render(); } },
+          [h('option', { value: '' }, 'Todos')].concat(Object.keys(lideres).sort(function (a, b) { return lideres[a] < lideres[b] ? -1 : 1; }).map(function (m) {
+            return h('option', { value: m, selected: m === filtro }, lideres[m]);
+          }))))),
+        seletorCiclo(D.ciclos, D.ciclo, trocarCiclo),
+        botaoExportar('lider_liderado', 'Exportar')),
+      regs.length ? h('div', { class: 'tabela-wrap' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', null, 'Liderado'), h('th', null, 'Líder'), h('th', null, 'Data do feedback'), h('th', null, 'Reavaliação'), h('th', { class: 'num' }, 'Média'))),
+        h('tbody', null, regs.map(function (r) {
+          return h('tr', { class: 'clicavel', tabindex: '0', onkeydown: enterClica, onclick: function () { detalheLL(r, D.criterios); } },
+            h('td', null, h('div', { class: 'nome' }, r.avaliadoNome), h('div', { class: 'sub' }, 'Mat. ' + r.avaliado + (r.utd ? ' · UTD ' + r.utd : ''))),
+            h('td', null, r.avaliadorNome),
+            h('td', null, dataBR(r.dataFeedback)),
+            h('td', null, r.dataReavaliacao ? dataBR(r.dataReavaliacao) : h('span', { class: 'muted' }, '–')),
+            h('td', { class: 'num' }, pilulaNota(r.media)));
+        }))))
+        : aviso('info', 'Nenhuma avaliação de liderado registrada neste ciclo.'),
+      regs.length ? h('p', { class: 'muted small' }, plural(regs.length, 'avaliação registrada', 'avaliações registradas') + '. Clique numa linha para ver os detalhes.') : null);
+  }
+  function detalheLL(r, criterios) {
+    modal(r.avaliadoNome, [
+      h('p', { class: 'muted' }, 'Avaliado por ' + r.avaliadorNome + ' · feedback em ' + dataBR(r.dataFeedback) + (r.dataReavaliacao ? ' · reavaliação em ' + dataBR(r.dataReavaliacao) : '')),
+      h('div', { class: 'res-lista' }, criterios.map(function (c) {
+        var v = r.notas[c.id];
+        return h('div', { class: 'res-item', style: 'grid-template-columns:minmax(0,1fr) 46px' },
+          h('div', null, c.texto, r.obs[c.id] ? h('div', { class: 'sub' }, r.obs[c.id]) : null),
+          h('div', { class: 'res-v' }, v ? String(v) : '–'));
+      })),
+      h('p', null, h('b', null, 'Média: '), n1(r.media)),
+      r.consideracoes ? h('blockquote', { class: 'citacao' }, r.consideracoes) : null
+    ], [], true);
+  }
+
+  function admPessoas() {
+    var D = S.adm.pessoas;
+    if (!D) return null;
+    var F = S.adm.pesF || (S.adm.pesF = { q: '', perfil: '', situacao: 'ativos' });
+    var tbody = h('tbody'), contagem = h('p', { class: 'muted small' });
+    function desenhar() {
+      limpar(tbody);
+      var q = normalizar(F.q);
+      var vis = D.pessoas.filter(function (p) {
+        if (F.situacao === 'ativos' && !p.ativo) return false;
+        if (F.situacao === 'inativos' && p.ativo) return false;
+        if (F.situacao === 'semcpf' && p.temCpf) return false;
+        if (F.perfil === 'LIDER' && !p.equipe) return false;
+        if (F.perfil && F.perfil !== 'LIDER' && p.perfil !== F.perfil) return false;
+        return !q || normalizar(p.nome).indexOf(q) >= 0 || p.mat.indexOf(q) >= 0 || normalizar(p.cc).indexOf(q) >= 0;
+      });
+      contagem.textContent = plural(vis.length, 'pessoa', 'pessoas');
+      vis.forEach(function (p) {
+        tbody.appendChild(h('tr', { class: 'clicavel', tabindex: '0', onkeydown: enterClica, onclick: function () { editarPessoa(p, false); } },
+          h('td', null, p.mat),
+          h('td', null, h('div', { class: 'nome' }, p.nome), h('div', { class: 'sub' }, p.cc + (p.equipe ? ' · lidera ' + p.equipe : ''))),
+          h('td', null, p.liderNome || (p.liderPendente ? h('span', { class: 'chip warn' }, p.liderPendente + ' (sem cadastro)') : h('span', { class: 'muted' }, '–'))),
+          h('td', null, p.perfil === 'COORDENACAO' ? 'Coordenação' : p.perfil === 'RH' ? 'RH' : 'Colaborador'),
+          h('td', null, p.ativo ? chip('ok', 'Ativo') : chip('', 'Inativo')),
+          h('td', null, p.temCpf ? chip('ok', 'Cadastrado') : chip('bad', 'Falta'))));
+      });
+      if (!vis.length) tbody.appendChild(h('tr', null, h('td', { colspan: '6', class: 'vazio' }, 'Ninguém com esses filtros.')));
+    }
+    var busca = h('input', { class: 'input input-sm', type: 'search', id: 'buscaPes', placeholder: 'Nome, matrícula ou C.C', value: F.q });
+    busca.addEventListener('input', function () { F.q = busca.value; desenhar(); });
+    desenhar();
+    function sel(id, rotulo, chave, opcoes) {
+      return campo(id, rotulo, h('select', { class: 'input input-sm', id: id, onchange: function (ev) { F[chave] = ev.target.value; desenhar(); } },
+        opcoes.map(function (o) { return h('option', { value: o[0], selected: o[0] === F[chave] }, o[1]); })));
+    }
+    return h('div', { class: 'stack' },
+      h('div', { class: 'linha-botoes' },
+        h('button', { class: 'btn btn-primario btn-sm', type: 'button', onclick: abrirImportacao }, ico('subir', 16), 'Importar base (.xlsx)'),
+        h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () { editarPessoa({ mat: '', nome: '', cc: '', liderMat: '', perfil: 'COLABORADOR', ativo: true, temCpf: false }, true); } }, ico('mais', 16), 'Nova pessoa'),
+        botaoExportar('pessoas', 'Exportar cadastro')),
+      h('div', { class: 'grade-2', style: 'grid-template-columns:repeat(auto-fit,minmax(180px,1fr))' },
+        campo('buscaPes', 'Buscar', busca),
+        sel('fPerfil', 'Perfil', 'perfil', [['', 'Todos'], ['LIDER', 'Quem lidera alguém'], ['COLABORADOR', 'Colaborador'], ['RH', 'RH'], ['COORDENACAO', 'Coordenação']]),
+        sel('fSit', 'Situação', 'situacao', [['ativos', 'Ativos'], ['inativos', 'Inativos'], ['semcpf', 'Sem CPF'], ['todos', 'Todos']])),
+      contagem,
+      h('div', { class: 'tabela-wrap' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', null, 'Mat.'), h('th', null, 'Nome'), h('th', null, 'Líder'), h('th', null, 'Perfil'), h('th', null, 'Situação'), h('th', null, 'CPF'))),
+        tbody)));
+  }
+  function editarPessoa(p, novo) {
+    var ativos = S.adm.pessoas.pessoas.filter(function (x) { return x.ativo && x.mat !== p.mat; });
+    var mat = h('input', { class: 'input', id: 'pMat', value: p.mat, inputmode: 'numeric', readonly: !novo });
+    var nome = h('input', { class: 'input', id: 'pNome', value: p.nome, maxlength: '120' });
+    var cc = h('input', { class: 'input', id: 'pCC', value: p.cc, maxlength: '60' });
+    var lider = h('select', { class: 'input', id: 'pLider' }, [h('option', { value: '' }, 'Sem líder')].concat(ativos.map(function (x) {
+      return h('option', { value: x.mat, selected: x.mat === p.liderMat }, x.nome + ' (' + x.mat + ')');
+    })));
+    var perfil = h('select', { class: 'input', id: 'pPerfil' }, [['COLABORADOR', 'Colaborador (avalia o líder; se liderar alguém, vira líder)'], ['RH', 'RH (acessa o painel de gestão)'], ['COORDENACAO', 'Coordenação (acessa o painel de gestão)']].map(function (o) {
+      return h('option', { value: o[0], selected: o[0] === p.perfil }, o[1]);
+    }));
+    var ativo = h('input', { type: 'checkbox', id: 'pAtivo', checked: p.ativo });
+    var cpf = h('input', { class: 'input', id: 'pCpf', inputmode: 'numeric', autocomplete: 'off', placeholder: novo || !p.temCpf ? '000.000.000-00' : 'Deixe em branco para manter o atual' });
+    cpf.addEventListener('input', function () { cpf.value = mascaraCpf(cpf.value); });
+    var salvar = h('button', { class: 'btn btn-primario', type: 'button' }, 'Salvar');
+    var m = modal(novo ? 'Nova pessoa' : p.nome, [
+      h('div', { class: 'grade-2' }, campo('pMat', 'Matrícula', mat, novo ? null : 'A matrícula não muda.'), campo('pCC', 'C.C (centro de custo)', cc)),
+      campo('pNome', 'Nome completo', nome),
+      campo('pLider', 'Líder', lider, 'Quem avalia esta pessoa e é avaliado por ela.'),
+      campo('pPerfil', 'Perfil de acesso', perfil),
+      campo('pCpf', 'CPF (senha de acesso)', cpf, 'Fica guardado criptografado. Ninguém consegue ver depois de salvo.'),
+      h('label', { class: 'check', for: 'pAtivo' }, ativo, h('span', null, 'Ativo (desmarque para desligados)'))
+    ], [h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { m.fechar(); } }, 'Cancelar'), salvar], true);
+    salvar.addEventListener('click', function () {
+      salvar.disabled = true;
+      chamar('salvarPessoa', {
+        novo: novo, mat: mat.value.trim(), nome: nome.value, cc: cc.value, liderMat: lider.value, perfil: perfil.value,
+        ativo: ativo.checked, cpf: cpf.value.replace(/\D/g, '')
+      }).then(function () {
+        m.fechar();
+        toast(novo ? 'Pessoa cadastrada.' : 'Cadastro atualizado.');
+        carregarAba();
+      }).catch(function (e) { salvar.disabled = false; falha(e); });
+    });
+  }
+
+  // ---- importação da base
+  var promessaXlsx = null;
+  function carregarXlsx() {
+    if (window.XLSX) return Promise.resolve();
+    if (promessaXlsx) return promessaXlsx;
+    promessaXlsx = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload = function () { resolve(); };
+      s.onerror = function () { promessaXlsx = null; reject(new Error('Não consegui carregar o leitor de planilhas. Confira a internet.')); };
+      document.head.appendChild(s);
+    });
+    return promessaXlsx;
+  }
+  function lerPlanilha(arquivo) {
+    return carregarXlsx().then(function () {
+      return new Promise(function (resolve, reject) {
+        var fr = new FileReader();
+        fr.onload = function () {
+          try {
+            var wb = window.XLSX.read(new Uint8Array(fr.result), { type: 'array' });
+            var ws = wb.Sheets[wb.SheetNames[0]];
+            var m = window.XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
+            m = m.filter(function (l) { return l.some(function (v) { return String(v).trim() !== ''; }); })
+              .map(function (l) { return l.map(function (v) { return String(v); }); });
+            if (m.length < 2) { reject(new Error('A planilha está vazia.')); return; }
+            resolve(m);
+          } catch (e) { reject(new Error('Não consegui ler o arquivo. Salve como .xlsx ou .csv e tente de novo.')); }
+        };
+        fr.onerror = function () { reject(new Error('Não consegui abrir o arquivo.')); };
+        fr.readAsArrayBuffer(arquivo);
+      });
+    });
+  }
+  function resumoImportacao(r) {
+    var nomesCol = { mat: 'Matrícula', nome: 'Nome', lider: 'Líder', cc: 'C.C', cpf: 'CPF', perfil: 'Perfil' };
+    var cols = Object.keys(r.colunas).map(function (k) { return nomesCol[k] + ' ← “' + r.colunas[k] + '”'; }).join(' · ');
+    var pend = r.lideres.filter(function (l) { return !l.encontrado; });
+    return [
+      h('div', { class: 'kpis', style: 'grid-template-columns:repeat(auto-fit,minmax(120px,1fr))' },
+        kpi(String(r.linhas), 'linhas lidas'), kpi(String(r.novos), 'novas pessoas'), kpi(String(r.atualizados), 'atualizadas'),
+        r.desativados ? kpi(String(r.desativados), 'serão desativadas', 'var(--warn)') : null),
+      h('p', { class: 'small' }, h('b', null, 'Colunas encontradas: '), cols),
+      r.faltando.length ? aviso('warn', 'Colunas não encontradas: ' + r.faltando.map(function (k) { return nomesCol[k]; }).join(', ') + '.') : null,
+      r.semCpf.length ? aviso('warn', plural(r.semCpf.length, 'pessoa sem CPF', 'pessoas sem CPF') + ' (não vão conseguir entrar): matrícula ' + r.semCpf.slice(0, 15).join(', ') + (r.semCpf.length > 15 ? '…' : '')) : null,
+      r.cpfInvalido.length ? aviso('warn', 'CPF com dígito verificador errado nas matrículas ' + r.cpfInvalido.slice(0, 15).join(', ') + '. Importo assim mesmo; confira na base.') : null,
+      r.duplicados.length ? aviso('warn', 'Matrículas repetidas (fica a primeira linha): ' + r.duplicados.join(', ')) : null,
+      h('div', { class: 'stack', style: 'gap:8px' }, h('h3', null, 'Líderes encontrados na coluna Liderança'),
+        h('div', { class: 'lista' }, r.lideres.map(function (l) {
+          return h('div', { class: 'linha-pessoa' }, h('div', { class: 'quem' }, h('div', { class: 'nome' }, l.nome), h('div', { class: 'sub' }, plural(l.liderados, 'liderado', 'liderados'))),
+            h('div', { class: 'dir' }, l.encontrado ? chip('ok', 'Cadastrado') : chip('warn', 'Sem cadastro')));
+        }))),
+      pend.length ? aviso('warn', 'Quem aparece como "Sem cadastro" precisa ser cadastrado com o mesmo nome (em Nova pessoa ou no menu da planilha). Até lá, os liderados dele ficam sem líder.') : null
+    ];
+  }
+  function abrirImportacao() {
+    var estado = { matriz: null, desativar: false };
+    var arquivo = h('input', { type: 'file', id: 'arqBase', accept: '.xlsx,.xls,.csv', class: 'input' });
+    var chk = h('input', { type: 'checkbox', id: 'chkDes' });
+    var resumo = h('div', { class: 'stack' });
+    var importar = h('button', { class: 'btn btn-primario', type: 'button', disabled: true }, 'Importar');
+    var m = modal('Importar base de colaboradores', [
+      h('p', { class: 'small' }, 'Use a planilha da base (como a sra_feedback.xlsx) com as colunas Matrícula, Nome, Liderança, C.C e CPF. O CPF vira a senha de cada pessoa e fica guardado criptografado.'),
+      campo('arqBase', 'Arquivo .xlsx ou .csv', arquivo),
+      h('label', { class: 'check', for: 'chkDes' }, chk, h('span', null, 'Desativar quem não estiver nesta base (desligados). RH e coordenação não são desativados.')),
+      resumo
+    ], [h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { m.fechar(); } }, 'Cancelar'), importar], true);
+    function simular() {
+      importar.disabled = true;
+      limpar(resumo);
+      resumo.appendChild(h('p', { class: 'muted small' }, 'Conferindo a base…'));
+      chamar('importar', { matriz: estado.matriz, simular: true, desativarAusentes: estado.desativar }).then(function (r) {
+        limpar(resumo); anexar(resumo, resumoImportacao(r)); importar.disabled = false;
+      }).catch(function (e) { limpar(resumo); resumo.appendChild(aviso('warn', e.message)); });
+    }
+    chk.addEventListener('change', function () { estado.desativar = chk.checked; if (estado.matriz) simular(); });
+    arquivo.addEventListener('change', function () {
+      var f = arquivo.files && arquivo.files[0];
+      if (!f) return;
+      limpar(resumo);
+      resumo.appendChild(h('p', { class: 'muted small' }, 'Lendo ' + f.name + '…'));
+      lerPlanilha(f).then(function (matriz) { estado.matriz = matriz; simular(); })
+        .catch(function (e) { limpar(resumo); resumo.appendChild(aviso('warn', e.message)); });
+    });
+    importar.addEventListener('click', function () {
+      importar.disabled = true;
+      chamar('importar', { matriz: estado.matriz, simular: false, desativarAusentes: estado.desativar }).then(function (r) {
+        m.fechar();
+        toast('Base importada: ' + r.novos + ' novos, ' + r.atualizados + ' atualizados' + (r.desativados ? ', ' + r.desativados + ' desativados' : '') + '.');
+        carregarAba();
+      }).catch(function (e) { importar.disabled = false; falha(e); });
+    });
+  }
+
+  // ---- exportação
+  function botaoExportar(tipo, rotulo) {
+    return h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () { exportar(tipo); } }, ico('baixar', 16), rotulo || 'Exportar');
+  }
+  function celulaCsv(v) {
+    var s = v === null || v === undefined ? '' : String(v);
+    if (/^[=+\-@]/.test(s)) s = "'" + s;
+    return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function exportar(tipo) {
+    chamar('exportar', { tipo: tipo, ciclo: S.adm.ciclo || '' }).then(function (d) {
+      var todas = [d.cabecalho].concat(d.linhas);
+      var csv = '﻿' + todas.map(function (l) { return l.map(celulaCsv).join(';'); }).join('\r\n');
+      var tsv = todas.map(function (l) { return l.map(function (v) { return String(v === null || v === undefined ? '' : v).replace(/[\t\r\n]+/g, ' '); }).join('\t'); }).join('\n');
+      var acoes = [];
+      if (!DEMO) {
+        acoes.push(h('button', { class: 'btn btn-primario', type: 'button', onclick: function () {
+          var url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+          var a = h('a', { href: url, download: d.arquivo + '.csv', style: 'display:none' });
+          document.body.appendChild(a); a.click();
+          setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+        } }, ico('baixar', 18), 'Baixar CSV'));
+      }
+      acoes.push(h('button', { class: 'btn ' + (DEMO ? 'btn-primario' : 'btn-sec'), type: 'button', onclick: function () {
+        copiarComAviso(tsv, 'Tabela copiada. Cole no Excel ou no Google Planilhas.');
+      } }, ico('copiar', 18), 'Copiar tabela'));
+      modal('Exportar', [
+        h('p', null, plural(d.linhas.length, 'linha', 'linhas') + ' e ' + plural(d.cabecalho.length, 'coluna', 'colunas') + '.'),
+        d.observacao ? h('p', { class: 'muted small' }, d.observacao) : null,
+        DEMO ? h('p', { class: 'muted small' }, 'Na demonstração dá para copiar a tabela. Na versão oficial também aparece o botão de baixar em CSV.') : null
+      ], acoes);
+    }).catch(falha);
+  }
+
+  // ---- fases, ciclo e critérios
+  function salvarConfig(dados, msgSucesso) {
+    return chamar('salvarConfig', dados).then(function (d) {
+      S.adm.config = d;
+      toast(msgSucesso || 'Configuração salva.');
+      return chamar('home').then(function (hm) { S.home = hm; render(); });
+    }).catch(falha);
+  }
+  function interruptor(id, valor, aoMudar) {
+    return h('div', { class: 'interruptor', role: 'group', 'aria-labelledby': id },
+      ['ABERTA', 'FECHADA'].map(function (v) {
+        return h('button', { type: 'button', class: valor === v ? 'on' : '', 'aria-pressed': valor === v ? 'true' : 'false', onclick: function () { if (valor !== v) aoMudar(v); } }, v === 'ABERTA' ? 'Aberta' : 'Fechada');
+      }));
+  }
+  function admConfig() {
+    var D = S.adm.config;
+    if (!D) return null;
+    var C = D.config;
+    var novoCiclo = h('input', { class: 'input input-sm', id: 'novoCiclo', placeholder: 'ex.: 2027-1', maxlength: '6', style: 'max-width:160px' });
+    var minimo = h('input', { class: 'input input-sm', id: 'minimo', type: 'number', min: '1', max: '20', value: String(C.minimoRespostas), style: 'max-width:110px' });
+    return h('div', { class: 'stack' },
+      h('section', { class: 'card stack' },
+        h('div', null, h('span', { class: 'rotulo' }, 'Ciclo atual'), h('h2', null, D.cicloRotulo)),
+        h('div', { class: 'linha-config' },
+          h('div', null, h('h3', { id: 'tFase1' }, '1. Liderado x Líder'), h('p', { class: 'muted small' }, 'Colaboradores avaliam o próprio líder. Quem é liderado direto da coordenação também escreve 3 pontos fortes e 3 fracos. Ao fechar, os resultados ficam visíveis para a gestão.')),
+          interruptor('tFase1', C.faseLideradoLider, function (v) {
+            if (v === 'FECHADA') confirmar('Fechar a avaliação do líder?', 'Ninguém mais consegue responder neste ciclo e os resultados agrupados passam a aparecer para a gestão.', 'Fechar avaliação', function () { salvarConfig({ faseLideradoLider: v }, 'Avaliação do líder fechada.'); });
+            else salvarConfig({ faseLideradoLider: v }, 'Avaliação do líder aberta.');
+          })),
+        h('div', { class: 'linha-config' },
+          h('div', null, h('h3', { id: 'tFase2' }, '2. Líder x Liderado'), h('p', { class: 'muted small' }, 'Líderes avaliam cada liderado e registram a data do feedback e da reavaliação.')),
+          interruptor('tFase2', C.faseLiderLiderado, function (v) { salvarConfig({ faseLiderLiderado: v }, v === 'ABERTA' ? 'Avaliação dos liderados aberta.' : 'Avaliação dos liderados fechada.'); })),
+        h('div', { class: 'linha-config' },
+          h('div', null, h('h3', null, 'Resultado para os líderes'), h('p', { class: 'muted small' }, 'Cada líder vê o próprio resultado (agrupado e anônimo) quando a fase 1 estiver fechada e você liberar aqui.')),
+          h('button', { class: 'btn btn-sm ' + (D.liberado ? 'btn-sec' : 'btn-primario'), type: 'button', onclick: function () {
+            salvarConfig({ liberar: !D.liberado }, D.liberado ? 'Resultado recolhido.' : 'Resultado liberado para os líderes.');
+          } }, D.liberado ? 'Recolher resultado' : 'Liberar resultado')),
+        h('div', { class: 'linha-config' },
+          h('div', null, h('label', { for: 'minimo', class: 'campo-rotulo' }, 'Mínimo de respostas para mostrar um resultado'), h('p', { class: 'muted small' }, 'Protege o anonimato de equipes pequenas. O padrão é 3.')),
+          h('div', { class: 'linha-botoes' }, minimo, h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () { salvarConfig({ minimoRespostas: Number(minimo.value) }); } }, 'Salvar')))),
+      h('section', { class: 'card stack' },
+        h('h2', null, 'Novo ciclo'),
+        h('p', { class: 'muted small' }, 'Use no próximo semestre. As respostas do ciclo atual ficam guardadas no histórico e as duas fases começam fechadas.'),
+        h('div', { class: 'linha-botoes' }, novoCiclo, h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () {
+          var v = novoCiclo.value.trim();
+          if (!/^\d{4}-[12]$/.test(v)) { toast('Use o formato ANO-SEMESTRE, por exemplo 2027-1.', 'erro'); return; }
+          confirmar('Iniciar o ciclo ' + v + '?', 'O ciclo atual vira histórico. Depois abra a fase 1 para começar.', 'Iniciar', function () { salvarConfig({ novoCiclo: v }, 'Novo ciclo iniciado.'); });
+        } }, 'Iniciar novo ciclo'))),
+      editorCriterios(D.criterios, 'LIDERADO_LIDER', 'Itens da avaliação do líder (Liderado x Líder)'),
+      editorCriterios(D.criterios, 'LIDER_LIDERADO', 'Itens da avaliação do liderado (Líder x Liderado)'));
+  }
+  function salvarCriterio(dados) {
+    chamar('salvarCriterio', dados).then(function (r) { S.adm.config.criterios = r.criterios; toast('Itens atualizados.'); render(); }).catch(falha);
+  }
+  function editorCriterios(lista, form, titulo) {
+    var itens = lista.filter(function (c) { return c.form === form; });
+    var novo = h('input', { class: 'input input-sm', id: 'novo-' + form, placeholder: 'Texto do novo item', maxlength: '200' });
+    return h('section', { class: 'card stack' },
+      h('h2', null, titulo),
+      h('p', { class: 'muted small' }, 'Mudanças valem para quem responder depois. Item desativado some do formulário, mas o histórico continua.'),
+      h('div', { class: 'crit-lista' }, itens.map(function (c, i) {
+        var inp = h('input', { class: 'input input-sm', value: c.texto, maxlength: '200', 'aria-label': 'Texto do item ' + c.id });
+        return h('div', { class: 'crit' + (c.ativo ? '' : ' inativo') },
+          h('span', { class: 'crit-id' }, c.id), inp,
+          h('div', { class: 'crit-acoes' },
+            h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () { salvarCriterio({ id: c.id, texto: inp.value }); } }, 'Salvar'),
+            h('button', { class: 'btn btn-sec btn-sm', type: 'button', 'aria-label': 'Subir ' + c.id, disabled: i === 0, onclick: function () { salvarCriterio({ id: c.id, mover: -1 }); } }, '↑'),
+            h('button', { class: 'btn btn-sec btn-sm', type: 'button', 'aria-label': 'Descer ' + c.id, disabled: i === itens.length - 1, onclick: function () { salvarCriterio({ id: c.id, mover: 1 }); } }, '↓'),
+            h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () { salvarCriterio({ id: c.id, ativo: !c.ativo }); } }, c.ativo ? 'Desativar' : 'Ativar')));
+      })),
+      h('div', { class: 'linha-botoes' }, h('div', { style: 'flex:1 1 260px' }, novo),
+        h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () {
+          if (!novo.value.trim()) { toast('Escreva o texto do item.', 'erro'); return; }
+          salvarCriterio({ form: form, texto: novo.value });
+        } }, ico('mais', 16), 'Adicionar item')));
+  }
+
+  var ADM = { painel: admPainel, participacao: admParticipacao, resultados: admResultados, ll: admLL, pessoas: admPessoas, config: admConfig };
+  var VIEWS = {
+    carregando: vCarregando, semServidor: vSemServidor, login: vLogin, inicio: vInicio, formLider: vFormLider, obrigado: vObrigado,
+    equipe: vEquipe, formLiderado: vFormLiderado, resultados: vResultados, admin: vAdmin
+  };
+
+  function iniciar() {
+    if (!temServidor()) { ir('semServidor'); return; }
+    var t = tokenGuardado();
+    if (!t) { ir('login'); return; }
+    S.token = t;
+    render();
+    chamar('home').then(function (d) { S.home = d; ir('inicio'); }).catch(function () {
+      S.token = null; guardarToken(null); S.login = novoLogin(); ir('login');
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
+  else iniciar();
+})();
+</script>
+</body>
+</html>
