@@ -1,0 +1,34 @@
+# Mantém o projeto do Supabase ativo: no plano gratuito, projetos sem uso por 7 dias são pausados.
+# A cada 3 dias, acessa a verificação de saúde da função "feedback", que faz uma consulta no banco.
+# Se a função não responder, a execução falha e o GitHub avisa por e-mail o dono do repositório.
+name: Manter o Supabase ativo
+
+on:
+  schedule:
+    - cron: '17 11 */3 * *'   # 08:17 no horário de Brasília, a cada 3 dias
+  workflow_dispatch: {}        # botão "Run workflow" para rodar na hora
+
+permissions:
+  actions: write   # para manter este agendamento ligado (o GitHub desliga agendamentos de repositórios parados há 60 dias)
+  contents: read
+
+jobs:
+  acessar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Acessar a função feedback
+        run: |
+          resposta=""
+          for tentativa in 1 2 3; do
+            resposta=$(curl -fsS --max-time 30 https://qtqfvqzeuressxzrdibo.supabase.co/functions/v1/feedback) && break
+            echo "Tentativa $tentativa falhou. Nova tentativa em 20 segundos."
+            sleep 20
+          done
+          echo "Resposta: $resposta"
+          echo "$resposta" | grep -q '"ok":true'
+
+      - name: Manter o agendamento ligado
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/manter-supabase-ativo.yml/enable"

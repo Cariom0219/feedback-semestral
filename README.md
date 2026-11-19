@@ -45,6 +45,10 @@ O endereço da função fica em [`docs/config.js`](docs/config.js).
 4. Abra o site com `#configurar` no fim do endereço e crie o acesso da coordenação com o código de configuração (consulta: `select valor from segredos where nome = 'codigo_configuracao'`).
 5. Entre com a matrícula e o CPF e vá em **Painel de gestão → Pessoas → Importar base** para carregar a planilha de colaboradores (colunas Matrícula, Descrição C.C, Liderança, Nome e CPF). Cadastre o RH em **Pessoas** com o perfil RH.
 
+## Manter o Supabase ativo
+
+No plano gratuito, o Supabase pausa projetos sem uso por 7 dias. A automação [`.github/workflows/manter-supabase-ativo.yml`](.github/workflows/manter-supabase-ativo.yml) acessa a função `feedback` a cada 3 dias (às 08:17 de Brasília), o que faz uma consulta no banco. Se a função não responder, a execução falha e o GitHub avisa por e-mail. Para rodar na hora: aba **Actions → Manter o Supabase ativo → Run workflow**.
+
 ## Segurança
 
 - O CPF nunca fica em texto: é guardado como SHA-256 de uma chave secreta + matrícula + CPF. Depois de 5 tentativas erradas o acesso trava por 15 minutos. Sessões expiram em 4 horas sem uso.
