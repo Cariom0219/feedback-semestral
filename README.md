@@ -5,7 +5,7 @@ Ferramenta de feedback semestral da Operação Centro-BA (Sirtec), com duas aval
 - **Liderado x Líder**: cada pessoa avalia o próprio líder com notas de 1 a 5, o **porquê** das notas e considerações finais. Quem é liderado direto da coordenação também escreve 3 pontos fortes e 3 pontos fracos.
 - **Líder x Liderado**: o líder avalia cada liderado no dia da conversa presencial, com notas, porquê, plano combinado e considerações. Supervisores e todos que respondem direto à coordenação (administrativo e RH) são avaliados com os itens de liderança e 3 pontos fortes e 3 fracos, e avaliam a coordenação do mesmo jeito.
 
-A pessoa entra com a **matrícula**, confirma o nome e usa o **CPF como senha**.
+A pessoa entra com a **matrícula**, confirma o nome e usa o **CPF como senha**. Antes de responder, lê uma orientação curta sobre a importância do feedback claro e transparente e os impactos positivos e negativos, e marca que leu. Os líderes recebem uma orientação própria antes de avaliar a equipe.
 
 - Aplicativo: https://cariom0219.github.io/feedback-semestral/
 - Demonstração com dados fictícios: https://cariom0219.github.io/feedback-semestral/demo/

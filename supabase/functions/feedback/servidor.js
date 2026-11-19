@@ -228,6 +228,11 @@ var FeedbackCore = (function () {
 
   function ehLider(ctx, mat) { return (ctx.equipes[mat] || []).length > 0; }
 
+  /** O feedback do líder só pode ser registrado depois que o liderado respondeu a avaliação do líder no ciclo. */
+  function respondeuLider(store, ciclo, mat) {
+    return store.listParticipacao(ciclo).some(function (x) { return x.form === FORM_UP && x.avaliador === mat; });
+  }
+
   /** Como o líder avalia este liderado: itens de liderança + 3 pontos fortes e 3 fracos para quem lidera
    *  uma equipe e para todos que respondem direto à coordenação; os demais usam os itens do liderado. */
   function formaAvaliacao(ctx, p) {
@@ -443,6 +448,7 @@ var FeedbackCore = (function () {
         total: equipe.length,
         responderam: equipe.filter(function (p) { return !!resp[p.mat]; }).length,
         avaliados: avaliados,
+        prontos: equipe.filter(function (p) { return !!resp[p.mat] && !downs.some(function (r) { return r.avaliador === eu.mat && r.avaliado === p.mat; }); }).length,
         atrasados: minhaAgenda.filter(function (a) { return a.data < hoje; }).length,
         proximos7: minhaAgenda.filter(function (a) { return a.data >= hoje && a.data <= somarDias(hoje, 7); }).length,
         semData: equipe.filter(function (p) { return !agenda.some(function (a) { return a.lider === eu.mat && a.liderado === p.mat && a.tipo === 'FEEDBACK' && a.status !== 'CANCELADO'; }); }).length
@@ -614,6 +620,7 @@ var FeedbackCore = (function () {
       liderado: vPessoa(p),
       lideranca: lid,
       motivoLideranca: forma.motivo,
+      respondeu: respondeuLider(store, cfg.ciclo, p.mat),
       fase: cfg.faseLiderLiderado,
       criterios: criteriosAtivos(store, lid ? FORM_UP : FORM_DOWN),
       extras: lid,
@@ -631,6 +638,9 @@ var FeedbackCore = (function () {
     var cfg = ctx.cfg;
     if (cfg.faseLiderLiderado !== 'ABERTA') throw erro('FASE_FECHADA', 'A avaliação dos liderados não está aberta no momento.');
     var p = lideradoDe(ctx, d.mat);
+    if (!respondeuLider(store, cfg.ciclo, p.mat)) {
+      throw erro('AGUARDANDO_RESPOSTA', 'O feedback de ' + titulo(p.nome) + ' só pode ser registrado depois que essa pessoa responder a avaliação do líder neste ciclo.');
+    }
     var lid = formaAvaliacao(ctx, p).lideranca;
     var crits = criteriosAtivos(store, lid ? FORM_UP : FORM_DOWN);
     var notas = lerNotas(d.notas, crits);
@@ -803,7 +813,12 @@ var FeedbackCore = (function () {
       var novo = function (p, data, tipo) {
         store.salvarAgenda({ id: store.uuid(), ciclo: cfg.ciclo, lider: ctx.eu.mat, liderado: p.mat, data: data, tipo: tipo, status: 'AGENDADO', realizadoEm: '', obs: '', atualizadoEm: agora });
       };
-      equipe.slice().sort(function (a, b) { return a.nome < b.nome ? -1 : 1; }).forEach(function (p) {
+      var resp = {};
+      store.listParticipacao(cfg.ciclo).forEach(function (x) { if (x.form === FORM_UP) resp[x.avaliador] = true; });
+      // quem já respondeu a avaliação do líder ganha as primeiras datas (só essas pessoas podem receber o feedback agora)
+      equipe.slice().sort(function (a, b) {
+        return (resp[b.mat] ? 1 : 0) - (resp[a.mat] ? 1 : 0) || (a.nome < b.nome ? -1 : a.nome > b.nome ? 1 : 0);
+      }).forEach(function (p) {
         var doLiderado = itens.filter(function (a) { return a.liderado === p.mat; });
         var rec = downs[p.mat];
         if (!rec && !doLiderado.some(function (a) { return a.tipo === 'FEEDBACK'; })) {

@@ -189,6 +189,41 @@ fieldset legend + * { clear: both; }
 .progresso { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 0 12px; display: grid; gap: 6px; border-bottom: 1px solid var(--line); }
 .progresso .linha { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; font-weight: 600; }
 .obs-toggle { justify-self: start; }
+.lead { font-size: 17.5px; line-height: 1.55; }
+.cal { display: grid; gap: 10px; }
+.cal-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cal-cab strong { font: 600 19px/1.2 var(--font-display); }
+.cal-nav { width: 42px; height: 42px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font: 700 22px/1 var(--font-display); cursor: pointer; }
+.cal-nav:hover { border-color: var(--primary); }
+.cal-grade { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.cal-sem { text-align: center; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; padding: 2px 0; }
+.cal-dia { position: relative; min-height: 50px; padding: 4px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+.cal-dia:hover:not(:disabled) { border-color: var(--primary); }
+.cal-dia.fds { background: var(--surface-2); }
+.cal-dia.fora { opacity: .45; }
+.cal-dia:disabled { cursor: not-allowed; opacity: .3; }
+.cal-dia.sel { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
+.cal-n { font: 700 14px/1 var(--font-display); padding: 3px 5px; border-radius: 6px; font-variant-numeric: tabular-nums; }
+.cal-dia.hoje .cal-n { background: var(--accent); color: var(--accent-ink); }
+.cal-qtd { margin-top: auto; align-self: flex-end; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; background: var(--primary); color: var(--primary-ink); font: 700 12px/20px var(--font-body); text-align: center; }
+.cal-dia.atraso .cal-qtd { background: var(--bad); color: #fff; }
+.cal-nomes { display: none; width: 100%; font-size: 11.5px; line-height: 1.3; color: var(--muted); }
+.cal-nomes span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 720px) { .cal.nomes .cal-dia { min-height: 88px; } .cal.nomes .cal-nomes { display: block; } }
+.cal-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.cal-legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.cal-mk { display: inline-block; width: 14px; height: 14px; border-radius: 99px; background: var(--primary); }
+.cal-mk.atraso { background: var(--bad); } .cal-mk.hoje { background: var(--accent); border-radius: 4px; }
+.cal-detalhe { border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 8px; }
+.orient { gap: 12px; }
+.orient.pos { border-top: 4px solid var(--ok); }
+.orient.neg { border-top: 4px solid var(--bad); }
+.lista-ico { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.lista-ico li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; }
+.lista-ico .ico { margin-top: 2px; }
+.orient.pos .ico { color: var(--ok); } .orient.neg .ico { color: var(--bad); } .orient.info .ico, .orient.dica .ico { color: var(--info); }
+.compromisso { border: 2px solid var(--accent); }
+.compromisso .check { font-weight: 600; font-size: 16.5px; }
 .porque { display: grid; gap: 6px; }
 .porque > label { font-size: 14px; font-weight: 600; color: var(--muted); }
 .porque.obrig > label { color: var(--bad); }
@@ -561,6 +596,11 @@ var FeedbackCore = (function () {
 
   function ehLider(ctx, mat) { return (ctx.equipes[mat] || []).length > 0; }
 
+  /** O feedback do líder só pode ser registrado depois que o liderado respondeu a avaliação do líder no ciclo. */
+  function respondeuLider(store, ciclo, mat) {
+    return store.listParticipacao(ciclo).some(function (x) { return x.form === FORM_UP && x.avaliador === mat; });
+  }
+
   /** Como o líder avalia este liderado: itens de liderança + 3 pontos fortes e 3 fracos para quem lidera
    *  uma equipe e para todos que respondem direto à coordenação; os demais usam os itens do liderado. */
   function formaAvaliacao(ctx, p) {
@@ -776,6 +816,7 @@ var FeedbackCore = (function () {
         total: equipe.length,
         responderam: equipe.filter(function (p) { return !!resp[p.mat]; }).length,
         avaliados: avaliados,
+        prontos: equipe.filter(function (p) { return !!resp[p.mat] && !downs.some(function (r) { return r.avaliador === eu.mat && r.avaliado === p.mat; }); }).length,
         atrasados: minhaAgenda.filter(function (a) { return a.data < hoje; }).length,
         proximos7: minhaAgenda.filter(function (a) { return a.data >= hoje && a.data <= somarDias(hoje, 7); }).length,
         semData: equipe.filter(function (p) { return !agenda.some(function (a) { return a.lider === eu.mat && a.liderado === p.mat && a.tipo === 'FEEDBACK' && a.status !== 'CANCELADO'; }); }).length
@@ -947,6 +988,7 @@ var FeedbackCore = (function () {
       liderado: vPessoa(p),
       lideranca: lid,
       motivoLideranca: forma.motivo,
+      respondeu: respondeuLider(store, cfg.ciclo, p.mat),
       fase: cfg.faseLiderLiderado,
       criterios: criteriosAtivos(store, lid ? FORM_UP : FORM_DOWN),
       extras: lid,
@@ -964,6 +1006,9 @@ var FeedbackCore = (function () {
     var cfg = ctx.cfg;
     if (cfg.faseLiderLiderado !== 'ABERTA') throw erro('FASE_FECHADA', 'A avaliação dos liderados não está aberta no momento.');
     var p = lideradoDe(ctx, d.mat);
+    if (!respondeuLider(store, cfg.ciclo, p.mat)) {
+      throw erro('AGUARDANDO_RESPOSTA', 'O feedback de ' + titulo(p.nome) + ' só pode ser registrado depois que essa pessoa responder a avaliação do líder neste ciclo.');
+    }
     var lid = formaAvaliacao(ctx, p).lideranca;
     var crits = criteriosAtivos(store, lid ? FORM_UP : FORM_DOWN);
     var notas = lerNotas(d.notas, crits);
@@ -1136,7 +1181,12 @@ var FeedbackCore = (function () {
       var novo = function (p, data, tipo) {
         store.salvarAgenda({ id: store.uuid(), ciclo: cfg.ciclo, lider: ctx.eu.mat, liderado: p.mat, data: data, tipo: tipo, status: 'AGENDADO', realizadoEm: '', obs: '', atualizadoEm: agora });
       };
-      equipe.slice().sort(function (a, b) { return a.nome < b.nome ? -1 : 1; }).forEach(function (p) {
+      var resp = {};
+      store.listParticipacao(cfg.ciclo).forEach(function (x) { if (x.form === FORM_UP) resp[x.avaliador] = true; });
+      // quem já respondeu a avaliação do líder ganha as primeiras datas (só essas pessoas podem receber o feedback agora)
+      equipe.slice().sort(function (a, b) {
+        return (resp[b.mat] ? 1 : 0) - (resp[a.mat] ? 1 : 0) || (a.nome < b.nome ? -1 : a.nome > b.nome ? 1 : 0);
+      }).forEach(function (p) {
         var doLiderado = itens.filter(function (a) { return a.liderado === p.mat; });
         var rec = downs[p.mat];
         if (!rec && !doLiderado.some(function (a) { return a.tipo === 'FEEDBACK'; })) {
@@ -1995,7 +2045,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = { MemorySt
 window.FB_DEMO = true;
 (function () {
   'use strict';
-  var CHAVE = 'fbs_demo_v2';
+  var CHAVE = 'fbs_demo_v3';
   var Core = window.FeedbackCore;
 
   function cpf(base) {
@@ -2184,30 +2234,31 @@ window.FB_DEMO = true;
     });
 
     // Ciclo atual (2026-2): a equipe está avaliando os líderes e os líderes estão dando feedback.
+    // O feedback do líder só pode ser dado a quem já respondeu a avaliação do líder.
     var responderam = {
-      '9101': ['1002', '1003', '1005', '1006', '1008', '1010', '1012'], '9102': ['1014', '1015', '1018', '1021'],
+      '9101': ['1002', '1003', '1004', '1005', '1006', '1007', '1008', '1010', '1011', '1012'], '9102': ['1014', '1015', '1018', '1021'],
       '9103': ['1023', '1024', '1025', '1027', '1028', '1030'], '9001': ['9002', '9103']
     };
     var k = 0;
     Object.keys(responderam).forEach(function (l) {
       responderam[l].forEach(function (mat) { responder('2026-2', porMat[mat], dia(-12 + (k++ % 10)), 0); });
     });
-    // Coordenação: feedback do Edson já feito; os demais marcados (um atrasado).
-    avaliar('2026-2', porMat['9101'], dia(-6), { base: 4.1, ciencia: true, consideracoes: 'Equipe com bons números de segurança. Combinamos dar mais retorno individual aos leituristas.' });
+    // Coordenação: feedback do Rogério já feito; os demais marcados (um atrasado, de quem ainda não respondeu).
+    avaliar('2026-2', porMat['9103'], dia(-6), { base: 3.9, ciencia: true, consideracoes: 'Equipe com bons números de segurança. Combinamos dar mais retorno individual aos leituristas.' });
     agendar('2026-2', '9001', '9003', dia(-2));
-    agendar('2026-2', '9001', '9102', dia(2));
-    agendar('2026-2', '9001', '9103', dia(3));
+    agendar('2026-2', '9001', '9101', dia(2));
+    agendar('2026-2', '9001', '9102', dia(3));
     agendar('2026-2', '9001', '9002', dia(5));
     // Edson (9101)
-    avaliar('2026-2', porMat['1001'], dia(-2), { base: 4.3, consideracoes: 'Ana é referência de qualidade na equipe. Combinamos que ela vai acompanhar os dois leituristas novos nas primeiras rotas.' });
     avaliar('2026-2', porMat['1004'], dia(-8), { ciencia: true });
     avaliar('2026-2', porMat['1007'], dia(-7), { base: 3.5, forcar: { LD02: 2 }, ciencia: true });
-    avaliar('2026-2', porMat['1011'], dia(-6), { ciencia: true, base: 4.2 });
+    avaliar('2026-2', porMat['1011'], dia(-2), { base: 4.3, consideracoes: 'Marcelo é referência de qualidade na equipe. Combinamos que ele vai acompanhar os dois leituristas novos nas primeiras rotas.' });
     var d1007 = store.listDown('2026-2').filter(function (r) { return r.avaliado === '1007'; })[0].dataFeedback;
     [1, 2, 3].forEach(function (m) { agendar('2026-2', '9101', '1007', util(Core.somarMeses(d1007, m), 1), 'ACOMPANHAMENTO'); });
+    agendar('2026-2', '9101', '1001', dia(2));
     agendar('2026-2', '9101', '1002', dia(1));
     agendar('2026-2', '9101', '1003', dia(1));
-    agendar('2026-2', '9101', '1005', dia(2));
+    agendar('2026-2', '9101', '1005', dia(3));
     agendar('2026-2', '9101', '1006', dia(3));
     agendar('2026-2', '9101', '1008', dia(-3));
     // Patrícia (9102)
@@ -2236,6 +2287,7 @@ window.FB_DEMO = true;
   };
   window.FB_DEMO_ACESSOS = [
     { perfil: 'Colaborador', nome: 'Ana Beatriz Moura', mat: '1001', cpf: cpfDe('1001') },
+    { perfil: 'Colaborador com feedback', nome: 'Marcelo Dias Fonseca', mat: '1011', cpf: cpfDe('1011') },
     { perfil: 'Supervisor', nome: 'Edson Carvalho Reis', mat: '9101', cpf: cpfDe('9101') },
     { perfil: 'Coordenação', nome: 'Marcos Vinicius Teles', mat: '9001', cpf: cpfDe('9001') },
     { perfil: 'RH', nome: 'Luana Prado Matos', mat: '9002', cpf: cpfDe('9002') }
@@ -2273,7 +2325,9 @@ window.FB_DEMO = true;
     mais: '<path d="M12 5v14M5 12h14"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/>',
     alerta: '<path d="M12 3.5l9 16h-18z"/><path d="M12 10v4.5M12 17.2h.01"/>',
-    fechar: '<path d="M6 6l12 12M18 6L6 18"/>'
+    fechar: '<path d="M6 6l12 12M18 6L6 18"/>',
+    olho: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    dica: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.2 1.1 2V16h5v-.2c0-.8.4-1.5 1.1-2A6 6 0 0 0 12 3z"/>'
   };
   function ico(nome, tam) {
     var s = document.createElement('span');
@@ -2362,6 +2416,7 @@ window.FB_DEMO = true;
   }
   function proximoDiaUtil(iso) { var d = iso; while (/^(domingo|sábado)$/.test(diaSemana(d))) d = somarDias(d, 1); return d; }
   function faixaCritica(c) { return c <= 1 ? '1' : c === 2 ? '1 e 2' : '1 a ' + c; }
+  function notasCriticas(c) { return c <= 1 ? 'A nota 1 precisa' : 'As notas ' + faixaCritica(c) + ' precisam'; }
   function mascaraCpf(v) {
     var d = String(v).replace(/\D/g, '').slice(0, 11), o = d.slice(0, 3);
     if (d.length > 3) o += '.' + d.slice(3, 6);
@@ -2519,6 +2574,19 @@ window.FB_DEMO = true;
     if (!ciclos || ciclos.length < 2) return null;
     return campo('selCiclo', 'Ciclo', h('select', { class: 'input input-sm', id: 'selCiclo', onchange: function (ev) { aoTrocar(ev.target.value); } },
       ciclos.map(function (c) { return h('option', { value: c.id, selected: c.id === atual }, c.rotulo); })));
+  }
+  // Cartão com lista e ícone: pos (positivo), neg (negativo), info (como funciona) e dica (como fazer).
+  function cartaoLista(titulo, tipo, itens) {
+    var icone = { pos: 'check', neg: 'alerta', info: 'olho', dica: 'dica' }[tipo] || 'info';
+    return h('section', { class: 'card stack orient ' + tipo }, h('h2', null, titulo),
+      h('ul', { class: 'lista-ico' }, itens.filter(Boolean).map(function (t) { return h('li', null, ico(icone, 20), h('span', null, t)); })));
+  }
+  // Compromisso antes de responder: o botão só libera depois de marcar que leu.
+  function compromisso(id, texto, rotuloBotao, aoContinuar) {
+    var chk = h('input', { type: 'checkbox', id: id });
+    var btn = h('button', { class: 'btn btn-primario btn-bloco', type: 'button', disabled: true, onclick: aoContinuar }, rotuloBotao);
+    chk.addEventListener('change', function () { btn.disabled = !chk.checked; });
+    return h('section', { class: 'card stack compromisso' }, h('label', { class: 'check', for: id }, chk, h('span', null, texto)), btn);
   }
   function enterClica(ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ev.currentTarget.click(); } }
   function campoTexto(id, rotulo, ajuda, valor, max, aoDigitar) {
@@ -2807,8 +2875,8 @@ window.FB_DEMO = true;
       h('h2', null, 'Avaliar meu líder'),
       h('p', { class: 'nome' }, H.meuLider.nome),
       h('p', { class: 'muted small' }, H.meuLider.coordenacao
-        ? 'Notas de 1 a 5 com o porquê, 3 pontos fortes, 3 pontos fracos e considerações finais.'
-        : 'Notas de 1 a 5 com o porquê e considerações finais. Leva uns 5 minutos.'),
+        ? 'Notas de 1 a 5 com o porquê, 3 pontos fortes, 3 pontos fracos e considerações finais. Antes, uma orientação rápida sobre como dar um bom feedback.'
+        : 'Notas de 1 a 5 com o porquê e considerações finais. Antes, uma orientação rápida sobre como dar um bom feedback.'),
       pend ? h('button', { class: 'btn btn-primario', type: 'button', onclick: abrirFormLider }, 'Começar avaliação')
         : h('p', { class: 'muted small' }, H.avaliouLider ? 'Obrigado! Sua avaliação foi registrada.' : 'A avaliação do líder não está aberta agora.'));
   }
@@ -2844,6 +2912,8 @@ window.FB_DEMO = true;
       h('h2', null, 'Avaliar meus liderados'),
       h('p', null, e.avaliados + ' de ' + e.total + ' avaliados'),
       barra(e.avaliados, e.total, true),
+      h('p', { class: 'muted small' }, e.prontos ? plural(e.prontos, 'pessoa já te avaliou e está pronta', 'pessoas já te avaliaram e estão prontas') + ' para o feedback.'
+        : 'O feedback só pode ser dado a quem já respondeu a avaliação do líder.'),
       aberta ? h('button', { class: 'btn ' + (falta ? 'btn-primario' : 'btn-sec'), type: 'button', onclick: function () { abrirEquipe('fase2'); } }, e.avaliados ? 'Continuar avaliações' : 'Começar avaliações')
         : h('p', { class: 'muted small' }, 'A coordenação abre esta etapa depois da avaliação dos líderes.'));
   }
@@ -2876,8 +2946,44 @@ window.FB_DEMO = true;
     chamar('formLider').then(function (d) {
       S.fl = d;
       S.rl = { notas: {}, porques: {}, fortes: ['', '', ''], fracos: ['', '', ''], consideracoes: '' };
-      ir('formLider');
+      ir(d.enviada || d.fase !== 'ABERTA' ? 'formLider' : 'orientacao');
     }).catch(falha);
+  }
+  function vOrientacao() {
+    var F = S.fl, lider = primeiro(F.lider.nome), c = F.notaCritica;
+    return h('div', { class: 'stack' },
+      botaoVoltar(),
+      h('div', { class: 'stack', style: 'gap:6px' }, h('span', { class: 'rotulo' }, 'Liderado x Líder · ' + F.cicloRotulo), h('h1', null, 'Antes de começar: por que o seu feedback importa')),
+      h('p', { class: 'lead' }, 'Esta avaliação é a sua chance de dizer, com clareza e respeito, o que ' + lider + ' faz bem e o que precisa melhorar. ' +
+        'O que você escrever vai ser usado na conversa de feedback e no plano de melhoria da liderança.'),
+      cartaoLista('Seu feedback é transparente', 'info', [
+        lider + ' vai ver as suas notas e o porquê de cada uma, com o seu nome, depois que a coordenação liberar o resultado.',
+        'A coordenação e o RH acompanham todas as respostas.',
+        'Você responde uma vez por ciclo. Depois de enviar, não dá para mudar.',
+        F.extras ? 'Além das notas, você escreve 3 pontos fortes e 3 pontos fracos.' : null
+      ]),
+      h('div', { class: 'grade-2', style: 'grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))' },
+        cartaoLista('Quando o feedback é claro e sincero', 'pos', [
+          'O líder entende exatamente o que manter e o que mudar.',
+          'Os problemas do dia a dia (rotas, EPI, comunicação, ferramentas) chegam a quem pode resolver.',
+          'O que está bom é reconhecido e continua.',
+          'A equipe ganha confiança para conversar abertamente, e o trabalho fica mais seguro.'
+        ]),
+        cartaoLista('Quando não é claro ou não é sincero', 'neg', [
+          'Nota alta para tudo "para não criar problema" esconde o que precisa melhorar, e nada muda.',
+          'Nota baixa sem explicação, ou por raiva de um dia ruim, é injusta e não ajuda ninguém.',
+          'Comentários vagos, como "ele é ruim", não mostram o que fazer diferente.',
+          'Ofensas e ataques pessoais estragam a relação e tiram o valor da avaliação.'
+        ])),
+      cartaoLista('Como dar um bom feedback', 'dica', [
+        'Pense no semestre inteiro, não só na última semana.',
+        'Dê exemplos: o que aconteceu, quando, e como afetou você ou a equipe.',
+        'Fale do comportamento, não da pessoa.',
+        c > 0 ? notasCriticas(c) + ' do porquê. Nas outras notas o porquê é opcional, mas ajuda muito na conversa.' : 'Explique o porquê das notas: ajuda muito na conversa.',
+        'Seja respeitoso: o objetivo é melhorar o trabalho de todos.'
+      ]),
+      aviso('info', 'Opinião sincera e respeitosa não pode gerar punição. Se algo acontecer por causa da sua avaliação, procure o RH.'),
+      compromisso('chkOrientacao', 'Li as orientações e vou dar um feedback claro, sincero e respeitoso.', 'Começar a avaliação', function () { ir('formLider'); }));
   }
   function vFormLider() {
     var F = S.fl, R = S.rl;
@@ -2897,7 +3003,8 @@ window.FB_DEMO = true;
     return h('div', { class: 'stack' },
       botaoVoltar(),
       h('div', { class: 'stack', style: 'gap:6px' }, h('span', { class: 'rotulo' }, 'Liderado x Líder · ' + F.cicloRotulo), h('h1', null, 'Avaliação de ' + F.lider.nome)),
-      aviso('info', primeiro(F.lider.nome) + ' vai ver a sua avaliação com o seu nome, para conversar com você no feedback. Seja sincero e respeitoso e explique o porquê das notas. Nota ' + faixaCritica(F.notaCritica) + ' precisa do porquê.'),
+      aviso('info', primeiro(F.lider.nome) + ' vai ver a sua avaliação com o seu nome, para conversar com você no feedback. Seja sincero e respeitoso e explique o porquê das notas.' + (F.notaCritica > 0 ? ' ' + notasCriticas(F.notaCritica) + ' do porquê.' : '')),
+      h('button', { class: 'btn-link', type: 'button', style: 'justify-self:start;align-self:flex-start', onclick: function () { ir('orientacao'); } }, 'Rever as orientações'),
       legenda(F.escala),
       prog,
       h('div', { class: 'stack', style: 'gap:12px' }, F.criterios.map(function (c, i) { return itemNota(c, i, R.notas, F.escala, atualizar, R.porques, F.notaCritica); })),
@@ -2997,6 +3104,7 @@ window.FB_DEMO = true;
         if (S.eqFiltro === 'pendentes' && p[campoStatus]) return false;
         if (S.eqFiltro === 'feitos' && !p[campoStatus]) return false;
         if (S.eqFiltro === 'mensal' && !(p.frequencia && p.frequencia.tipo === 'MENSAL')) return false;
+        if (S.eqFiltro === 'prontos' && !(p.respondeu && !p.avaliado)) return false;
         return !q || normalizar(p.nome).indexOf(q) >= 0 || p.mat.indexOf(q) >= 0;
       });
       if (!vis.length) { listaEl.appendChild(h('p', { class: 'vazio' }, 'Ninguém nesta lista.')); return; }
@@ -3005,6 +3113,8 @@ window.FB_DEMO = true;
     desenhar();
     var filtros = [['todos', 'Todos (' + pessoas.length + ')'], ['pendentes', 'Pendentes (' + (pessoas.length - feitos) + ')'],
       ['feitos', (aba === 'fase1' ? 'Responderam' : 'Avaliados') + ' (' + feitos + ')']];
+    var prontos = pessoas.filter(function (p) { return p.respondeu && !p.avaliado; }).length;
+    if (aba === 'fase2') filtros.splice(2, 0, ['prontos', 'Prontos para o feedback (' + prontos + ')']);
     if (aba === 'fase2' && mensais) filtros.push(['mensal', 'Mensal (' + mensais + ')']);
     var busca = h('input', { class: 'input', type: 'search', placeholder: 'Buscar por nome ou matrícula', 'aria-label': 'Buscar na equipe', value: S.eqBusca || '' });
     busca.addEventListener('input', function () { S.eqBusca = busca.value; desenhar(); });
@@ -3014,7 +3124,10 @@ window.FB_DEMO = true;
           : 'Aqui você vê quem já respondeu. As notas e o porquê de cada pessoa aparecem em "Como a equipe me avaliou" quando a coordenação liberar o resultado.')]
       : [h('h2', null, feitos + ' de ' + pessoas.length + ' liderados avaliados'), barra(feitos, pessoas.length, true),
         E.fases.down !== 'ABERTA' ? aviso('warn', 'A coordenação ainda não abriu a avaliação dos liderados. Quando abrir, os botões de avaliar aparecem aqui.')
-          : h('p', { class: 'muted small' }, 'Registre a avaliação no dia da conversa presencial. O liderado vê o feedback a partir da data informada e confirma que conversou com você.')];
+          : h('div', { class: 'stack', style: 'gap:6px' },
+            aviso('info', 'O feedback só pode ser dado a quem já respondeu a avaliação do líder. Quem ainda não respondeu aparece como "Ainda não te avaliou": cobre a resposta antes da conversa.'),
+            h('p', { class: 'muted small' }, 'Registre a avaliação no dia da conversa presencial. O liderado vê o feedback a partir da data informada e confirma que conversou com você.'),
+            h('button', { class: 'btn-link', type: 'button', style: 'align-self:flex-start', onclick: function () { abrirOrientacaoLider(null); } }, 'Orientações para um bom feedback'))];
     var pend = pessoas.filter(function (p) { return !p.respondeu; });
     return h('div', { class: 'stack' },
       resumo,
@@ -3033,10 +3146,10 @@ window.FB_DEMO = true;
     if (aba === 'fase1') dir = p.respondeu ? chip('ok', 'Respondeu') : chip('warn', 'Pendente');
     else {
       var aberta = E.fases.down === 'ABERTA';
-      dir = [p.avaliado ? chip('ok', 'Avaliado · ' + n1(p.media)) : chip('warn', 'A avaliar'),
+      dir = [p.avaliado ? chip('ok', 'Avaliado · ' + n1(p.media)) : p.respondeu ? chip('info', 'Pronto para o feedback') : chip('warn', 'Ainda não te avaliou'),
         chipFrequencia(p.frequencia),
         p.avaliado ? (p.ciencia ? chip('info', 'Ciente') : null) : null,
-        aberta ? h('button', { class: 'btn btn-sm ' + (p.avaliado ? 'btn-sec' : 'btn-primario'), type: 'button', onclick: function () { abrirFormLiderado(p.mat); } }, p.avaliado ? 'Editar' : 'Avaliar') : null];
+        aberta && p.respondeu ? h('button', { class: 'btn btn-sm ' + (p.avaliado ? 'btn-sec' : 'btn-primario'), type: 'button', onclick: function () { abrirFormLiderado(p.mat); } }, p.avaliado ? 'Editar' : 'Avaliar') : null];
     }
     return h('div', { class: 'linha-pessoa' },
       h('div', { class: 'quem' }, h('div', { class: 'nome' }, p.nome, p.lider ? h('span', { class: 'chip info', style: 'margin-left:8px' }, 'Líder') : null),
@@ -3056,6 +3169,66 @@ window.FB_DEMO = true;
 
   // ---- cronograma do líder
   var TIPO_AG = { FEEDBACK: 'Feedback', ACOMPANHAMENTO: 'Acompanhamento mensal' };
+  var MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  function isoLocal(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function dataExtenso(iso) { var p = String(iso).split('-').map(Number); return diaSemana(iso) + ', ' + p[2] + ' de ' + MESES[p[1] - 1]; }
+  // Calendário do mês com as conversas de cada dia.
+  // op: { hoje, selecionado, min (dias antes ficam bloqueados), itens: [{ data, nome, tipo, status, atrasado }],
+  //       aoEscolher(iso), nomes (mostra nomes nas células em telas largas), detalhe(iso, itensDoDia) → conteúdo abaixo }
+  function calendario(op) {
+    var porDia = {};
+    (op.itens || []).forEach(function (a) { if (a.status !== 'CANCELADO') (porDia[a.data] = porDia[a.data] || []).push(a); });
+    var sel = op.selecionado || op.hoje, mes = sel.slice(0, 7);
+    var raiz = h('div', { class: 'cal' + (op.nomes ? ' nomes' : '') });
+    function irMes(delta) { var p = mes.split('-').map(Number); mes = isoLocal(new Date(p[0], p[1] - 1 + delta, 1)).slice(0, 7); desenhar(); }
+    function celula(d) {
+      var iso = isoLocal(d), itens = porDia[iso] || [];
+      return h('button', {
+        type: 'button', disabled: !!(op.min && iso < op.min),
+        class: 'cal-dia' + (iso.slice(0, 7) === mes ? '' : ' fora') + (d.getDay() === 0 || d.getDay() === 6 ? ' fds' : '') + (iso === op.hoje ? ' hoje' : '') +
+          (iso === sel ? ' sel' : '') + (itens.some(function (a) { return a.atrasado; }) ? ' atraso' : ''),
+        'aria-pressed': iso === sel ? 'true' : 'false',
+        'aria-label': maiuscula(dataExtenso(iso)) + (iso === op.hoje ? ', hoje' : '') + ': ' + (itens.length ? plural(itens.length, 'conversa', 'conversas') : 'nenhuma conversa'),
+        onclick: function () { sel = iso; mes = iso.slice(0, 7); if (op.aoEscolher) op.aoEscolher(iso); desenhar(); }
+      }, h('span', { class: 'cal-n' }, String(d.getDate())),
+        op.nomes && itens.length ? h('span', { class: 'cal-nomes', 'aria-hidden': 'true' }, itens.slice(0, 2).map(function (a) { return h('span', null, primeiro(a.nome)); }),
+          itens.length > 2 ? h('span', null, '+' + (itens.length - 2)) : null) : null,
+        itens.length ? h('span', { class: 'cal-qtd', 'aria-hidden': 'true' }, String(itens.length)) : null);
+    }
+    function desenhar() {
+      limpar(raiz);
+      var p = mes.split('-').map(Number);
+      var ini = new Date(p[0], p[1] - 1, 1);
+      ini = new Date(p[0], p[1] - 1, 1 - ini.getDay());
+      var grade = h('div', { class: 'cal-grade' }, ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'].map(function (d) { return h('div', { class: 'cal-sem', 'aria-hidden': 'true' }, d); }));
+      for (var i = 0; i < 42; i++) grade.appendChild(celula(new Date(ini.getFullYear(), ini.getMonth(), ini.getDate() + i)));
+      anexar(raiz, [
+        h('div', { class: 'cal-cab' },
+          h('button', { type: 'button', class: 'cal-nav', 'aria-label': 'Mês anterior', onclick: function () { irMes(-1); } }, '‹'),
+          h('strong', null, maiuscula(MESES[p[1] - 1]) + ' de ' + p[0]),
+          h('button', { type: 'button', class: 'cal-nav', 'aria-label': 'Próximo mês', onclick: function () { irMes(1); } }, '›')),
+        grade,
+        h('div', { class: 'cal-legenda' }, h('span', null, h('i', { class: 'cal-mk' }), 'conversas marcadas no dia'),
+          h('span', null, h('i', { class: 'cal-mk atraso' }), 'com conversa atrasada'), h('span', null, h('i', { class: 'cal-mk hoje' }), 'hoje')),
+        h('div', { class: 'cal-detalhe', 'aria-live': 'polite' }, h('div', { class: 'nome' }, maiuscula(dataExtenso(sel))),
+          op.detalhe ? op.detalhe(sel, porDia[sel] || []) : listaDoDia(porDia[sel] || []))
+      ]);
+    }
+    desenhar();
+    return raiz;
+  }
+  function listaDoDia(itens, titulo) {
+    if (!itens.length) return h('p', { class: 'muted small' }, 'Nenhuma conversa marcada neste dia.');
+    return h('div', { class: 'stack', style: 'gap:6px' }, titulo ? h('p', { class: 'small' }, titulo) : null,
+      h('ul', { class: 'lista-simples' }, itens.map(function (a) {
+        return h('li', null, a.nome + ' · ' + (TIPO_AG[a.tipo] || a.tipo) + (a.status === 'REALIZADO' ? ' · feita' : a.atrasado ? ' · atrasada' : ''));
+      })));
+  }
+  function itensDaEquipe(E, excetoId) {
+    var lista = [];
+    E.pessoas.forEach(function (x) { x.agenda.forEach(function (a) { if (a.id !== excetoId) lista.push(Object.assign({ nome: x.nome }, a)); }); });
+    return lista;
+  }
   function chipAgenda(a) {
     if (a.status === 'REALIZADO') return chip('ok', 'Feito' + (a.realizadoEm ? ' em ' + dataBR(a.realizadoEm) : ''));
     if (a.status === 'CANCELADO') return chip('', 'Cancelado');
@@ -3074,6 +3247,7 @@ window.FB_DEMO = true;
     var prox7 = marcados.filter(function (a) { return a.data >= hoje && a.data <= em7; }).length;
     var feitos = E.pessoas.filter(function (p) { return p.agenda.some(function (a) { return a.tipo === 'FEEDBACK' && a.status === 'REALIZADO'; }); }).length;
     var semData = E.pessoas.filter(function (p) { return !p.agenda.some(function (a) { return a.tipo === 'FEEDBACK'; }); }).length;
+    var visao = S.agVisao || 'lista';
     var ordenadas = E.pessoas.slice().sort(function (a, b) {
       var da = a.proximo ? a.proximo.data : '9999', db = b.proximo ? b.proximo.data : '9999';
       return da < db ? -1 : da > db ? 1 : (a.nome < b.nome ? -1 : 1);
@@ -3087,8 +3261,20 @@ window.FB_DEMO = true;
       h('div', { class: 'linha-botoes' },
         h('button', { class: 'btn ' + (semData ? 'btn-primario' : 'btn-sec'), type: 'button', onclick: function () { modalSugerirDatas(E); } }, 'Sugerir datas'),
         marcados.length ? h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { copiarComAviso(textoCronograma(E, marcados), 'Cronograma copiado. Cole no grupo da equipe.'); } }, ico('copiar', 18), 'Copiar próximas conversas') : null),
-      h('p', { class: 'muted small' }, 'Quem ficou com acompanhamento mensal ganha uma conversa por mês depois do feedback. Ao registrar a avaliação no dia da conversa, o feedback é marcado como feito.'),
-      h('div', { class: 'lista' }, ordenadas.map(function (p) {
+      h('p', { class: 'muted small' }, 'Quem ficou com acompanhamento mensal ganha uma conversa por mês depois do feedback. Ao registrar a avaliação no dia da conversa, o feedback é marcado como feito. O feedback só pode ser feito com quem já respondeu a avaliação do líder.'),
+      h('div', { class: 'chips-filtro', role: 'group', 'aria-label': 'Ver o cronograma como' }, [['lista', 'Lista'], ['calendario', 'Calendário']].map(function (v) {
+        return h('button', { type: 'button', class: 'filtro' + (visao === v[0] ? ' on' : ''), 'aria-pressed': visao === v[0] ? 'true' : 'false', onclick: function () { S.agVisao = v[0]; render(); } }, v[1]);
+      })),
+      visao === 'calendario' ? h('section', { class: 'card' }, calendario({
+        hoje: hoje, selecionado: S.agDia || hoje, itens: itensDaEquipe(E), nomes: true,
+        aoEscolher: function (iso) { S.agDia = iso; },
+        detalhe: function (iso, doDia) {
+          var porMat = {};
+          E.pessoas.forEach(function (p) { porMat[p.mat] = p; });
+          return doDia.length ? h('div', { class: 'lista' }, doDia.map(function (a) { return linhaConversa(porMat[a.liderado], a); }))
+            : h('p', { class: 'muted small' }, 'Nenhuma conversa marcada neste dia.');
+        }
+      })) : h('div', { class: 'lista' }, ordenadas.map(function (p) {
         var prox = p.proximo, itemProx = prox ? p.agenda.filter(function (a) { return a.id === prox.id; })[0] : null;
         var feito = p.agenda.filter(function (a) { return a.tipo === 'FEEDBACK' && a.status === 'REALIZADO'; })[0];
         var acoes = [];
@@ -3104,8 +3290,17 @@ window.FB_DEMO = true;
           h('div', { class: 'quem' }, h('div', { class: 'nome' }, p.nome),
             h('div', { class: 'sub' }, [prox ? TIPO_AG[prox.tipo] : (feito ? 'Feedback feito em ' + dataBR(feito.realizadoEm || feito.data) : 'Sem conversa marcada'),
               p.realizados ? plural(p.realizados, 'conversa feita', 'conversas feitas') : null].filter(Boolean).join(' · '))),
-          h('div', { class: 'dir' }, itemProx ? chipAgenda(itemProx) : (feito ? null : chip('warn', 'Sem data')), chipFrequencia(p.frequencia), acoes));
+          h('div', { class: 'dir' }, itemProx ? chipAgenda(itemProx) : (feito ? null : chip('warn', 'Sem data')),
+            !p.respondeu && !p.avaliado ? chip('warn', 'Ainda não te avaliou') : null, chipFrequencia(p.frequencia), acoes));
       })));
+  }
+  function linhaConversa(p, a) {
+    var acoes = a.status === 'AGENDADO' ? [
+      h('button', { class: 'btn btn-primario btn-sm', type: 'button', onclick: function () { concluirEncontro(p, a); } }, 'Feito'),
+      h('button', { class: 'btn btn-sec btn-sm', type: 'button', onclick: function () { modalEncontro(p, a); } }, 'Remarcar')] : [];
+    return h('div', { class: 'linha-pessoa' },
+      h('div', { class: 'quem' }, h('div', { class: 'nome' }, p.nome), h('div', { class: 'sub' }, TIPO_AG[a.tipo] + (a.obs ? ' · ' + a.obs : ''))),
+      h('div', { class: 'dir' }, chipAgenda(a), a.tipo === 'FEEDBACK' && !p.respondeu && !p.avaliado ? chip('warn', 'Ainda não te avaliou') : null, acoes));
   }
   function textoCronograma(E, marcados) {
     var nomes = {};
@@ -3125,7 +3320,12 @@ window.FB_DEMO = true;
   }
   function modalEncontro(p, item) {
     var E = S.eq;
-    var data = h('input', { class: 'input', type: 'date', id: 'agData', value: item ? item.data : proximoDiaUtil(somarDias(E.hoje, 1)) });
+    var escolhido = item && item.data >= E.hoje ? item.data : proximoDiaUtil(somarDias(E.hoje, item ? 0 : 1));
+    var cal = calendario({
+      hoje: E.hoje, min: E.hoje, selecionado: escolhido, itens: itensDaEquipe(E, item ? item.id : null),
+      aoEscolher: function (iso) { escolhido = iso; },
+      detalhe: function (iso, doDia) { return listaDoDia(doDia, 'Já marcadas neste dia:'); }
+    });
     var tipo = h('select', { class: 'input', id: 'agTipo' }, [['FEEDBACK', 'Feedback'], ['ACOMPANHAMENTO', 'Acompanhamento mensal']].map(function (o) {
       return h('option', { value: o[0], selected: (item ? item.tipo : (p.avaliado ? 'ACOMPANHAMENTO' : 'FEEDBACK')) === o[0] }, o[1]);
     }));
@@ -3138,18 +3338,27 @@ window.FB_DEMO = true;
     acoes.push(salvar);
     var m = modal((item ? 'Remarcar conversa · ' : 'Marcar conversa · ') + primeiro(p.nome), [
       h('p', { class: 'muted' }, p.nome + ' · matrícula ' + p.mat),
-      h('div', { class: 'grade-2' }, campo('agData', 'Dia', data), campo('agTipo', 'Tipo', tipo)),
-      campo('agObs', 'Observação (opcional)', obs)
-    ], acoes);
+      !p.respondeu && !p.avaliado ? aviso('warn', primeiro(p.nome) + ' ainda não respondeu a avaliação do líder. A conversa pode ser marcada, mas o feedback só pode ser feito depois dessa resposta.') : null,
+      h('div', { class: 'campo' }, h('span', { class: 'campo-rotulo' }, 'Escolha o dia no calendário'), cal),
+      h('div', { class: 'grade-2' }, campo('agTipo', 'Tipo', tipo), campo('agObs', 'Observação (opcional)', obs))
+    ], acoes, true);
     salvar.addEventListener('click', function () {
-      if (!data.value) { toast('Escolha o dia.', 'erro'); return; }
+      if (!escolhido) { toast('Escolha o dia.', 'erro'); return; }
       salvar.disabled = true;
-      salvarEncontro({ id: item ? item.id : '', liderado: p.mat, data: data.value, tipo: tipo.value, status: 'AGENDADO', obs: obs.value },
-        (item ? 'Conversa remarcada para ' : 'Conversa marcada para ') + dataBR(data.value) + '.', m).then(function () { salvar.disabled = false; });
+      salvarEncontro({ id: item ? item.id : '', liderado: p.mat, data: escolhido, tipo: tipo.value, status: 'AGENDADO', obs: obs.value },
+        (item ? 'Conversa remarcada para ' : 'Conversa marcada para ') + dataBR(escolhido) + '.', m).then(function () { salvar.disabled = false; });
     });
   }
   function concluirEncontro(p, item) {
     var E = S.eq;
+    if (item.tipo === 'FEEDBACK' && !p.avaliado && !p.respondeu) {
+      var mr = modal('Ainda não dá para fazer o feedback', [
+        h('p', null, p.nome + ' ainda não respondeu a avaliação do líder. O feedback só pode ser feito depois dessa resposta.'),
+        h('p', { class: 'muted small' }, 'Cobre a resposta (matrícula e CPF no link do feedback) ou remarque a conversa.')
+      ], [h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { mr.fechar(); } }, 'Fechar'),
+        h('button', { class: 'btn btn-primario', type: 'button', onclick: function () { mr.fechar(); modalEncontro(p, item); } }, 'Remarcar')]);
+      return;
+    }
     if (item.tipo === 'FEEDBACK' && !p.avaliado && E.fases.down === 'ABERTA') {
       confirmar('Registrar o feedback de ' + primeiro(p.nome) + '?', 'O feedback fica como feito quando você registra a avaliação com a data da conversa. Vamos abrir a avaliação agora.', 'Abrir avaliação', function () { abrirFormLiderado(p.mat); });
       return;
@@ -3180,17 +3389,23 @@ window.FB_DEMO = true;
     ], [h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { m.fechar(); modalEncontro(p, null); } }, ico('mais', 18), 'Marcar outra conversa')], true);
   }
   function modalSugerirDatas(E) {
-    var inicio = h('input', { class: 'input', type: 'date', id: 'sgInicio', value: proximoDiaUtil(somarDias(E.hoje, 1)), min: E.hoje });
+    var inicio = proximoDiaUtil(somarDias(E.hoje, 1));
+    var cal = calendario({
+      hoje: E.hoje, min: E.hoje, selecionado: inicio, itens: itensDaEquipe(E),
+      aoEscolher: function (iso) { inicio = iso; },
+      detalhe: function (iso, doDia) { return listaDoDia(doDia, 'Já marcadas neste dia:'); }
+    });
     var porDia = h('input', { class: 'input', type: 'number', id: 'sgPorDia', min: '1', max: '20', value: '4' });
     var ok = h('button', { class: 'btn btn-primario', type: 'button' }, 'Sugerir datas');
     var m = modal('Sugerir datas', [
-      h('p', null, 'O sistema marca o feedback de quem ainda não tem data, em dias úteis, na ordem alfabética. Para quem ficou com acompanhamento mensal, marca uma conversa por mês depois do feedback.'),
-      h('div', { class: 'grade-2' }, campo('sgInicio', 'Começar em', inicio), campo('sgPorDia', 'Conversas por dia', porDia)),
+      h('p', null, 'O sistema marca o feedback de quem ainda não tem data, em dias úteis. Quem já respondeu a avaliação do líder ganha as primeiras datas. Para quem ficou com acompanhamento mensal, marca uma conversa por mês depois do feedback.'),
+      h('div', { class: 'campo' }, h('span', { class: 'campo-rotulo' }, 'Começar a partir de qual dia?'), cal),
+      campo('sgPorDia', 'Conversas por dia', porDia),
       h('p', { class: 'muted small' }, 'Datas já marcadas não mudam. Depois você pode remarcar qualquer uma.')
-    ], [h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { m.fechar(); } }, 'Cancelar'), ok]);
+    ], [h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { m.fechar(); } }, 'Cancelar'), ok], true);
     ok.addEventListener('click', function () {
       ok.disabled = true;
-      chamar('gerarAgenda', { inicio: inicio.value, porDia: Number(porDia.value) || 4 }).then(function (r) {
+      chamar('gerarAgenda', { inicio: inicio, porDia: Number(porDia.value) || 4 }).then(function (r) {
         m.fechar();
         toast(r.feedbacks || r.acompanhamentos
           ? 'Marcados ' + plural(r.feedbacks, 'feedback', 'feedbacks') + ' e ' + plural(r.acompanhamentos, 'acompanhamento', 'acompanhamentos') + '.'
@@ -3239,7 +3454,53 @@ window.FB_DEMO = true;
   }
 
   // ------------------------------------------------------------ Líder x Liderado
+  function chaveOrientacao() { return 'fbs_orientado_lider_' + (S.home ? S.home.eu.mat : ''); }
+  function orientadoLider() {
+    if (S.orientadoLider) return true;
+    try { return sessionStorage.getItem(chaveOrientacao()) === '1'; } catch (e) { return false; }
+  }
+  function abrirOrientacaoLider(mat) { S.pendenteLiderado = mat || null; ir('orientacaoLider'); }
+  function vOrientacaoLider() {
+    var H = S.home, c = H.notaCritica;
+    return h('div', { class: 'stack' },
+      botaoVoltar('Minha equipe', function () { abrirEquipe('fase2'); }),
+      h('div', { class: 'stack', style: 'gap:6px' }, h('span', { class: 'rotulo' }, 'Líder x Liderado · ' + H.cicloRotulo), h('h1', null, 'Antes de avaliar a sua equipe')),
+      h('p', { class: 'lead' }, 'O feedback é a principal ferramenta para cada pessoa saber como está o próprio trabalho e o que fazer para crescer. ' +
+        'A avaliação registra a conversa presencial que você tem com cada liderado.'),
+      cartaoLista('O feedback é transparente', 'info', [
+        'O liderado vê as notas, o porquê, o plano combinado e as suas considerações a partir da data da conversa, e confirma que conversou com você.',
+        'A coordenação e o RH acompanham todas as avaliações e as médias de cada equipe.',
+        'As notas definem a frequência das conversas: média abaixo de ' + n1(H.limiteMensal) + (c > 0 ? ' ou nota ' + faixaCritica(c) + ' em algum item' : '') + ' leva ao acompanhamento mensal.'
+      ]),
+      h('div', { class: 'grade-2', style: 'grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))' },
+        cartaoLista('Quando o feedback é claro e justo', 'pos', [
+          'A pessoa sabe exatamente o que manter e o que melhorar.',
+          'Quem se esforça é reconhecido de forma justa.',
+          'Os problemas aparecem cedo e viram plano de ação, com acompanhamento.',
+          'A equipe confia no líder e fala dos problemas antes que virem acidente ou retrabalho.'
+        ]),
+        cartaoLista('Quando não é claro ou não é justo', 'neg', [
+          'Nota alta para todos esconde quem precisa de ajuda, é injusta com quem se destaca e tira do acompanhamento mensal quem precisa dele.',
+          'Nota baixa sem explicação desmotiva e gera conflito.',
+          'Feedback só no papel, sem conversa, não muda nada.',
+          'Comparar pessoas ou expor alguém na frente da equipe destrói a confiança.'
+        ])),
+      cartaoLista('Como dar um bom feedback', 'dica', [
+        'Converse pessoalmente e em particular, e registre no mesmo dia.',
+        'Comece pelo que a pessoa faz bem.',
+        'Use fatos e exemplos do semestre: indicadores, ocorrências, situações concretas.',
+        c > 0 ? 'Explique o porquê das notas. ' + notasCriticas(c) + ' do porquê para salvar.' : 'Explique o porquê das notas.',
+        'Combine até 3 ações práticas no plano e acompanhe.',
+        'Ouça a pessoa: feedback é conversa, não recado.'
+      ]),
+      compromisso('chkOrientacaoLider', 'Li as orientações e vou dar um feedback claro, justo e com exemplos.', S.pendenteLiderado ? 'Continuar para a avaliação' : 'Voltar para a equipe', function () {
+        S.orientadoLider = true;
+        try { sessionStorage.setItem(chaveOrientacao(), '1'); } catch (e) { /* sem armazenamento */ }
+        if (S.pendenteLiderado) abrirFormLiderado(S.pendenteLiderado); else abrirEquipe('fase2');
+      }));
+  }
   function abrirFormLiderado(mat) {
+    if (!orientadoLider()) { abrirOrientacaoLider(mat); return; }
     chamar('formLiderado', { mat: mat }).then(function (d) {
       S.fd = d;
       var a = d.atual;
@@ -3293,6 +3554,7 @@ window.FB_DEMO = true;
       h('div', { class: 'stack', style: 'gap:6px' }, h('span', { class: 'rotulo' }, (F.lideranca ? 'Avaliação de liderança · ' : 'Líder x Liderado · ') + F.cicloRotulo), h('h1', null, P.nome),
         h('p', { class: 'muted' }, ['Matrícula ' + P.mat, P.cc, P.utd ? 'UTD ' + P.utd : null].filter(Boolean).join(' · '))),
       !aberta ? aviso('warn', 'A avaliação dos liderados está fechada. Você pode consultar, mas não salvar.') : null,
+      !F.respondeu ? aviso('warn', primeiro(P.nome) + ' ainda não respondeu a avaliação do líder. O feedback só pode ser registrado depois dessa resposta.') : null,
       F.lideranca ? aviso('info', F.motivoLideranca === 'COORDENACAO'
         ? 'Quem responde direto à coordenação é avaliado como os supervisores: itens de liderança e 3 pontos fortes e 3 pontos fracos.'
         : primeiro(P.nome) + ' lidera uma equipe, então a avaliação usa os itens de liderança e pede 3 pontos fortes e 3 pontos fracos.') : null,
@@ -3306,7 +3568,7 @@ window.FB_DEMO = true;
       F.extras ? blocoExtras(R) : null,
       plano,
       campoTexto('consD', 'Considerações finais', 'Resumo da conversa e próximos passos. O liderado vê este texto.', R.consideracoes, 1500, function (v) { R.consideracoes = v; }),
-      aberta ? h('div', { class: 'linha-botoes' }, salvar, proximo) : null);
+      aberta && F.respondeu ? h('div', { class: 'linha-botoes' }, salvar, proximo) : null);
   }
   function salvarLiderado(irProximo, btn) {
     var F = S.fd, R = S.rd;
@@ -3336,9 +3598,9 @@ window.FB_DEMO = true;
     }).then(function (eq) {
       S.eq = eq;
       if (irProximo) {
-        var prox = eq.pessoas.filter(function (p) { return !p.avaliado; })[0];
+        var prox = eq.pessoas.filter(function (p) { return !p.avaliado && p.respondeu; })[0];
         if (prox) { abrirFormLiderado(prox.mat); return; }
-        toast('Todos os liderados foram avaliados.');
+        toast(eq.pessoas.some(function (p) { return !p.avaliado; }) ? 'Ninguém mais está pronto para o feedback agora: falta a resposta da avaliação do líder.' : 'Todos os liderados foram avaliados.');
       }
       S.eqAba = 'fase2'; S.eqFiltro = 'todos'; S.eqBusca = '';
       ir('equipe');
@@ -3727,7 +3989,7 @@ window.FB_DEMO = true;
       if (!vis.length) tbody.appendChild(h('tr', null, h('td', { colspan: '5', class: 'vazio' }, 'Nada com esses filtros.')));
     }
     desenhar();
-    var selLider = h('select', { class: 'input input-sm', id: 'agLider', onchange: function (ev) { F.lider = ev.target.value; desenhar(); } },
+    var selLider = h('select', { class: 'input input-sm', id: 'agLider', onchange: function (ev) { F.lider = ev.target.value; if ((S.adm.agVisao || 'lista') === 'calendario') render(); else desenhar(); } },
       [h('option', { value: '' }, 'Todos')].concat(D.lideres.map(function (l) { return h('option', { value: l.mat, selected: l.mat === F.lider }, l.nome); })));
     var selStatus = h('select', { class: 'input input-sm', id: 'agStatus', onchange: function (ev) { F.status = ev.target.value; desenhar(); } },
       [['pendentes', 'Marcadas'], ['atrasados', 'Atrasadas'], ['proximos', 'Próximos 7 dias'], ['feitos', 'Feitas'], ['todos', 'Todas']].map(function (o) {
@@ -3767,11 +4029,27 @@ window.FB_DEMO = true;
             copiarComAviso(linhas.join('\n'), 'Atrasados copiados, separados por líder.');
           } }, ico('copiar', 16), 'Copiar atrasados') : null,
           botaoExportar('cronograma', 'Exportar'))),
-      h('div', { class: 'grade-2', style: 'grid-template-columns:repeat(auto-fit,minmax(200px,1fr))' }, campo('agLider', 'Líder', selLider), campo('agStatus', 'Situação', selStatus)),
-      contagem,
-      h('div', { class: 'tabela-wrap' }, h('table', null,
-        h('thead', null, h('tr', null, h('th', null, 'Data'), h('th', null, 'Liderado'), h('th', null, 'Líder'), h('th', null, 'Tipo'), h('th', null, 'Situação'))),
-        tbody)));
+      h('div', { class: 'chips-filtro', role: 'group', 'aria-label': 'Ver as conversas como' }, [['lista', 'Lista'], ['calendario', 'Calendário']].map(function (v) {
+        var on = (S.adm.agVisao || 'lista') === v[0];
+        return h('button', { type: 'button', class: 'filtro' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: function () { S.adm.agVisao = v[0]; render(); } }, v[1]);
+      })),
+      (S.adm.agVisao || 'lista') === 'calendario'
+        ? h('section', { class: 'card stack' }, campo('agLider', 'Líder', selLider), calendario({
+          hoje: D.hoje, selecionado: S.adm.agDia || D.hoje, nomes: true,
+          itens: D.itens.filter(function (a) { return !F.lider || a.lider === F.lider; }).map(function (a) { return Object.assign({ nome: a.lideradoNome }, a); }),
+          aoEscolher: function (iso) { S.adm.agDia = iso; },
+          detalhe: function (iso, doDia) {
+            return doDia.length ? h('div', { class: 'lista' }, doDia.map(function (a) {
+              return h('div', { class: 'linha-pessoa' }, h('div', { class: 'quem' }, h('div', { class: 'nome' }, a.lideradoNome), h('div', { class: 'sub' }, TIPO_AG[a.tipo] + ' com ' + a.liderNome)),
+                h('div', { class: 'dir' }, chipAgenda(a)));
+            })) : h('p', { class: 'muted small' }, 'Nenhuma conversa marcada neste dia.');
+          }
+        }))
+        : [h('div', { class: 'grade-2', style: 'grid-template-columns:repeat(auto-fit,minmax(200px,1fr))' }, campo('agLider', 'Líder', selLider), campo('agStatus', 'Situação', selStatus)),
+          contagem,
+          h('div', { class: 'tabela-wrap' }, h('table', null,
+            h('thead', null, h('tr', null, h('th', null, 'Data'), h('th', null, 'Liderado'), h('th', null, 'Líder'), h('th', null, 'Tipo'), h('th', null, 'Situação'))),
+            tbody))]);
   }
 
   // ---- análises para o RH
@@ -4161,7 +4439,8 @@ window.FB_DEMO = true;
 
   var ADM = { painel: admPainel, participacao: admParticipacao, resultados: admResultados, ll: admLL, cronograma: admCronograma, analises: admAnalises, pessoas: admPessoas, config: admConfig };
   var VIEWS = {
-    carregando: vCarregando, semServidor: vSemServidor, configurar: vConfigurar, login: vLogin, inicio: vInicio, formLider: vFormLider, obrigado: vObrigado,
+    carregando: vCarregando, semServidor: vSemServidor, configurar: vConfigurar, login: vLogin, inicio: vInicio, orientacao: vOrientacao, formLider: vFormLider, obrigado: vObrigado,
+    orientacaoLider: vOrientacaoLider,
     equipe: vEquipe, formLiderado: vFormLiderado, meuFeedback: vMeuFeedback, resultados: vResultados, admin: vAdmin
   };
 

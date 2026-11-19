@@ -55,7 +55,12 @@ function entrar(store, mat) {
 const api = (store, token, acao, dados) => Core.handle(store, acao, dados || {}, token);
 const notas = (prefixo, n, v) => Object.fromEntries(Array.from({ length: n }, (_, i) => [`${prefixo}${String(i + 1).padStart(2, '0')}`, typeof v === 'function' ? v(i) : v]));
 const abrirFase2 = (store) => api(store, entrar(store, '900'), 'salvarConfig', { faseLiderLiderado: 'ABERTA' });
-const avaliarLiderado = (store, token, mat, dados) => api(store, token, 'salvarLiderado', { mat, notas: notas('LD', 10, 4), dataFeedback: '2026-11-18', ...dados });
+// o liderado responde a avaliação do líder (requisito para receber o feedback)
+const responder = (store, mat) => {
+  const ja = store.listParticipacao().some((x) => x.form === 'LIDERADO_LIDER' && x.avaliador === mat);
+  if (!ja) assert.equal(api(store, entrar(store, mat), 'enviarLider', { notas: notas('LL', 13, 4), fortes: ['f1', 'f2', 'f3'], fracos: ['p1', 'p2', 'p3'] }).ok, true, 'resposta de ' + mat);
+};
+const avaliarLiderado = (store, token, mat, dados) => { responder(store, mat); return api(store, token, 'salvarLiderado', { mat, notas: notas('LD', 10, 4), dataFeedback: '2026-11-18', ...dados }); };
 
 test('sha256 confere com o Node', () => {
   for (const s of ['', 'abc', 'Irecê|5|52998224725', 'x'.repeat(200), 'ç😀']) {
@@ -181,8 +186,32 @@ test('resultado do líder: gestão vê sempre; o líder vê com nomes e "por qu�
   assert.deepEqual(r.itens[0].dist, [1, 0, 0, 0, 1]);
 });
 
+test('feedback só pode ser dado a quem já respondeu a avaliação do líder', () => {
+  const { store } = montar();
+  abrirFase2(store);
+  const sup = entrar(store, '100');
+  const dados = { mat: '101', notas: notas('LD', 10, 4), dataFeedback: '2026-11-18' };
+  assert.equal(api(store, sup, 'formLiderado', { mat: '101' }).data.respondeu, false);
+  const r = api(store, sup, 'salvarLiderado', dados);
+  assert.equal(r.code, 'AGUARDANDO_RESPOSTA');
+  assert.match(r.message, /Colaborador 1 de Oliveira/);
+  assert.equal(api(store, sup, 'home').data.equipe.prontos, 0);
+  responder(store, '101');
+  assert.equal(api(store, sup, 'home').data.equipe.prontos, 1);
+  assert.equal(api(store, sup, 'formLiderado', { mat: '101' }).data.respondeu, true);
+  assert.equal(api(store, sup, 'salvarLiderado', dados).ok, true);
+  assert.equal(api(store, sup, 'home').data.equipe.prontos, 0);
+  // a coordenação segue a mesma regra com a equipe direta
+  const adm = entrar(store, '900');
+  const lid = { mat: '100', notas: notas('LL', 13, 4), dataFeedback: '2026-11-18', fortes: ['a', 'b', 'c'], fracos: ['d', 'e', 'f'] };
+  assert.equal(api(store, adm, 'salvarLiderado', lid).code, 'AGUARDANDO_RESPOSTA');
+  responder(store, '100');
+  assert.equal(api(store, adm, 'salvarLiderado', lid).ok, true);
+});
+
 test('Líder x Liderado: só a própria equipe, fase aberta, datas, "por quê" e edição', () => {
   const { store } = montar();
+  responder(store, '101');
   const sup = entrar(store, '100');
   const dados = { mat: '101', notas: notas('LD', 10, 4), dataFeedback: '2026-11-18', dataReavaliacao: '2027-02-18', obs: { LD03: 'Melhorar registro' }, plano: ['Chegar 10 min antes', ' '], consideracoes: 'Segue evoluindo' };
   assert.equal(api(store, sup, 'salvarLiderado', dados).code, 'FASE_FECHADA');
@@ -223,6 +252,7 @@ test('coordenação avalia toda a equipe direta (supervisores, administrativo e 
   assert.equal(fRh.motivoLideranca, 'COORDENACAO');
   assert.equal(fRh.criterios.length, 13);
   assert.equal(fRh.extras, true);
+  responder(store, '901');
   assert.equal(api(store, adm, 'salvarLiderado', { mat: '901', notas: notas('LD', 10, 4), dataFeedback: '2026-11-18' }).code, 'INCOMPLETO', 'itens do liderado não servem para a equipe direta');
   const okRh = api(store, adm, 'salvarLiderado', { mat: '901', notas: notas('LL', 13, 5), dataFeedback: '2026-11-18', fortes: ['Organizada', 'Prazos', 'Comunicação'], fracos: ['Delegar', 'Planilhas', 'Visitas'] });
   assert.equal(okRh.ok, true, JSON.stringify(okRh));
@@ -231,6 +261,7 @@ test('coordenação avalia toda a equipe direta (supervisores, administrativo e 
   const fMembro = api(store, entrar(store, '100'), 'formLiderado', { mat: '101' }).data;
   assert.equal(fMembro.lideranca, false);
   assert.equal(fMembro.criterios[0].id, 'LD01');
+  responder(store, '100');
   assert.equal(api(store, adm, 'salvarLiderado', { mat: '100', notas: notas('LL', 13, 4), dataFeedback: '2026-11-18' }).code, 'INCOMPLETO');
   const ok = api(store, adm, 'salvarLiderado', { mat: '100', notas: notas('LL', 13, 4), dataFeedback: '2026-11-18', fortes: ['Segurança', 'Dados', 'Equipe unida'], fracos: ['Atrasos', 'Prazos', 'Delegar'] });
   assert.equal(ok.ok, true, JSON.stringify(ok));
@@ -278,6 +309,7 @@ test('frequência: limite e nota crítica configuráveis; média da equipe conta
   // líder: a média baixa dada pela equipe leva ao mensal (na visão da gestão)
   for (const m of ['101', '102', '103']) api(store, entrar(store, m), 'enviarLider', { notas: notas('LL', 13, 3) });
   api(store, adm, 'salvarConfig', { limiteMensal: 3.5 });
+  responder(store, '100');
   api(store, adm, 'salvarLiderado', { mat: '100', notas: notas('LL', 13, 5), dataFeedback: '2026-11-18', fortes: ['a', 'b', 'c'], fracos: ['d', 'e', 'f'] });
   const p = api(store, adm, 'participacao').data.pessoas.find((x) => x.mat === '100');
   assert.equal(p.frequencia, 'MENSAL');
@@ -324,7 +356,7 @@ test('análises para o RH: itens mais fracos, mapa por líder, mensais e pontos 
   for (const m of ['101', '102', '103', '104', '105']) avaliarLiderado(store, sup, m, { mat: m, notas: notas('LD', 10, (i) => (i === 1 ? 3 : 5)) });
   avaliarLiderado(store, entrar(store, '200'), '201', { notas: notas('LD', 10, 2), obs: Object.fromEntries(Array.from({ length: 10 }, (_, i) => [`LD${String(i + 1).padStart(2, '0')}`, 'baixo desempenho'])) });
   const a = api(store, adm, 'analises').data;
-  assert.equal(a.liderancas.n, 4);
+  assert.equal(a.liderancas.n, 6, '4 respostas do teste + 2 de quem respondeu para poder receber o feedback');
   assert.equal(a.liderancas.itens.slice().sort((x, y) => x.media - y.media)[0].id, 'LL07');
   assert.equal(a.liderancas.lideres.length, 2);
   assert.equal(a.liderados.n, 6);

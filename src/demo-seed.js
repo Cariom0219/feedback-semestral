@@ -2,7 +2,7 @@
 window.FB_DEMO = true;
 (function () {
   'use strict';
-  var CHAVE = 'fbs_demo_v2';
+  var CHAVE = 'fbs_demo_v3';
   var Core = window.FeedbackCore;
 
   function cpf(base) {
@@ -191,30 +191,31 @@ window.FB_DEMO = true;
     });
 
     // Ciclo atual (2026-2): a equipe está avaliando os líderes e os líderes estão dando feedback.
+    // O feedback do líder só pode ser dado a quem já respondeu a avaliação do líder.
     var responderam = {
-      '9101': ['1002', '1003', '1005', '1006', '1008', '1010', '1012'], '9102': ['1014', '1015', '1018', '1021'],
+      '9101': ['1002', '1003', '1004', '1005', '1006', '1007', '1008', '1010', '1011', '1012'], '9102': ['1014', '1015', '1018', '1021'],
       '9103': ['1023', '1024', '1025', '1027', '1028', '1030'], '9001': ['9002', '9103']
     };
     var k = 0;
     Object.keys(responderam).forEach(function (l) {
       responderam[l].forEach(function (mat) { responder('2026-2', porMat[mat], dia(-12 + (k++ % 10)), 0); });
     });
-    // Coordenação: feedback do Edson já feito; os demais marcados (um atrasado).
-    avaliar('2026-2', porMat['9101'], dia(-6), { base: 4.1, ciencia: true, consideracoes: 'Equipe com bons números de segurança. Combinamos dar mais retorno individual aos leituristas.' });
+    // Coordenação: feedback do Rogério já feito; os demais marcados (um atrasado, de quem ainda não respondeu).
+    avaliar('2026-2', porMat['9103'], dia(-6), { base: 3.9, ciencia: true, consideracoes: 'Equipe com bons números de segurança. Combinamos dar mais retorno individual aos leituristas.' });
     agendar('2026-2', '9001', '9003', dia(-2));
-    agendar('2026-2', '9001', '9102', dia(2));
-    agendar('2026-2', '9001', '9103', dia(3));
+    agendar('2026-2', '9001', '9101', dia(2));
+    agendar('2026-2', '9001', '9102', dia(3));
     agendar('2026-2', '9001', '9002', dia(5));
     // Edson (9101)
-    avaliar('2026-2', porMat['1001'], dia(-2), { base: 4.3, consideracoes: 'Ana é referência de qualidade na equipe. Combinamos que ela vai acompanhar os dois leituristas novos nas primeiras rotas.' });
     avaliar('2026-2', porMat['1004'], dia(-8), { ciencia: true });
     avaliar('2026-2', porMat['1007'], dia(-7), { base: 3.5, forcar: { LD02: 2 }, ciencia: true });
-    avaliar('2026-2', porMat['1011'], dia(-6), { ciencia: true, base: 4.2 });
+    avaliar('2026-2', porMat['1011'], dia(-2), { base: 4.3, consideracoes: 'Marcelo é referência de qualidade na equipe. Combinamos que ele vai acompanhar os dois leituristas novos nas primeiras rotas.' });
     var d1007 = store.listDown('2026-2').filter(function (r) { return r.avaliado === '1007'; })[0].dataFeedback;
     [1, 2, 3].forEach(function (m) { agendar('2026-2', '9101', '1007', util(Core.somarMeses(d1007, m), 1), 'ACOMPANHAMENTO'); });
+    agendar('2026-2', '9101', '1001', dia(2));
     agendar('2026-2', '9101', '1002', dia(1));
     agendar('2026-2', '9101', '1003', dia(1));
-    agendar('2026-2', '9101', '1005', dia(2));
+    agendar('2026-2', '9101', '1005', dia(3));
     agendar('2026-2', '9101', '1006', dia(3));
     agendar('2026-2', '9101', '1008', dia(-3));
     // Patrícia (9102)
@@ -243,6 +244,7 @@ window.FB_DEMO = true;
   };
   window.FB_DEMO_ACESSOS = [
     { perfil: 'Colaborador', nome: 'Ana Beatriz Moura', mat: '1001', cpf: cpfDe('1001') },
+    { perfil: 'Colaborador com feedback', nome: 'Marcelo Dias Fonseca', mat: '1011', cpf: cpfDe('1011') },
     { perfil: 'Supervisor', nome: 'Edson Carvalho Reis', mat: '9101', cpf: cpfDe('9101') },
     { perfil: 'Coordenação', nome: 'Marcos Vinicius Teles', mat: '9001', cpf: cpfDe('9001') },
     { perfil: 'RH', nome: 'Luana Prado Matos', mat: '9002', cpf: cpfDe('9002') }
