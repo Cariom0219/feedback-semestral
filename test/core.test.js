@@ -60,6 +60,7 @@ const responder = (store, mat) => {
   const ja = store.listParticipacao().some((x) => x.form === 'LIDERADO_LIDER' && x.avaliador === mat);
   if (!ja) assert.equal(api(store, entrar(store, mat), 'enviarLider', { notas: notas('LL', 13, 4), fortes: ['f1', 'f2', 'f3'], fracos: ['p1', 'p2', 'p3'] }).ok, true, 'resposta de ' + mat);
 };
+const conversar = (store, token, mat, dados) => api(store, token, 'registrarConversa', { mat, data: '2026-11-18', modalidade: 'PRESENCIAL', ...dados });
 const avaliarLiderado = (store, token, mat, dados) => { responder(store, mat); return api(store, token, 'salvarLiderado', { mat, notas: notas('LD', 10, 4), dataFeedback: '2026-11-18', ...dados }); };
 
 test('sha256 confere com o Node', () => {
@@ -209,16 +210,15 @@ test('feedback só pode ser dado a quem já respondeu a avaliação do líder', 
   assert.equal(api(store, adm, 'salvarLiderado', lid).ok, true);
 });
 
-test('Líder x Liderado: só a própria equipe, fase aberta, datas, "por quê" e edição', () => {
+test('Líder x Liderado: só a própria equipe, fase aberta, "por quê", edição e avaliação a qualquer momento', () => {
   const { store } = montar();
   responder(store, '101');
   const sup = entrar(store, '100');
-  const dados = { mat: '101', notas: notas('LD', 10, 4), dataFeedback: '2026-11-18', dataReavaliacao: '2027-02-18', obs: { LD03: 'Melhorar registro' }, plano: ['Chegar 10 min antes', ' '], consideracoes: 'Segue evoluindo' };
+  const dados = { mat: '101', notas: notas('LD', 10, 4), dataReavaliacao: '2027-02-18', obs: { LD03: 'Melhorar registro' }, plano: ['Chegar 10 min antes', ' '], consideracoes: 'Segue evoluindo' };
   assert.equal(api(store, sup, 'salvarLiderado', dados).code, 'FASE_FECHADA');
   abrirFase2(store);
   assert.equal(api(store, sup, 'formLiderado', { mat: '201' }).code, 'PERMISSAO');
-  assert.equal(api(store, sup, 'salvarLiderado', { ...dados, dataFeedback: '' }).code, 'VALIDACAO');
-  assert.equal(api(store, sup, 'salvarLiderado', { ...dados, dataReavaliacao: '2026-01-01' }).code, 'VALIDACAO');
+  assert.equal(api(store, sup, 'salvarLiderado', { ...dados, dataReavaliacao: '18/11/2026' }).code, 'VALIDACAO');
   assert.equal(api(store, sup, 'salvarLiderado', { ...dados, notas: notas('LD', 10, (i) => (i === 9 ? 1 : 4)) }).code, 'JUSTIFICAR');
   const r1 = api(store, sup, 'salvarLiderado', dados);
   assert.equal(r1.ok, true, JSON.stringify(r1));
@@ -232,10 +232,58 @@ test('Líder x Liderado: só a própria equipe, fase aberta, datas, "por quê" e
   assert.deepEqual(downs[0].plano, ['Chegar 10 min antes']);
   const f = api(store, sup, 'formLiderado', { mat: '101' }).data;
   assert.equal(f.atual.notas.LD01, 5);
-  // feedback feito hoje vira "realizado" no cronograma
-  const ag = store.listAgenda('2026-2');
-  assert.equal(ag.length, 1);
-  assert.equal(ag[0].status, 'REALIZADO');
+  // a avaliação sozinha não conclui o feedback: nada vai para o cronograma como feito
+  assert.equal(store.listAgenda('2026-2').length, 0);
+  assert.equal(r2.data.situacao, 'AVALIADO');
+});
+
+test('conversa obrigatória: só depois da avaliação, só no passado, presencial ou online; libera o feedback ao liderado', () => {
+  const { store, clock } = montar();
+  abrirFase2(store);
+  responder(store, '101');
+  responder(store, '102');
+  const sup = entrar(store, '100');
+  assert.equal(conversar(store, sup, '101').code, 'SEM_AVALIACAO', 'sem avaliação registrada não há o que concluir');
+  avaliarLiderado(store, sup, '101', { notas: notas('LD', 10, (i) => (i === 1 ? 2 : 4)), obs: { LD02: 'Três atrasos.' } });
+  assert.equal(conversar(store, sup, '101', { data: '2026-11-19' }).code, 'VALIDACAO', 'não registra conversa no futuro');
+  assert.equal(conversar(store, sup, '101', { modalidade: 'TELEFONE' }).code, 'VALIDACAO', 'modalidade precisa ser presencial ou online');
+  // antes da conversa o liderado não vê
+  const t = entrar(store, '101');
+  assert.equal(api(store, t, 'home').data.meuFeedback.status, 'MARCADO');
+  assert.equal(api(store, t, 'meuFeedback').data.status, 'MARCADO');
+  assert.equal(api(store, t, 'darCiencia').code, 'VALIDACAO');
+  // o líder marca a conversa e depois registra que ela aconteceu (online)
+  const marcado = api(store, sup, 'salvarAgenda', { liderado: '101', data: '2026-11-25', tipo: 'FEEDBACK', status: 'AGENDADO', modalidade: 'ONLINE', obs: 'Chamada de vídeo' }).data.item;
+  assert.equal(marcado.modalidade, 'ONLINE');
+  const r = conversar(store, sup, '101', { modalidade: 'ONLINE' });
+  assert.equal(r.ok, true, JSON.stringify(r));
+  assert.equal(r.data.situacao, 'CONVERSADO');
+  assert.equal(r.data.frequencia.tipo, 'MENSAL');
+  assert.equal(r.data.acompanhamentos, 5, 'quem ficou no mensal já sai com as conversas mensais marcadas');
+  const fb = store.listAgenda('2026-2').filter((a) => a.tipo === 'FEEDBACK');
+  assert.equal(fb.length, 1, 'usa o item que já estava marcado');
+  assert.equal(fb[0].status, 'REALIZADO');
+  assert.equal(fb[0].realizadoEm, '2026-11-18');
+  assert.equal(fb[0].modalidade, 'ONLINE');
+  // agora o liderado vê e confirma
+  const m = api(store, entrar(store, '101'), 'meuFeedback').data;
+  assert.equal(m.status, 'DISPONIVEL');
+  assert.equal(m.feedback.modalidade, 'ONLINE');
+  assert.equal(m.feedback.dataFeedback, '2026-11-18');
+  assert.equal(api(store, entrar(store, '101'), 'darCiencia').ok, true);
+  const eq = api(store, sup, 'equipe').data;
+  assert.equal(eq.pessoas.find((p) => p.mat === '101').situacao, 'CONCLUIDO');
+  assert.equal(eq.painel.conversas, 1);
+  assert.equal(eq.painel.concluidos, 1);
+  // "feito" no cronograma também passa pela conversa
+  avaliarLiderado(store, sup, '102', {});
+  const it = api(store, sup, 'salvarAgenda', { liderado: '102', data: '2026-11-18', tipo: 'FEEDBACK', status: 'AGENDADO' }).data.item;
+  assert.equal(api(store, sup, 'salvarAgenda', { id: it.id, liderado: '102', data: it.data, tipo: 'FEEDBACK', status: 'REALIZADO', realizadoEm: '2026-11-17', modalidade: 'PRESENCIAL' }).ok, true);
+  assert.equal(store.listDown('2026-2').find((x) => x.avaliado === '102').dataFeedback, '2026-11-17');
+  const a = api(store, entrar(store, '900'), 'analises').data;
+  assert.equal(a.cronograma.semConversa, 0);
+  assert.equal(a.cronograma.semCiencia, 1);
+  clock.avancar(0);
 });
 
 test('coordenação avalia toda a equipe direta (supervisores, administrativo e RH) com itens de liderança e 3 fortes e 3 fracos', () => {
@@ -270,18 +318,17 @@ test('coordenação avalia toda a equipe direta (supervisores, administrativo e 
   assert.deepEqual(rec.fracos, ['Atrasos', 'Prazos', 'Delegar']);
 });
 
-test('meu feedback: aparece depois da data da conversa, com ciência e frequência', () => {
-  const { store, clock } = montar();
+test('meu feedback: aparece depois da conversa registrada, com ciência e frequência', () => {
+  const { store } = montar();
   abrirFase2(store);
   const sup = entrar(store, '100');
-  avaliarLiderado(store, sup, '102', { dataFeedback: '2026-11-20', notas: notas('LD', 10, 3) });
+  avaliarLiderado(store, sup, '102', { notas: notas('LD', 10, 3) });
   const t = entrar(store, '102');
   assert.equal(api(store, t, 'home').data.meuFeedback.status, 'MARCADO');
   let m = api(store, t, 'meuFeedback').data;
   assert.equal(m.status, 'MARCADO');
-  assert.equal(m.dataFeedback, '2026-11-20');
   assert.equal(api(store, t, 'darCiencia').code, 'VALIDACAO');
-  clock.avancar(2 * 24 * 3600 * 1000);
+  assert.equal(conversar(store, sup, '102').ok, true);
   const t2 = entrar(store, '102');
   m = api(store, t2, 'meuFeedback').data;
   assert.equal(m.status, 'DISPONIVEL');
@@ -320,15 +367,20 @@ test('cronograma: sugere datas em dias úteis, mensais depois do feedback e acom
   abrirFase2(store);
   const sup = entrar(store, '100');
   avaliarLiderado(store, sup, '101', { notas: notas('LD', 10, (i) => (i === 0 ? 2 : 4)), obs: { LD01: 'Faltou duas vezes.' } });
+  assert.equal(conversar(store, sup, '101').ok, true);
+  store.listAgenda('2026-2').filter((a) => a.tipo === 'ACOMPANHAMENTO').forEach((a) => store.salvarAgenda({ ...a, status: 'CANCELADO' }));
   const g = api(store, sup, 'gerarAgenda', { inicio: '2026-11-20', porDia: 2 }).data;
   assert.equal(g.feedbacks, 5, 'os outros 5 liderados ganham data');
-  assert.equal(g.acompanhamentos, 5, '5 acompanhamentos mensais para quem ficou mensal');
+  assert.equal(g.acompanhamentos, 5, '5 acompanhamentos mensais para quem ficou mensal e já conversou');
   const ag = store.listAgenda('2026-2').filter((a) => a.status === 'AGENDADO');
   const datas = ag.filter((a) => a.tipo === 'FEEDBACK').map((a) => a.data).sort();
   assert.deepEqual(datas, ['2026-11-20', '2026-11-20', '2026-11-23', '2026-11-23', '2026-11-24']);
   const mensais = ag.filter((a) => a.tipo === 'ACOMPANHAMENTO').map((a) => a.data).sort();
   assert.equal(mensais[0], '2026-12-18');
   assert.equal(api(store, sup, 'gerarAgenda', {}).data.feedbacks, 0, 'não duplica');
+  // quem foi avaliado mas ainda não conversou também ganha data de conversa
+  avaliarLiderado(store, sup, '102', {});
+  assert.equal(api(store, sup, 'gerarAgenda', {}).data.feedbacks, 0, '102 já tinha data marcada');
   // o líder remarca e conclui um encontro
   const eq = api(store, sup, 'equipe').data;
   const p102 = eq.pessoas.find((p) => p.mat === '102');
@@ -336,6 +388,7 @@ test('cronograma: sugere datas em dias úteis, mensais depois do feedback e acom
   assert.ok(it);
   assert.equal(api(store, sup, 'salvarAgenda', { id: it.id, liderado: '102', data: '2026-11-25', tipo: 'FEEDBACK', status: 'AGENDADO' }).ok, true);
   assert.equal(api(store, sup, 'salvarAgenda', { id: it.id, liderado: '102', data: '2026-11-25', tipo: 'FEEDBACK', status: 'REALIZADO', realizadoEm: '2026-12-01' }).code, 'VALIDACAO');
+  assert.equal(api(store, sup, 'salvarAgenda', { id: it.id, liderado: '103', data: '2026-11-25', tipo: 'FEEDBACK', status: 'REALIZADO', realizadoEm: '2026-11-18', modalidade: 'PRESENCIAL' }).code, 'SEM_AVALIACAO');
   assert.equal(api(store, sup, 'salvarAgenda', { id: it.id, liderado: '201', data: '2026-11-25' }).code, 'PERMISSAO');
   // gestão acompanha
   const ger = api(store, entrar(store, '901'), 'agendaGeral').data;
@@ -421,7 +474,9 @@ test('exportações trazem quem avaliou, o por quê, frequência e cronograma', 
   const adm = entrar(store, '900');
   api(store, entrar(store, '101'), 'enviarLider', { notas: notas('LL', 13, (i) => (i === 0 ? 1 : 4)), porques: { LL01: 'Não explica o serviço.' } });
   abrirFase2(store);
-  avaliarLiderado(store, entrar(store, '100'), '101', {});
+  const sup = entrar(store, '100');
+  avaliarLiderado(store, sup, '101', {});
+  conversar(store, sup, '101', { modalidade: 'ONLINE' });
   const up = api(store, adm, 'exportar', { tipo: 'liderado_lider' }).data;
   assert.ok(up.cabecalho.includes('Quem avaliou'));
   assert.equal(up.linhas[0][3], 'Colaborador 1 de Oliveira');
@@ -429,6 +484,8 @@ test('exportações trazem quem avaliou, o por quê, frequência e cronograma', 
   const down = api(store, adm, 'exportar', { tipo: 'lider_liderado' }).data;
   assert.ok(down.cabecalho.includes('Frequência'));
   assert.equal(down.linhas[0].at(-1), 'Semestral');
+  assert.equal(down.linhas[0][down.cabecalho.indexOf('Modalidade')], 'Online');
+  assert.equal(down.linhas[0][down.cabecalho.indexOf('Situação')], 'Conversa feita, aguardando a ciência');
   const cron = api(store, adm, 'exportar', { tipo: 'cronograma' }).data;
   assert.equal(cron.linhas.length, 1);
   assert.equal(cron.linhas[0][6], 'Realizado');

@@ -78,6 +78,7 @@ create table if not exists public.resp_liderado (
   fracos jsonb not null default '[]'::jsonb,
   plano jsonb not null default '[]'::jsonb,      -- combinados para a próxima conversa
   consideracoes text not null default '',
+  modalidade text not null default '',           -- PRESENCIAL ou ONLINE, preenchida quando a conversa é registrada
   ciencia_em text not null default '',           -- quando o liderado confirmou que conversou com o líder
   enviado_em text not null default '',
   atualizado_em text not null default '',
@@ -94,10 +95,14 @@ create table if not exists public.agenda (
   tipo text not null default 'FEEDBACK' check (tipo in ('FEEDBACK', 'ACOMPANHAMENTO')),
   status text not null default 'AGENDADO' check (status in ('AGENDADO', 'REALIZADO', 'CANCELADO')),
   realizado_em text not null default '',
+  modalidade text not null default '',           -- PRESENCIAL ou ONLINE
   obs text not null default '',
   atualizado_em text not null default ''
 );
 create index if not exists agenda_ciclo on public.agenda (ciclo, lider);
+-- bancos criados antes da separação entre avaliação e conversa
+alter table public.resp_liderado add column if not exists modalidade text not null default '';
+alter table public.agenda add column if not exists modalidade text not null default '';
 
 -- Sessões e tentativas de login. A chave é um hash: o token da sessão não fica gravado.
 create table if not exists public.cache (

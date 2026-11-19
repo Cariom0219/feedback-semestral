@@ -181,7 +181,8 @@ async function notasTodas(page, valor) {
     await page.getByRole('tab', { name: 'Avaliar liderados' }).click();
     await page.getByRole('heading', { name: /liderados avaliados/ }).waitFor();
     const avaliados = () => page.locator('.lista .linha-pessoa .chip.ok', { hasText: 'Avaliado' }).count();
-    ok((await avaliados()) === 3, '3 já avaliados no ciclo');
+    ok((await avaliados()) === 4, '4 já avaliados no ciclo');
+    ok(await page.locator('.lista .linha-pessoa', { hasText: 'Carlos Eduardo Nunes' }).getByText('Aguardando a conversa').isVisible(), 'avaliado sem conversa aparece como aguardando a conversa');
     const joao = page.locator('.lista .linha-pessoa', { hasText: 'Joao Vitor Brandao' });
     ok(await joao.getByText('Ainda não te avaliou').isVisible() && (await joao.getByRole('button', { name: 'Avaliar', exact: true }).count()) === 0,
       'quem ainda não respondeu não pode receber o feedback');
@@ -192,7 +193,7 @@ async function notasTodas(page, valor) {
     await page.getByRole('checkbox', { name: /Li as orientações/ }).check();
     await page.getByRole('button', { name: 'Continuar para a avaliação' }).click();
     await page.getByRole('heading', { level: 1 }).filter({ hasText: /Ana Beatriz/ }).waitFor();
-    ok(await page.locator('#dataF').inputValue() !== '', 'data do feedback vem do cronograma');
+    ok((await page.locator('main').innerText()).includes('Conversa de feedback') && (await page.locator('#dataF').count()) === 0, 'avaliação sem data de conversa, com o quadro da conversa');
     await page.getByRole('button', { name: '+3 meses' }).click();
     ok((await page.locator('#dataR').inputValue()).length === 10, 'reavaliação +3 meses');
     await notasTodas(page, (i) => (i < 5 ? 5 : 3));
@@ -206,7 +207,18 @@ async function notasTodas(page, valor) {
     ok(true, 'foi para o próximo que já respondeu (Bruno)');
     await page.getByRole('button', { name: 'Minha equipe' }).click();
     await page.getByRole('heading', { name: /liderados avaliados/ }).waitFor();
-    ok((await avaliados()) === 4, 'agora 4 avaliados');
+    ok((await avaliados()) === 5, 'agora 5 avaliados');
+    const ana = () => page.locator('.lista .linha-pessoa', { hasText: 'Ana Beatriz Moura' });
+    ok(await ana().getByText('Aguardando a conversa').isVisible(), 'Ana avaliada, aguardando a conversa');
+    await ana().getByRole('button', { name: 'Registrar conversa' }).click();
+    ok(await page.getByRole('dialog').getByRole('button', { name: 'Registrar conversa feita' }).isDisabled(), 'só registra depois de confirmar que a conversa aconteceu');
+    await page.getByRole('dialog').getByRole('button', { name: 'Online' }).click();
+    await page.getByRole('dialog').getByRole('checkbox').check();
+    await page.screenshot({ path: path.join(SHOTS, '06b-registrar-conversa.png'), fullPage: false });
+    await page.getByRole('dialog').getByRole('button', { name: 'Registrar conversa feita' }).click();
+    await page.getByText(/Conversa registrada/).waitFor();
+    await ana().getByText(/Conversa feita · online/).waitFor();
+    ok(true, 'conversa online registrada');
     // cronograma
     await page.getByRole('tab', { name: 'Cronograma' }).click();
     await page.getByRole('button', { name: 'Sugerir datas' }).waitFor();

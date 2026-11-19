@@ -3,7 +3,7 @@
 Ferramenta de feedback semestral da Operação Centro-BA (Sirtec), com duas avaliações identificadas:
 
 - **Liderado x Líder**: cada pessoa avalia o próprio líder com notas de 1 a 5, o **porquê** das notas e considerações finais. Quem é liderado direto da coordenação também escreve 3 pontos fortes e 3 pontos fracos.
-- **Líder x Liderado**: o líder avalia cada liderado no dia da conversa presencial, com notas, porquê, plano combinado e considerações. Supervisores e todos que respondem direto à coordenação (administrativo e RH) são avaliados com os itens de liderança e 3 pontos fortes e 3 fracos, e avaliam a coordenação do mesmo jeito.
+- **Líder x Liderado**: o líder registra a avaliação de cada liderado quando quiser (notas, porquê, plano combinado e considerações) e depois registra a conversa obrigatória, presencial ou online. O liderado só vê o feedback quando a conversa é registrada como feita, e confirma que conversou. Supervisores e todos que respondem direto à coordenação (administrativo e RH) são avaliados com os itens de liderança e 3 pontos fortes e 3 fracos, e avaliam a coordenação do mesmo jeito.
 
 A pessoa entra com a **matrícula**, confirma o nome e usa o **CPF como senha**. Antes de responder, lê uma orientação curta sobre a importância do feedback claro e transparente e os impactos positivos e negativos, e marca que leu. Os líderes recebem uma orientação própria antes de avaliar a equipe.
 
@@ -14,9 +14,11 @@ A pessoa entra com a **matrícula**, confirma o nome e usa o **CPF como senha**.
 
 | Perfil | O que faz |
 | --- | --- |
-| Colaborador | Avalia o líder. Vê o próprio feedback (notas, porquê, plano, frequência mensal ou semestral e evolução entre ciclos) a partir do dia da conversa e confirma que a conversa aconteceu (ciência). |
-| Líder | Avalia a equipe, monta o cronograma de conversas (com datas sugeridas), vê o painel com as médias da equipe e, depois que a coordenação libera, a avaliação de cada pessoa da equipe com nome e porquê. |
+| Colaborador | Avalia o líder. Depois da conversa, vê o próprio feedback (notas, porquê, plano, frequência mensal ou semestral e evolução entre ciclos) e confirma que a conversa aconteceu (ciência). |
+| Líder | Avalia a equipe, monta o cronograma de conversas (com datas sugeridas e calendário), registra cada conversa feita (presencial ou online), vê o painel com as médias da equipe e, depois que a coordenação libera, a avaliação de cada pessoa da equipe com nome e porquê. |
 | Coordenação e RH | Painel com participação, resultados, avaliações, cronograma geral (feitos, marcados e atrasados), análises (itens mais fracos, mapa por líder e por equipe, comparação com o ciclo anterior, acompanhamento mensal), cadastro, importação da base, fases e regras. |
+
+**Etapas de cada pessoa.** A avaliar → avaliado, aguardando a conversa → conversa feita, aguardando a ciência → concluído. O feedback só pode ser dado a quem já respondeu a avaliação do líder.
 
 **Frequência do feedback.** Depois das notas, cada pessoa fica com **acompanhamento mensal** se a média for menor que 3,5 ou se tiver nota 1 ou 2 em algum item. Para líderes, conta também a média que a equipe deu. Os demais ficam no **semestral**. O limite e a nota crítica são ajustáveis em *Fases e ciclo*.
 

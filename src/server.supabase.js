@@ -14,7 +14,7 @@ var FUSO = 'America/Bahia';
 var TRAVA = 727274;
 var ACOES_QUE_GRAVAM = {
   login: 1, sair: 1, enviarLider: 1, salvarLiderado: 1, salvarPessoa: 1, importar: 1,
-  salvarConfig: 1, salvarCriterio: 1, configurarCoordenacao: 1, darCiencia: 1, gerarAgenda: 1, salvarAgenda: 1
+  salvarConfig: 1, salvarCriterio: 1, configurarCoordenacao: 1, darCiencia: 1, gerarAgenda: 1, salvarAgenda: 1, registrarConversa: 1
 };
 var CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -94,13 +94,13 @@ function montarEstado(linhas, chaves) {
         id: r.id, ciclo: r.ciclo, tipo: r.tipo || 'PADRAO', avaliador: r.avaliador, avaliadorNome: r.avaliador_nome, avaliado: r.avaliado,
         avaliadoNome: r.avaliado_nome, dataFeedback: r.data_feedback, dataReavaliacao: r.data_reavaliacao, media: numeroOuNulo(r.media),
         notas: r.notas || {}, obs: r.obs || {}, fortes: r.fortes || [], fracos: r.fracos || [], plano: r.plano || [],
-        consideracoes: r.consideracoes || '', cienciaEm: r.ciencia_em || '', enviadoEm: r.enviado_em || '', atualizadoEm: r.atualizado_em || ''
+        consideracoes: r.consideracoes || '', modalidade: r.modalidade || '', cienciaEm: r.ciencia_em || '', enviadoEm: r.enviado_em || '', atualizadoEm: r.atualizado_em || ''
       };
     }),
     agenda: (linhas.agenda || []).map(function (r) {
       return {
         id: r.id, ciclo: r.ciclo, lider: r.lider, liderado: r.liderado, data: r.data, tipo: r.tipo, status: r.status,
-        realizadoEm: r.realizado_em || '', obs: r.obs || '', atualizadoEm: r.atualizado_em || ''
+        realizadoEm: r.realizado_em || '', modalidade: r.modalidade || '', obs: r.obs || '', atualizadoEm: r.atualizado_em || ''
       };
     }),
     logs: [],
@@ -182,9 +182,9 @@ function repositorioPostgres(sql) {
               t`select ciclo, form, avaliador, avaliador_nome, avaliado, avaliado_nome, data from public.participacao`,
               t`select id, ciclo, avaliado, avaliado_nome, avaliador, avaliador_nome, data, media, notas, porques, fortes, fracos, consideracoes
                 from public.resp_lider`,
-              t`select id, ciclo, lider, liderado, data, tipo, status, realizado_em, obs, atualizado_em from public.agenda`,
+              t`select id, ciclo, lider, liderado, data, tipo, status, realizado_em, modalidade, obs, atualizado_em from public.agenda`,
               t`select id, ciclo, tipo, avaliador, avaliador_nome, avaliado, avaliado_nome, data_feedback, data_reavaliacao, media, notas, obs,
-                       fortes, fracos, plano, consideracoes, ciencia_em, enviado_em, atualizado_em from public.resp_liderado`,
+                       fortes, fracos, plano, consideracoes, modalidade, ciencia_em, enviado_em, atualizado_em from public.resp_liderado`,
               t`select nome, valor from public.segredos`,
               hashes.length
                 ? t`select chave, valor, (extract(epoch from expira_em) * 1000)::bigint as exp from public.cache where chave in ${t(hashes)} and expira_em > now()`
@@ -208,21 +208,21 @@ function repositorioPostgres(sql) {
                           ${d.consideracoes || ''})`;
               } else if (op.tipo === 'down') {
                 await t`insert into public.resp_liderado (id, ciclo, tipo, avaliador, avaliador_nome, avaliado, avaliado_nome, data_feedback,
-                         data_reavaliacao, media, notas, obs, fortes, fracos, plano, consideracoes, ciencia_em, enviado_em, atualizado_em)
+                         data_reavaliacao, media, notas, obs, fortes, fracos, plano, consideracoes, modalidade, ciencia_em, enviado_em, atualizado_em)
                   values (${d.id}, ${d.ciclo}, ${d.tipo || 'PADRAO'}, ${d.avaliador}, ${d.avaliadorNome || ''}, ${d.avaliado}, ${d.avaliadoNome || ''},
                           ${d.dataFeedback || ''}, ${d.dataReavaliacao || ''}, ${d.media}, ${t.json(d.notas || {})}, ${t.json(d.obs || {})},
                           ${t.json(d.fortes || [])}, ${t.json(d.fracos || [])}, ${t.json(d.plano || [])}, ${d.consideracoes || ''},
-                          ${d.cienciaEm || ''}, ${d.enviadoEm || ''}, ${d.atualizadoEm || ''})
+                          ${d.modalidade || ''}, ${d.cienciaEm || ''}, ${d.enviadoEm || ''}, ${d.atualizadoEm || ''})
                   on conflict (id) do update set tipo = excluded.tipo, data_feedback = excluded.data_feedback, data_reavaliacao = excluded.data_reavaliacao,
                     media = excluded.media, notas = excluded.notas, obs = excluded.obs, fortes = excluded.fortes, fracos = excluded.fracos,
-                    plano = excluded.plano, consideracoes = excluded.consideracoes, ciencia_em = excluded.ciencia_em,
+                    plano = excluded.plano, consideracoes = excluded.consideracoes, modalidade = excluded.modalidade, ciencia_em = excluded.ciencia_em,
                     avaliador_nome = excluded.avaliador_nome, avaliado_nome = excluded.avaliado_nome, atualizado_em = excluded.atualizado_em`;
               } else if (op.tipo === 'agenda') {
-                await t`insert into public.agenda (id, ciclo, lider, liderado, data, tipo, status, realizado_em, obs, atualizado_em)
-                  values (${d.id}, ${d.ciclo}, ${d.lider}, ${d.liderado}, ${d.data}, ${d.tipo}, ${d.status}, ${d.realizadoEm || ''}, ${d.obs || ''},
-                          ${d.atualizadoEm || ''})
+                await t`insert into public.agenda (id, ciclo, lider, liderado, data, tipo, status, realizado_em, modalidade, obs, atualizado_em)
+                  values (${d.id}, ${d.ciclo}, ${d.lider}, ${d.liderado}, ${d.data}, ${d.tipo}, ${d.status}, ${d.realizadoEm || ''}, ${d.modalidade || ''},
+                          ${d.obs || ''}, ${d.atualizadoEm || ''})
                   on conflict (id) do update set data = excluded.data, tipo = excluded.tipo, status = excluded.status,
-                    realizado_em = excluded.realizado_em, obs = excluded.obs, atualizado_em = excluded.atualizado_em`;
+                    realizado_em = excluded.realizado_em, modalidade = excluded.modalidade, obs = excluded.obs, atualizado_em = excluded.atualizado_em`;
               } else if (op.tipo === 'pessoa') {
                 await t`insert into public.pessoas ${t(linhaPessoa(d))}
                   on conflict (mat) do update set nome = excluded.nome, cc = excluded.cc, lider_mat = excluded.lider_mat, lider_nome = excluded.lider_nome,

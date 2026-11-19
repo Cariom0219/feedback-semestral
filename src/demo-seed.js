@@ -141,10 +141,10 @@ window.FB_DEMO = true;
       Object.keys(n).forEach(function (id) { if (n[id] <= 2 || (n[id] === 3 && rnd() < 0.25)) o[id] = PORQUE[id]; });
       return o;
     }
-    function agendar(ciclo, lider, liderado, data, tipo, status) {
+    function agendar(ciclo, lider, liderado, data, tipo, status, modalidade) {
       store.salvarAgenda({
         id: store.uuid(), ciclo: ciclo, lider: lider, liderado: liderado, data: data, tipo: tipo || 'FEEDBACK', status: status || 'AGENDADO',
-        realizadoEm: status === 'REALIZADO' ? data : '', obs: '', atualizadoEm: data + 'T09:00:00'
+        realizadoEm: status === 'REALIZADO' ? data : '', modalidade: modalidade || 'PRESENCIAL', obs: '', atualizadoEm: data + 'T09:00:00'
       });
     }
 
@@ -171,15 +171,17 @@ window.FB_DEMO = true;
       crit.filter(function (c) { return c.form === (lid ? Core.FORM_UP : Core.FORM_DOWN) && c.ativo !== false; }).forEach(function (c) { n[c.id] = nota(base); });
       Object.keys(op.forcar || {}).forEach(function (k) { n[k] = op.forcar[k]; });
       var baixos = Object.keys(n).filter(function (k) { return n[k] <= 3; }).length;
+      var conversou = !op.semConversa; // a avaliação pode existir antes da conversa
+      var modalidade = conversou ? (rnd() < 0.25 ? 'ONLINE' : 'PRESENCIAL') : '';
       store.saveDown({
         id: store.uuid(), ciclo: ciclo, tipo: lid ? 'LIDERANCA' : 'PADRAO', avaliador: lider.mat, avaliadorNome: lider.nome, avaliado: p.mat, avaliadoNome: p.nome,
-        dataFeedback: dataF, dataReavaliacao: Core.somarMeses(dataF, 3), notas: n, media: media(n), obs: porques(n),
+        dataFeedback: conversou ? dataF : '', modalidade: modalidade, dataReavaliacao: Core.somarMeses(dataF, 3), notas: n, media: media(n), obs: porques(n),
         fortes: lid ? escolher(temEquipe ? FORTES_SUP : FORTES_ADM, 3) : [], fracos: lid ? escolher(temEquipe ? FRACOS_SUP : FRACOS_ADM, 3) : [],
         plano: baixos ? escolher(temEquipe ? PLANOS_LIDER : lid ? PLANOS_ADM : PLANOS, Math.min(2, baixos)) : [],
         consideracoes: op.consideracoes !== undefined ? op.consideracoes : CONSIDERACOES[Math.floor(rnd() * CONSIDERACOES.length)],
-        cienciaEm: op.ciencia ? dataF + 'T17:30:00' : '', enviadoEm: dataF + 'T10:00:00', atualizadoEm: dataF + 'T10:00:00'
+        cienciaEm: conversou && op.ciencia ? dataF + 'T17:30:00' : '', enviadoEm: dataF + 'T10:00:00', atualizadoEm: dataF + 'T10:00:00'
       });
-      agendar(ciclo, lider.mat, p.mat, dataF, 'FEEDBACK', 'REALIZADO');
+      if (conversou) agendar(ciclo, lider.mat, p.mat, dataF, 'FEEDBACK', 'REALIZADO', modalidade);
     }
 
     var liderados = pessoas.filter(function (p) { return p.liderMat; });
@@ -214,7 +216,8 @@ window.FB_DEMO = true;
     [1, 2, 3].forEach(function (m) { agendar('2026-2', '9101', '1007', util(Core.somarMeses(d1007, m), 1), 'ACOMPANHAMENTO'); });
     agendar('2026-2', '9101', '1001', dia(2));
     agendar('2026-2', '9101', '1002', dia(1));
-    agendar('2026-2', '9101', '1003', dia(1));
+    agendar('2026-2', '9101', '1003', dia(1), 'FEEDBACK', 'AGENDADO', 'ONLINE');
+    avaliar('2026-2', porMat['1003'], dia(1), { semConversa: true, base: 3.9 }); // avaliação pronta, conversa marcada
     agendar('2026-2', '9101', '1005', dia(3));
     agendar('2026-2', '9101', '1006', dia(3));
     agendar('2026-2', '9101', '1008', dia(-3));

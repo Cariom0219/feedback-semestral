@@ -944,9 +944,9 @@ body.ocupado { cursor: progress; }
     var M = H.meuFeedback || { status: 'AGUARDANDO' };
     var disp = M.status === 'DISPONIVEL';
     var chipEl = disp ? (M.ciencia ? chip('ok', 'Conversa confirmada') : chip('warn', 'Confirme a conversa'))
-      : M.status === 'MARCADO' ? chip('info', 'Disponível em ' + dataBR(M.data)) : chip('', 'Aguardando o líder');
+      : M.status === 'MARCADO' ? chip('info', 'Aguardando a conversa') : chip('', 'Aguardando o líder');
     var texto = disp ? 'Suas notas, o porquê de cada uma, o que vocês combinaram e se o seu acompanhamento é mensal ou semestral.'
-      : M.status === 'MARCADO' ? 'Seu líder já registrou. Aparece aqui a partir de ' + dataBR(M.data) + ', dia da conversa com você.'
+      : M.status === 'MARCADO' ? 'Seu líder já registrou o feedback. Ele aparece aqui depois da conversa com você, presencial ou online.'
         : 'Seu líder ainda não registrou o seu feedback deste ciclo.';
     return h('section', { class: 'card card-acao' + (disp && !M.ciencia ? ' destaque' : '') },
       h('div', { class: 'card-cab' }, h('span', { class: 'rotulo' }, 'Líder x Liderado'), chipEl),
@@ -974,6 +974,7 @@ body.ocupado { cursor: progress; }
       barra(e.avaliados, e.total, true),
       h('p', { class: 'muted small' }, e.prontos ? plural(e.prontos, 'pessoa já te avaliou e está pronta', 'pessoas já te avaliaram e estão prontas') + ' para o feedback.'
         : 'O feedback só pode ser dado a quem já respondeu a avaliação do líder.'),
+      e.semConversa ? h('p', { class: 'small' }, h('b', null, plural(e.semConversa, 'avaliação aguarda', 'avaliações aguardam')), ' a conversa. O liderado só vê depois que ela é registrada.') : null,
       aberta ? h('button', { class: 'btn ' + (falta ? 'btn-primario' : 'btn-sec'), type: 'button', onclick: function () { abrirEquipe('fase2'); } }, e.avaliados ? 'Continuar avaliações' : 'Começar avaliações')
         : h('p', { class: 'muted small' }, 'A coordenação abre esta etapa depois da avaliação dos líderes.'));
   }
@@ -1147,6 +1148,12 @@ body.ocupado { cursor: progress; }
         abaBtn('painel', 'Painel da equipe', aba, trocar('painel'))),
       corpo);
   }
+  function chipSituacao(p) {
+    if (p.situacao === 'AVALIADO') return chip('warn', 'Aguardando a conversa');
+    if (p.situacao === 'CONVERSADO') return chip('info', 'Conversa feita' + (p.modalidade ? ' · ' + (MODALIDADE[p.modalidade] || '').toLowerCase() : '') + ' · sem ciência');
+    if (p.situacao === 'CONCLUIDO') return chip('ok', 'Concluído');
+    return null;
+  }
   function chipFrequencia(f) {
     if (!f) return null;
     return f.tipo === 'MENSAL' ? chip('warn', 'Mensal') : chip('ok', 'Semestral');
@@ -1186,7 +1193,7 @@ body.ocupado { cursor: progress; }
         E.fases.down !== 'ABERTA' ? aviso('warn', 'A coordenação ainda não abriu a avaliação dos liderados. Quando abrir, os botões de avaliar aparecem aqui.')
           : h('div', { class: 'stack', style: 'gap:6px' },
             aviso('info', 'O feedback só pode ser dado a quem já respondeu a avaliação do líder. Quem ainda não respondeu aparece como "Ainda não te avaliou": cobre a resposta antes da conversa.'),
-            h('p', { class: 'muted small' }, 'Registre a avaliação no dia da conversa presencial. O liderado vê o feedback a partir da data informada e confirma que conversou com você.'),
+            h('p', { class: 'muted small' }, 'Registre a avaliação quando quiser. A conversa, presencial ou online, é obrigatória: só depois de registrá-la como feita o liderado vê o feedback e confirma que conversou.'),
             h('button', { class: 'btn-link', type: 'button', style: 'align-self:flex-start', onclick: function () { abrirOrientacaoLider(null); } }, 'Orientações para um bom feedback'))];
     var pend = pessoas.filter(function (p) { return !p.respondeu; });
     return h('div', { class: 'stack' },
@@ -1207,9 +1214,10 @@ body.ocupado { cursor: progress; }
     else {
       var aberta = E.fases.down === 'ABERTA';
       dir = [p.avaliado ? chip('ok', 'Avaliado · ' + n1(p.media)) : p.respondeu ? chip('info', 'Pronto para o feedback') : chip('warn', 'Ainda não te avaliou'),
+        chipSituacao(p),
         chipFrequencia(p.frequencia),
-        p.avaliado ? (p.ciencia ? chip('info', 'Ciente') : null) : null,
-        aberta && p.respondeu ? h('button', { class: 'btn btn-sm ' + (p.avaliado ? 'btn-sec' : 'btn-primario'), type: 'button', onclick: function () { abrirFormLiderado(p.mat); } }, p.avaliado ? 'Editar' : 'Avaliar') : null];
+        aberta && p.respondeu ? h('button', { class: 'btn btn-sm ' + (p.avaliado ? 'btn-sec' : 'btn-primario'), type: 'button', onclick: function () { abrirFormLiderado(p.mat); } }, p.avaliado ? 'Editar' : 'Avaliar') : null,
+        p.situacao === 'AVALIADO' ? h('button', { class: 'btn btn-sm btn-primario', type: 'button', onclick: function () { modalConversa(p); } }, 'Registrar conversa') : null];
     }
     return h('div', { class: 'linha-pessoa' },
       h('div', { class: 'quem' }, h('div', { class: 'nome' }, p.nome, p.lider ? h('span', { class: 'chip info', style: 'margin-left:8px' }, 'Líder') : null),
@@ -1371,6 +1379,48 @@ body.ocupado { cursor: progress; }
     linhas.push('', 'A conversa é individual e presencial. Se não puder no dia, me avise para remarcar.');
     return linhas.join('\n');
   }
+  var MODALIDADE = { PRESENCIAL: 'Presencial', ONLINE: 'Online' };
+  function escolhaModalidade(id, valor, aoMudar) {
+    var atual = valor || 'PRESENCIAL';
+    var grupo = h('div', { class: 'interruptor', role: 'group', id: id, 'aria-label': 'Como foi a conversa' });
+    function desenhar() {
+      limpar(grupo);
+      ['PRESENCIAL', 'ONLINE'].forEach(function (v) {
+        grupo.appendChild(h('button', { type: 'button', class: atual === v ? 'on' : '', 'aria-pressed': atual === v ? 'true' : 'false', onclick: function () { atual = v; aoMudar(v); desenhar(); } }, MODALIDADE[v]));
+      });
+    }
+    aoMudar(atual);
+    desenhar();
+    return grupo;
+  }
+  // Registrar que a conversa de feedback aconteceu: é o que libera o feedback para o liderado.
+  function modalConversa(p, item) {
+    var E = S.eq;
+    var marcado = item || (p.agenda || []).filter(function (a) { return a.tipo === 'FEEDBACK' && a.status === 'AGENDADO'; })[0] || null;
+    var modalidade = marcado && marcado.modalidade ? marcado.modalidade : 'PRESENCIAL';
+    var quando = h('input', { class: 'input', type: 'date', id: 'cvData', max: E.hoje, value: marcado && marcado.data <= E.hoje ? marcado.data : E.hoje });
+    var obs = h('input', { class: 'input', id: 'cvObs', maxlength: '300', value: marcado ? marcado.obs || '' : '', placeholder: 'Ex.: na base de Irecê, ou chamada de vídeo' });
+    var chk = h('input', { type: 'checkbox', id: 'cvOk' });
+    var ok = h('button', { class: 'btn btn-primario', type: 'button', disabled: true }, 'Registrar conversa feita');
+    chk.addEventListener('change', function () { ok.disabled = !chk.checked; });
+    var m = modal('Conversa de feedback · ' + primeiro(p.nome), [
+      h('p', { class: 'muted' }, p.nome + ' · matrícula ' + p.mat + (marcado ? ' · marcada para ' + dataBR(marcado.data) : '')),
+      h('div', { class: 'grade-2' }, campo('cvData', 'Dia em que conversaram', quando),
+        h('div', { class: 'campo' }, h('span', { class: 'campo-rotulo' }, 'Como foi'), escolhaModalidade('cvModo', modalidade, function (v) { modalidade = v; }))),
+      campo('cvObs', 'Observação (opcional)', obs),
+      h('label', { class: 'check', for: 'cvOk' }, chk, h('span', null, 'Confirmo que a conversa aconteceu e que apresentei a avaliação a ' + primeiro(p.nome) + '.')),
+      h('p', { class: 'muted small' }, 'Depois de registrar, ' + primeiro(p.nome) + ' vê o feedback no aplicativo e confirma que conversou.')
+    ], [h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { m.fechar(); } }, 'Voltar'), ok]);
+    ok.addEventListener('click', function () {
+      if (!quando.value || quando.value > E.hoje) { toast('Informe um dia até hoje: a conversa precisa ter acontecido.', 'erro'); return; }
+      ok.disabled = true;
+      chamar('registrarConversa', { mat: p.mat, data: quando.value, modalidade: modalidade, obs: obs.value }).then(function (r) {
+        m.fechar();
+        toast('Conversa registrada. ' + primeiro(p.nome) + ' já pode ver o feedback e confirmar.' + (r.acompanhamentos ? ' Marcadas ' + r.acompanhamentos + ' conversas mensais.' : ''));
+        return recarregarEquipe();
+      }).catch(function (e) { ok.disabled = false; falha(e); });
+    });
+  }
   function salvarEncontro(dados, msg, m) {
     return chamar('salvarAgenda', dados).then(function () {
       if (m) m.fechar();
@@ -1389,7 +1439,8 @@ body.ocupado { cursor: progress; }
     var tipo = h('select', { class: 'input', id: 'agTipo' }, [['FEEDBACK', 'Feedback'], ['ACOMPANHAMENTO', 'Acompanhamento mensal']].map(function (o) {
       return h('option', { value: o[0], selected: (item ? item.tipo : (p.avaliado ? 'ACOMPANHAMENTO' : 'FEEDBACK')) === o[0] }, o[1]);
     }));
-    var obs = h('input', { class: 'input', id: 'agObs', maxlength: '300', value: item ? item.obs : '', placeholder: 'Ex.: na base de Irecê, depois da saída das equipes' });
+    var obs = h('input', { class: 'input', id: 'agObs', maxlength: '300', value: item ? item.obs : '', placeholder: 'Local, ou link da chamada se for online' });
+    var modalidade = item && item.modalidade ? item.modalidade : 'PRESENCIAL';
     var salvar = h('button', { class: 'btn btn-primario', type: 'button' }, item ? 'Salvar nova data' : 'Marcar');
     var acoes = [h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { m.fechar(); } }, 'Voltar')];
     if (item) acoes.unshift(h('button', { class: 'btn btn-sec', type: 'button', onclick: function () {
@@ -1400,12 +1451,14 @@ body.ocupado { cursor: progress; }
       h('p', { class: 'muted' }, p.nome + ' · matrícula ' + p.mat),
       !p.respondeu && !p.avaliado ? aviso('warn', primeiro(p.nome) + ' ainda não respondeu a avaliação do líder. A conversa pode ser marcada, mas o feedback só pode ser feito depois dessa resposta.') : null,
       h('div', { class: 'campo' }, h('span', { class: 'campo-rotulo' }, 'Escolha o dia no calendário'), cal),
-      h('div', { class: 'grade-2' }, campo('agTipo', 'Tipo', tipo), campo('agObs', 'Observação (opcional)', obs))
+      h('div', { class: 'grade-2' }, campo('agTipo', 'Tipo', tipo),
+        h('div', { class: 'campo' }, h('span', { class: 'campo-rotulo' }, 'Como vai ser'), escolhaModalidade('agModoM', modalidade, function (v) { modalidade = v; }))),
+      campo('agObs', 'Local ou link (opcional)', obs)
     ], acoes, true);
     salvar.addEventListener('click', function () {
       if (!escolhido) { toast('Escolha o dia.', 'erro'); return; }
       salvar.disabled = true;
-      salvarEncontro({ id: item ? item.id : '', liderado: p.mat, data: escolhido, tipo: tipo.value, status: 'AGENDADO', obs: obs.value },
+      salvarEncontro({ id: item ? item.id : '', liderado: p.mat, data: escolhido, tipo: tipo.value, status: 'AGENDADO', modalidade: modalidade, obs: obs.value },
         (item ? 'Conversa remarcada para ' : 'Conversa marcada para ') + dataBR(escolhido) + '.', m).then(function () { salvar.disabled = false; });
     });
   }
@@ -1420,21 +1473,24 @@ body.ocupado { cursor: progress; }
       return;
     }
     if (item.tipo === 'FEEDBACK' && !p.avaliado && E.fases.down === 'ABERTA') {
-      confirmar('Registrar o feedback de ' + primeiro(p.nome) + '?', 'O feedback fica como feito quando você registra a avaliação com a data da conversa. Vamos abrir a avaliação agora.', 'Abrir avaliação', function () { abrirFormLiderado(p.mat); });
+      confirmar('Registrar o feedback de ' + primeiro(p.nome) + '?', 'Antes de concluir a conversa, registre a avaliação de ' + primeiro(p.nome) + '. Vamos abrir a avaliação agora.', 'Abrir avaliação', function () { abrirFormLiderado(p.mat); });
       return;
     }
+    if (item.tipo === 'FEEDBACK') { modalConversa(p, item); return; }
     var quando = h('input', { class: 'input', type: 'date', id: 'agFeito', value: item.data <= E.hoje ? item.data : E.hoje, max: E.hoje });
     var obs = h('input', { class: 'input', id: 'agObsF', maxlength: '300', value: item.obs || '', placeholder: 'Ex.: combinamos revisar as rotas na próxima conversa' });
+    var modalidade = item.modalidade || 'PRESENCIAL';
     var ok = h('button', { class: 'btn btn-primario', type: 'button' }, 'Marcar como feita');
     var m = modal('Conversa feita · ' + primeiro(p.nome), [
       h('p', { class: 'muted' }, TIPO_AG[item.tipo] + ' marcado para ' + dataBR(item.data) + '.'),
-      campo('agFeito', 'Dia em que conversaram', quando),
+      h('div', { class: 'grade-2' }, campo('agFeito', 'Dia em que conversaram', quando),
+        h('div', { class: 'campo' }, h('span', { class: 'campo-rotulo' }, 'Como foi'), escolhaModalidade('agModo', modalidade, function (v) { modalidade = v; }))),
       campo('agObsF', 'Observação (opcional)', obs)
     ], [h('button', { class: 'btn btn-sec', type: 'button', onclick: function () { m.fechar(); } }, 'Voltar'), ok]);
     ok.addEventListener('click', function () {
       if (!quando.value || quando.value > E.hoje) { toast('Informe um dia até hoje.', 'erro'); return; }
       ok.disabled = true;
-      salvarEncontro({ id: item.id, liderado: p.mat, data: item.data, tipo: item.tipo, status: 'REALIZADO', realizadoEm: quando.value, obs: obs.value }, 'Conversa registrada como feita.', m)
+      salvarEncontro({ id: item.id, liderado: p.mat, data: item.data, tipo: item.tipo, status: 'REALIZADO', realizadoEm: quando.value, modalidade: modalidade, obs: obs.value }, 'Conversa registrada como feita.', m)
         .then(function () { ok.disabled = false; });
     });
   }
@@ -1500,7 +1556,9 @@ body.ocupado { cursor: progress; }
       h('div', { class: 'kpis' },
         kpi(n1(P.media), 'média da equipe nas suas avaliações'),
         kpi(P.avaliados + ' de ' + E.pessoas.length, 'liderados avaliados'),
-        kpi(String(P.mensal), P.mensal === 1 ? 'com acompanhamento mensal' : 'com acompanhamento mensal', P.mensal ? 'var(--warn)' : null),
+        kpi(P.conversas + ' de ' + P.avaliados, 'avaliações com a conversa feita', P.conversas < P.avaliados ? 'var(--warn)' : null),
+        kpi(String(P.concluidos), P.concluidos === 1 ? 'feedback concluído (com ciência)' : 'feedbacks concluídos (com ciência)'),
+        kpi(String(P.mensal), 'com acompanhamento mensal', P.mensal ? 'var(--warn)' : null),
         kpi(String(P.semestral), 'com feedback semestral')),
       grupos.liderado.length ? h('section', { class: 'card stack' }, h('h2', null, 'Média por item'), barrasItens(grupos.liderado), notaBarras()) : null,
       grupos.lideranca.length ? h('section', { class: 'card stack' }, h('h2', null, 'Itens de liderança'), barrasItens(grupos.lideranca), notaBarras()) : null,
@@ -1528,7 +1586,8 @@ body.ocupado { cursor: progress; }
       h('p', { class: 'lead' }, 'O feedback é a principal ferramenta para cada pessoa saber como está o próprio trabalho e o que fazer para crescer. ' +
         'A avaliação registra a conversa presencial que você tem com cada liderado.'),
       cartaoLista('O feedback é transparente', 'info', [
-        'O liderado vê as notas, o porquê, o plano combinado e as suas considerações a partir da data da conversa, e confirma que conversou com você.',
+        'Você pode registrar a avaliação a qualquer momento. A conversa, presencial ou online, é obrigatória e só é concluída quando acontece.',
+        'O liderado só vê as notas, o porquê, o plano e as suas considerações depois que você registra a conversa como feita, e confirma que conversou com você.',
         'A coordenação e o RH acompanham todas as avaliações e as médias de cada equipe.',
         'As notas definem a frequência das conversas: média abaixo de ' + n1(H.limiteMensal) + (c > 0 ? ' ou nota ' + faixaCritica(c) + ' em algum item' : '') + ' leva ao acompanhamento mensal.'
       ]),
@@ -1568,7 +1627,7 @@ body.ocupado { cursor: progress; }
       S.rd = {
         notas: a ? Object.assign({}, a.notas) : {}, obs: a ? Object.assign({}, a.obs) : {},
         fortes: tres(a && a.fortes), fracos: tres(a && a.fracos), plano: tres(a && a.plano),
-        consideracoes: a ? a.consideracoes : '', dataFeedback: a ? a.dataFeedback : d.dataSugerida, dataReavaliacao: a ? (a.dataReavaliacao || '') : ''
+        consideracoes: a ? a.consideracoes : '', base: d.dataSugerida, dataReavaliacao: a ? (a.dataReavaliacao || '') : ''
       };
       ir('formLiderado');
     }).catch(falha);
@@ -1587,20 +1646,29 @@ body.ocupado { cursor: progress; }
         barra(vals.length, total, true)]);
     }
     atualizar();
-    var dataF = h('input', { class: 'input', type: 'date', id: 'dataF', value: R.dataFeedback || '' });
-    dataF.addEventListener('input', function () { R.dataFeedback = dataF.value; });
     var dataR = h('input', { class: 'input', type: 'date', id: 'dataR', value: R.dataReavaliacao || '' });
     dataR.addEventListener('input', function () { R.dataReavaliacao = dataR.value; });
     var atalhos = h('div', { class: 'atalhos' }, [1, 3, 6].map(function (m) {
       return h('button', { type: 'button', class: 'filtro', onclick: function () {
-        if (!R.dataFeedback) { toast('Preencha antes a data do feedback.', 'erro'); return; }
-        R.dataReavaliacao = somarMeses(R.dataFeedback, m); dataR.value = R.dataReavaliacao;
+        R.dataReavaliacao = somarMeses(R.base || F.hoje, m); dataR.value = R.dataReavaliacao;
       } }, '+' + m + (m === 1 ? ' mês' : ' meses'));
     }));
+    var conversaFeita = !!(F.atual && F.atual.dataFeedback);
     var salvar = h('button', { class: 'btn btn-primario', type: 'button' }, 'Salvar avaliação');
     var proximo = h('button', { class: 'btn btn-sec', type: 'button' }, 'Salvar e ir para o próximo');
+    var comConversa = conversaFeita ? null : h('button', { class: 'btn btn-sec', type: 'button' }, 'Salvar e registrar a conversa');
     salvar.addEventListener('click', function () { salvarLiderado(false, salvar); });
     proximo.addEventListener('click', function () { salvarLiderado(true, proximo); });
+    if (comConversa) comConversa.addEventListener('click', function () { salvarLiderado(false, comConversa, true); });
+    var quadroConversa = h('section', { class: 'card stack', style: 'gap:10px' },
+      h('div', { class: 'card-cab' }, h('h3', null, 'Conversa de feedback'),
+        conversaFeita ? chip('ok', 'Feita em ' + dataBR(F.atual.dataFeedback) + ' · ' + (MODALIDADE[F.atual.modalidade] || ''))
+          : F.conversaMarcada ? chip('info', 'Marcada para ' + dataBR(F.conversaMarcada.data) + (F.conversaMarcada.modalidade ? ' · ' + MODALIDADE[F.conversaMarcada.modalidade] : ''))
+            : chip('warn', 'Ainda sem data')),
+      h('p', { class: 'small' }, conversaFeita
+        ? primeiro(P.nome) + ' já pode ver este feedback. Se você mudar a avaliação, ' + primeiro(P.nome) + ' precisa confirmar de novo.'
+        : 'Você pode registrar a avaliação agora ou depois. O feedback só chega a ' + primeiro(P.nome) + ' quando a conversa, presencial ou online, for registrada como feita.'),
+      h('div', { class: 'grade-2' }, h('div', { class: 'campo' }, h('label', { for: 'dataR' }, 'Data da reavaliação'), dataR, atalhos, h('span', { class: 'ajuda' }, 'Opcional.'))));
     var plano = h('fieldset', { class: 'card stack grupo-extra' },
       h('legend', null, 'Plano combinado'),
       h('p', { class: 'muted small' }, 'Opcional. Até 3 combinados para a próxima conversa. O liderado vê no feedback dele.'),
@@ -1619,18 +1687,16 @@ body.ocupado { cursor: progress; }
         ? 'Quem responde direto à coordenação é avaliado como os supervisores: itens de liderança e 3 pontos fortes e 3 pontos fracos.'
         : primeiro(P.nome) + ' lidera uma equipe, então a avaliação usa os itens de liderança e pede 3 pontos fortes e 3 pontos fracos.') : null,
       F.atual && F.atual.cienciaEm ? aviso('ok', primeiro(P.nome) + ' confirmou a conversa em ' + dataBR(F.atual.cienciaEm) + '. Se você alterar a avaliação, ele precisa confirmar de novo.', 'check') : null,
-      h('div', { class: 'card grade-2' },
-        campo('dataF', 'Data do feedback', dataF, 'Dia da conversa presencial. O liderado vê a avaliação a partir desse dia.'),
-        h('div', { class: 'campo' }, h('label', { for: 'dataR' }, 'Data da reavaliação'), dataR, atalhos, h('span', { class: 'ajuda' }, 'Opcional.'))),
+      quadroConversa,
       legenda(F.escala),
       prog,
       h('div', { class: 'stack', style: 'gap:12px' }, F.criterios.map(function (c, i) { return itemNota(c, i, R.notas, F.escala, atualizar, R.obs, F.notaCritica); })),
       F.extras ? blocoExtras(R) : null,
       plano,
       campoTexto('consD', 'Considerações finais', 'Resumo da conversa e próximos passos. O liderado vê este texto.', R.consideracoes, 1500, function (v) { R.consideracoes = v; }),
-      aberta && F.respondeu ? h('div', { class: 'linha-botoes' }, salvar, proximo) : null);
+      aberta && F.respondeu ? h('div', { class: 'linha-botoes' }, salvar, comConversa, proximo) : null);
   }
-  function salvarLiderado(irProximo, btn) {
+  function salvarLiderado(irProximo, btn, registrarDepois) {
     var F = S.fd, R = S.rd;
     if (marcarFaltando(F.criterios, R.notas)) return;
     if (faltaPorque(F.criterios, R.notas, R.obs, F.notaCritica)) return;
@@ -1645,18 +1711,23 @@ body.ocupado { cursor: progress; }
         return;
       }
     }
-    if (!R.dataFeedback) { toast('Informe a data do feedback.', 'erro'); document.getElementById('dataF').focus(); return; }
-    if (R.dataReavaliacao && R.dataReavaliacao < R.dataFeedback) { toast('A reavaliação precisa ser depois da data do feedback.', 'erro'); return; }
     btn.disabled = true;
     chamar('salvarLiderado', {
       mat: F.liderado.mat, notas: R.notas, obs: R.obs, fortes: R.fortes, fracos: R.fracos, plano: R.plano, consideracoes: R.consideracoes,
-      dataFeedback: R.dataFeedback, dataReavaliacao: R.dataReavaliacao
+      dataReavaliacao: R.dataReavaliacao
     }).then(function (d) {
       var f = d.frequencia;
       toast('Avaliação de ' + primeiro(F.liderado.nome) + ' salva. Média ' + n1(d.media) + (f ? (f.tipo === 'MENSAL' ? ' · acompanhamento mensal.' : ' · feedback semestral.') : '.'));
       return chamar('equipe');
     }).then(function (eq) {
       S.eq = eq;
+      if (registrarDepois) {
+        var pessoa = eq.pessoas.filter(function (p) { return p.mat === F.liderado.mat; })[0];
+        S.eqAba = 'fase2'; S.eqFiltro = 'todos'; S.eqBusca = '';
+        ir('equipe');
+        if (pessoa) modalConversa(pessoa);
+        return;
+      }
       if (irProximo) {
         var prox = eq.pessoas.filter(function (p) { return !p.avaliado && p.respondeu; })[0];
         if (prox) { abrirFormLiderado(prox.mat); return; }
@@ -1686,7 +1757,8 @@ body.ocupado { cursor: progress; }
     if (M.status === 'AGUARDANDO') {
       corpo = aviso('info', 'Seu líder ainda não registrou o feedback deste ciclo.' + (M.proximo ? ' Conversa marcada para ' + dataBR(M.proximo.data) + ' (' + diaSemana(M.proximo.data) + ').' : ''));
     } else if (M.status === 'MARCADO') {
-      corpo = aviso('info', 'Seu feedback já foi registrado e aparece aqui a partir de ' + dataBR(M.dataFeedback) + ', dia da conversa com o seu líder.', 'cadeado');
+      corpo = aviso('info', 'Seu líder já registrou o seu feedback. Ele aparece aqui depois da conversa com você, presencial ou online.' +
+        (M.proximo ? ' Conversa marcada para ' + dataBR(M.proximo.data) + ' (' + diaSemana(M.proximo.data) + ').' : ''), 'cadeado');
     } else {
       var F = M.feedback, f = M.frequencia;
       var ciencia = F.cienciaEm
@@ -1708,7 +1780,7 @@ body.ocupado { cursor: progress; }
             h('div', null, h('div', { class: 'rotulo' }, 'Sua média'), h('div', { class: 'hero-num' }, n1(F.media), h('small', null, ' de 5'))),
             h('div', { class: 'stack', style: 'gap:6px;flex:1 1 240px' },
               h('div', null, f ? (f.tipo === 'MENSAL' ? chip('warn', 'Acompanhamento mensal') : chip('ok', 'Feedback semestral')) : null),
-              h('p', { class: 'small' }, 'Avaliado por ' + F.avaliador + ' · conversa em ' + dataBR(F.dataFeedback) + (F.dataReavaliacao ? ' · reavaliação em ' + dataBR(F.dataReavaliacao) : '')),
+              h('p', { class: 'small' }, 'Avaliado por ' + F.avaliador + ' · conversa ' + (F.modalidade ? (MODALIDADE[F.modalidade] || '').toLowerCase() + ' ' : '') + 'em ' + dataBR(F.dataFeedback) + (F.dataReavaliacao ? ' · reavaliação em ' + dataBR(F.dataReavaliacao) : '')),
               M.proximo ? h('p', { class: 'small' }, h('b', null, 'Próxima conversa: '), dataBR(M.proximo.data) + ' (' + diaSemana(M.proximo.data) + ')') : null,
               M.mediaEquipe !== null && M.mediaEquipe !== undefined ? h('p', { class: 'small' }, h('b', null, 'Média que a sua equipe deu a você: '), n1(M.mediaEquipe)) : null)),
           f && f.tipo === 'MENSAL' ? aviso('warn', 'Você vai ter uma conversa por mês com o seu líder até a próxima avaliação, porque: ' + f.motivos.join('; ') + '.')
@@ -1873,6 +1945,7 @@ body.ocupado { cursor: progress; }
       h('div', { class: 'kpis' },
         kpi(pct(t.responderam, t.comLider) + '%', t.responderam + ' de ' + t.comLider + ' avaliaram o líder', 'var(--accent)'),
         kpi(pct(t.avaliados, t.comLider) + '%', t.avaliados + ' de ' + t.comLider + ' foram avaliados pelo líder', 'var(--primary)'),
+        kpi(pct(t.conversas, t.comLider) + '%', t.conversas + ' de ' + t.comLider + ' tiveram a conversa de feedback', 'var(--primary)'),
         kpi(String(t.ativos), 'pessoas ativas no cadastro'),
         t.semCpf ? kpi(String(t.semCpf), 'sem CPF cadastrado: não conseguem entrar', 'var(--bad)') : null),
       P.atual ? aviso(P.liberado ? 'ok' : 'info', P.liberado ? 'O resultado deste ciclo está liberado: cada líder vê as respostas da equipe, com nome e o porquê das notas.'
@@ -1880,7 +1953,7 @@ body.ocupado { cursor: progress; }
       h('h2', null, 'Por líder'),
       h('div', { class: 'tabela-wrap' }, h('table', null,
         h('thead', null, h('tr', null, h('th', null, 'Líder'), h('th', null, 'UTD'), h('th', { class: 'num' }, 'Equipe'),
-          h('th', null, 'Avaliaram o líder'), h('th', null, 'Avaliados pelo líder'), h('th', { class: 'num' }, 'Média recebida'), h('th', { class: 'num' }, 'Média dada à equipe'))),
+          h('th', null, 'Avaliaram o líder'), h('th', null, 'Avaliados pelo líder'), h('th', null, 'Conversas feitas'), h('th', { class: 'num' }, 'Média recebida'), h('th', { class: 'num' }, 'Média dada à equipe'))),
         h('tbody', null, P.lideres.map(function (l) {
           return h('tr', { class: 'clicavel', tabindex: '0', onkeydown: enterClica, onclick: function () { S.adm.liderSel = l.mat; S.adm.aba = 'resultados'; carregarAba(); } },
             h('td', null, h('div', { class: 'nome' }, l.nome), l.perfil === 'COORDENACAO' ? h('div', { class: 'sub' }, 'Coordenação') : null),
@@ -1888,6 +1961,7 @@ body.ocupado { cursor: progress; }
             h('td', { class: 'num' }, String(l.equipe)),
             h('td', null, progressoCelula(l.responderam, l.equipe)),
             h('td', null, progressoCelula(l.avaliados, l.equipe)),
+            h('td', null, progressoCelula(l.conversas, l.equipe)),
             h('td', { class: 'num' }, l.mediaUp !== null ? pilulaNota(l.mediaUp) : h('span', { class: 'muted small' }, 'sem respostas')),
             h('td', { class: 'num' }, l.mediaDown !== null ? pilulaNota(l.mediaDown) : h('span', { class: 'muted small' }, '–')));
         })))),
@@ -1912,7 +1986,8 @@ body.ocupado { cursor: progress; }
         if (F.status === 'pend2' && (p.avaliado || !p.liderMat)) return false;
         if (F.status === 'ok2' && !p.avaliado) return false;
         if (F.status === 'mensal' && p.frequencia !== 'MENSAL') return false;
-        if (F.status === 'semciencia' && (!p.avaliado || p.ciencia)) return false;
+        if (F.status === 'semciencia' && p.situacao !== 'CONVERSADO') return false;
+        if (F.status === 'semconversa' && p.situacao !== 'AVALIADO') return false;
         return !q || normalizar(p.nome).indexOf(q) >= 0 || p.mat.indexOf(q) >= 0;
       });
     }
@@ -1929,7 +2004,7 @@ body.ocupado { cursor: progress; }
           h('td', null, p.liderMat ? (p.respondeu ? chip('ok', 'Respondeu' + (p.respondeuEm ? ' · ' + dataBR(p.respondeuEm) : '')) : chip('warn', 'Pendente')) : '–'),
           h('td', null, p.liderMat ? (p.avaliado ? chip('ok', 'Avaliado · ' + n1(p.mediaDown)) : chip('', 'A avaliar')) : '–'),
           h('td', null, p.frequencia === 'MENSAL' ? chip('warn', 'Mensal') : p.frequencia === 'SEMESTRAL' ? chip('ok', 'Semestral') : h('span', { class: 'muted' }, '–')),
-          h('td', null, p.avaliado ? (p.ciencia ? chip('info', 'Ciente') : chip('', 'Ainda não')) : h('span', { class: 'muted' }, '–'))));
+          h('td', null, chipSituacao(p) || h('span', { class: 'muted' }, '–'))));
       });
       if (!vis.length) tbody.appendChild(h('tr', null, h('td', { colspan: '8', class: 'vazio' }, 'Ninguém com esses filtros.')));
     }
@@ -1944,7 +2019,7 @@ body.ocupado { cursor: progress; }
       h('div', { class: 'grade-2', style: 'grid-template-columns:repeat(auto-fit,minmax(180px,1fr))' },
         sel('fLider', 'Líder', F.lider, [['', 'Todos']].concat(Object.keys(lideres).map(function (m) { return [m, lideres[m]]; }).sort(function (a, b) { return a[1] < b[1] ? -1 : 1; })), 'lider'),
         sel('fUtd', 'UTD', F.utd, [['*', 'Todas']].concat(Object.keys(utds).sort().map(function (u) { return [u, u || 'Sem UTD']; })), 'utd'),
-        sel('fStatus', 'Situação', F.status, [['todos', 'Todos'], ['pend1', 'Não avaliaram o líder'], ['ok1', 'Avaliaram o líder'], ['pend2', 'Ainda não avaliados pelo líder'], ['ok2', 'Já avaliados pelo líder'], ['mensal', 'Acompanhamento mensal'], ['semciencia', 'Avaliados sem ciência']], 'status'),
+        sel('fStatus', 'Situação', F.status, [['todos', 'Todos'], ['pend1', 'Não avaliaram o líder'], ['ok1', 'Avaliaram o líder'], ['pend2', 'Ainda não avaliados pelo líder'], ['ok2', 'Já avaliados pelo líder'], ['mensal', 'Acompanhamento mensal'], ['semconversa', 'Avaliados sem conversa'], ['semciencia', 'Conversa feita sem ciência']], 'status'),
         campo('buscaPart', 'Buscar', busca),
         seletorCiclo(D.ciclos, D.ciclo, trocarCiclo)),
       h('div', { class: 'cab-linha' }, contagem, h('div', { class: 'linha-botoes' },
@@ -1957,7 +2032,7 @@ body.ocupado { cursor: progress; }
         } }, ico('copiar', 16), 'Copiar pendentes'),
         botaoExportar('participacao', 'Exportar'))),
       h('div', { class: 'tabela-wrap' }, h('table', null,
-        h('thead', null, h('tr', null, h('th', null, 'Mat.'), h('th', null, 'Nome'), h('th', null, 'UTD'), h('th', null, 'Líder'), h('th', null, 'Avaliou o líder'), h('th', null, 'Avaliado pelo líder'), h('th', null, 'Frequência'), h('th', null, 'Ciência'))),
+        h('thead', null, h('tr', null, h('th', null, 'Mat.'), h('th', null, 'Nome'), h('th', null, 'UTD'), h('th', null, 'Líder'), h('th', null, 'Avaliou o líder'), h('th', null, 'Avaliado pelo líder'), h('th', null, 'Frequência'), h('th', null, 'Situação do feedback'))),
         tbody)));
   }
 
@@ -1990,13 +2065,13 @@ body.ocupado { cursor: progress; }
         seletorCiclo(D.ciclos, D.ciclo, trocarCiclo),
         botaoExportar('lider_liderado', 'Exportar')),
       regs.length ? h('div', { class: 'tabela-wrap' }, h('table', null,
-        h('thead', null, h('tr', null, h('th', null, 'Liderado'), h('th', null, 'Líder'), h('th', null, 'Data do feedback'), h('th', null, 'Frequência'), h('th', null, 'Ciência'), h('th', { class: 'num' }, 'Média'))),
+        h('thead', null, h('tr', null, h('th', null, 'Liderado'), h('th', null, 'Líder'), h('th', null, 'Conversa'), h('th', null, 'Frequência'), h('th', null, 'Ciência'), h('th', { class: 'num' }, 'Média'))),
         h('tbody', null, regs.map(function (r) {
           return h('tr', { class: 'clicavel', tabindex: '0', onkeydown: enterClica, onclick: function () { detalheLL(r); } },
             h('td', null, h('div', { class: 'nome' }, r.avaliadoNome, r.tipo === 'LIDERANCA' ? h('span', { class: 'chip info', style: 'margin-left:8px' }, 'Liderança') : null),
               h('div', { class: 'sub' }, 'Mat. ' + r.avaliado + (r.utd ? ' · UTD ' + r.utd : ''))),
             h('td', null, r.avaliadorNome),
-            h('td', null, dataBR(r.dataFeedback)),
+            h('td', null, r.dataFeedback ? dataBR(r.dataFeedback) + (r.modalidade ? ' · ' + MODALIDADE[r.modalidade] : '') : chip('warn', 'Pendente')),
             h('td', null, chipFrequencia(r.frequencia) || h('span', { class: 'muted' }, '–')),
             h('td', null, r.cienciaEm ? chip('info', dataBR(r.cienciaEm)) : chip('', 'Ainda não')),
             h('td', { class: 'num' }, pilulaNota(r.media)));
@@ -2006,7 +2081,7 @@ body.ocupado { cursor: progress; }
   }
   function detalheLL(r) {
     modal(r.avaliadoNome, [
-      h('p', { class: 'muted' }, 'Avaliado por ' + r.avaliadorNome + ' · feedback em ' + dataBR(r.dataFeedback) + (r.dataReavaliacao ? ' · reavaliação em ' + dataBR(r.dataReavaliacao) : '')),
+      h('p', { class: 'muted' }, 'Avaliado por ' + r.avaliadorNome + ' · ' + (r.dataFeedback ? 'conversa em ' + dataBR(r.dataFeedback) + (r.modalidade ? ' (' + MODALIDADE[r.modalidade].toLowerCase() + ')' : '') : 'conversa ainda não registrada') + (r.dataReavaliacao ? ' · reavaliação em ' + dataBR(r.dataReavaliacao) : '')),
       h('div', { class: 'linha-botoes' }, pilulaNota(r.media), chipFrequencia(r.frequencia), r.cienciaEm ? chip('info', 'Ciente em ' + dataBR(r.cienciaEm)) : chip('', 'Sem ciência ainda')),
       r.frequencia && r.frequencia.tipo === 'MENSAL' ? aviso('warn', 'Acompanhamento mensal: ' + r.frequencia.motivos.join('; ') + '.') : null,
       linhasNotas(r.itens),

@@ -18,6 +18,8 @@ var FeedbackCore = (function () {
   var LIMITE_PORQUE = 500;
   var TIPOS_AGENDA = { FEEDBACK: 'Feedback', ACOMPANHAMENTO: 'Acompanhamento' };
   var STATUS_AGENDA = { AGENDADO: 'Agendado', REALIZADO: 'Realizado', CANCELADO: 'Cancelado' };
+  var MODALIDADES = { PRESENCIAL: 'Presencial', ONLINE: 'Online' };
+  var SITUACOES = { A_AVALIAR: 'A avaliar', AVALIADO: 'Avaliado, aguardando a conversa', CONVERSADO: 'Conversa feita, aguardando a ciência', CONCLUIDO: 'Concluído' };
 
   var CRITERIOS_PADRAO = [
     { id: 'LL01', form: FORM_UP, ordem: 1, texto: 'Comunicação e clareza nas orientações', ativo: true },
@@ -225,6 +227,14 @@ var FeedbackCore = (function () {
   }
 
   function ehLider(ctx, mat) { return (ctx.equipes[mat] || []).length > 0; }
+
+  /** Etapas do feedback de cada pessoa. A avaliação pode ser registrada a qualquer momento; o feedback só
+   *  chega ao liderado quando a conversa (presencial ou online) é registrada, e termina com a ciência dele. */
+  function situacaoDe(rec) {
+    if (!rec) return 'A_AVALIAR';
+    if (!rec.dataFeedback) return 'AVALIADO';
+    return rec.cienciaEm ? 'CONCLUIDO' : 'CONVERSADO';
+  }
 
   /** O feedback do líder só pode ser registrado depois que o liderado respondeu a avaliação do líder no ciclo. */
   function respondeuLider(store, ciclo, mat) {
@@ -439,7 +449,8 @@ var FeedbackCore = (function () {
       avaliouLider: !!resp[eu.mat],
       avaliouLiderEm: resp[eu.mat] ? resp[eu.mat].data : null,
       meuFeedback: meu
-        ? { status: meu.dataFeedback && meu.dataFeedback <= hoje ? 'DISPONIVEL' : 'MARCADO', data: meu.dataFeedback, ciencia: !!meu.cienciaEm }
+        ? (meu.dataFeedback ? { status: 'DISPONIVEL', data: meu.dataFeedback, modalidade: meu.modalidade || '', ciencia: !!meu.cienciaEm }
+          : { status: 'MARCADO' }) // avaliação registrada; aparece depois da conversa
         : { status: 'AGUARDANDO' },
       proximoEncontro: meusEncontros[0] ? { data: meusEncontros[0].data, tipo: meusEncontros[0].tipo } : null,
       equipe: equipe.length ? {
@@ -447,6 +458,8 @@ var FeedbackCore = (function () {
         responderam: equipe.filter(function (p) { return !!resp[p.mat]; }).length,
         avaliados: avaliados,
         prontos: equipe.filter(function (p) { return !!resp[p.mat] && !downs.some(function (r) { return r.avaliador === eu.mat && r.avaliado === p.mat; }); }).length,
+        conversas: downs.filter(function (r) { return r.avaliador === eu.mat && !!r.dataFeedback; }).length,
+        semConversa: downs.filter(function (r) { return r.avaliador === eu.mat && !r.dataFeedback; }).length,
         atrasados: minhaAgenda.filter(function (a) { return a.data < hoje; }).length,
         proximos7: minhaAgenda.filter(function (a) { return a.data >= hoje && a.data <= somarDias(hoje, 7); }).length,
         semData: equipe.filter(function (p) { return !agenda.some(function (a) { return a.lider === eu.mat && a.liderado === p.mat && a.tipo === 'FEEDBACK' && a.status !== 'CANCELADO'; }); }).length
@@ -563,6 +576,7 @@ var FeedbackCore = (function () {
       return {
         mat: p.mat, nome: titulo(p.nome), cc: str(p.cc).trim(), utd: utdDoCC(p.cc), lider: lid,
         respondeu: !!resp[p.mat], avaliado: !!r, media: r ? r.media : null, ciencia: !!(r && r.cienciaEm),
+        situacao: situacaoDe(r), conversaEm: r ? r.dataFeedback || '' : '', modalidade: r ? r.modalidade || '' : '',
         frequencia: freq,
         proximo: prox ? { id: prox.id, data: prox.data, tipo: prox.tipo, atrasado: prox.data < hoje } : null,
         realizados: minhas.filter(function (a) { return a.status === 'REALIZADO'; }).length,
@@ -579,6 +593,8 @@ var FeedbackCore = (function () {
       pessoas: pessoas,
       painel: {
         avaliados: meus.length, media: mediaGeral(meus), itens: listaItens(mediaPorCriterio(meus), info),
+        conversas: meus.filter(function (r) { return !!r.dataFeedback; }).length,
+        concluidos: meus.filter(function (r) { return !!r.cienciaEm; }).length,
         mensal: mensal, semestral: semestral,
         mensais: pessoas.filter(function (p) { return p.frequencia && p.frequencia.tipo === 'MENSAL'; })
           .map(function (p) { return { mat: p.mat, nome: p.nome, media: p.media, motivos: p.frequencia.motivos }; })
@@ -599,7 +615,7 @@ var FeedbackCore = (function () {
 
   function vDown(r) {
     return r ? {
-      id: r.id, avaliado: r.avaliado, tipo: r.tipo || 'PADRAO', dataFeedback: r.dataFeedback, dataReavaliacao: r.dataReavaliacao,
+      id: r.id, avaliado: r.avaliado, tipo: r.tipo || 'PADRAO', dataFeedback: r.dataFeedback || '', modalidade: r.modalidade || '', dataReavaliacao: r.dataReavaliacao,
       notas: r.notas || {}, obs: r.obs || {}, consideracoes: r.consideracoes || '', media: r.media,
       fortes: r.fortes || [], fracos: r.fracos || [], plano: r.plano || [], cienciaEm: r.cienciaEm || '', atualizadoEm: r.atualizadoEm
     } : null;
@@ -626,7 +642,8 @@ var FeedbackCore = (function () {
       notaCritica: cfg.notaCritica,
       atual: vDown(atual),
       hoje: hoje,
-      dataSugerida: marcado ? marcado.data : hoje,
+      conversaMarcada: marcado ? { id: marcado.id, data: marcado.data, modalidade: marcado.modalidade || '' } : null,
+      dataSugerida: atual && atual.dataFeedback ? atual.dataFeedback : marcado ? marcado.data : hoje,
       ciclo: cfg.ciclo,
       cicloRotulo: rotuloCiclo(cfg.ciclo)
     };
@@ -649,43 +666,71 @@ var FeedbackCore = (function () {
       fracos = lerLista(d.fracos, 3, 'Escreva os 3 pontos fracos (o que pode melhorar).');
     }
     var plano = (Array.isArray(d.plano) ? d.plano : []).map(function (x) { return textoLinha(x, 200); }).filter(Boolean).slice(0, 3);
-    var dataFeedback = str(d.dataFeedback);
-    if (!dataValida(dataFeedback)) throw erro('VALIDACAO', 'Informe a data do feedback.');
     var dataReavaliacao = str(d.dataReavaliacao);
     if (dataReavaliacao && !dataValida(dataReavaliacao)) throw erro('VALIDACAO', 'A data da reavaliação é inválida.');
-    if (dataReavaliacao && dataReavaliacao < dataFeedback) throw erro('VALIDACAO', 'A reavaliação precisa ser depois da data do feedback.');
     var consideracoes = texto(d.consideracoes, LIMITE_TEXTO);
     return store.comTrava(function () {
       var existente = null;
       store.listDown(cfg.ciclo).forEach(function (r) { if (r.avaliador === ctx.eu.mat && r.avaliado === p.mat) existente = r; });
-      var agora = store.agora(), hoje = store.hoje();
+      var agora = store.agora();
+      var dataConversa = existente ? existente.dataFeedback || '' : '';
+      if (dataReavaliacao && dataConversa && dataReavaliacao < dataConversa) throw erro('VALIDACAO', 'A reavaliação precisa ser depois da conversa.');
+      // A avaliação pode ser registrada a qualquer momento. A conversa é registrada à parte (registrarConversa).
       var rec = {
         id: existente ? existente.id : store.uuid(), ciclo: cfg.ciclo, tipo: lid ? 'LIDERANCA' : 'PADRAO',
         avaliador: ctx.eu.mat, avaliadorNome: ctx.eu.nome, avaliado: p.mat, avaliadoNome: p.nome,
-        dataFeedback: dataFeedback, dataReavaliacao: dataReavaliacao,
+        dataFeedback: dataConversa, modalidade: existente ? existente.modalidade || '' : '', dataReavaliacao: dataReavaliacao,
         notas: notas, media: media(notas), obs: obs, fortes: fortes, fracos: fracos, plano: plano, consideracoes: consideracoes,
         cienciaEm: '', // qualquer alteração pede nova ciência do liderado
         enviadoEm: existente ? existente.enviadoEm : agora, atualizadoEm: agora
       };
       store.saveDown(rec);
-      // No cronograma, o feedback marcado passa a "realizado" quando a data da conversa chega.
-      if (dataFeedback <= hoje) {
-        var doLiderado = store.listAgenda(cfg.ciclo).filter(function (a) {
-          return a.lider === ctx.eu.mat && a.liderado === p.mat && a.tipo === 'FEEDBACK' && a.status !== 'CANCELADO';
-        }).sort(porData);
-        var pendente = doLiderado.filter(function (a) { return a.status === 'AGENDADO'; })[0];
-        if (pendente) {
-          pendente.status = 'REALIZADO'; pendente.realizadoEm = dataFeedback; pendente.atualizadoEm = agora;
-          store.salvarAgenda(pendente);
-        } else if (!doLiderado.some(function (a) { return a.status === 'REALIZADO'; })) {
-          store.salvarAgenda({
-            id: store.uuid(), ciclo: cfg.ciclo, lider: ctx.eu.mat, liderado: p.mat, data: dataFeedback, tipo: 'FEEDBACK',
-            status: 'REALIZADO', realizadoEm: dataFeedback, obs: '', atualizadoEm: agora
-          });
+      store.log(ctx.eu.mat, existente ? 'editou_liderado' : 'avaliou_liderado', p.mat);
+      return { ok: true, media: rec.media, situacao: situacaoDe(rec), frequencia: frequenciaDe(cfg, rec, infoCriterios(store), null) };
+    });
+  }
+
+  /** Registra que a conversa de feedback (presencial ou online) aconteceu. Só depois disso o liderado vê o feedback. */
+  function aRegistrarConversa(store, ctx, d) {
+    var cfg = ctx.cfg;
+    var p = lideradoDe(ctx, d.mat);
+    var data = str(d.data), hoje = store.hoje();
+    if (!dataValida(data)) throw erro('VALIDACAO', 'Informe o dia da conversa.');
+    if (data > hoje) throw erro('VALIDACAO', 'A conversa só pode ser registrada depois que acontecer: use a data de hoje ou uma anterior.');
+    var modalidade = MODALIDADES[d.modalidade] ? d.modalidade : '';
+    if (!modalidade) throw erro('VALIDACAO', 'Informe se a conversa foi presencial ou online.');
+    var obs = textoLinha(d.obs, 300);
+    return store.comTrava(function () {
+      var rec = null;
+      store.listDown(cfg.ciclo).forEach(function (r) { if (r.avaliador === ctx.eu.mat && r.avaliado === p.mat) rec = r; });
+      if (!rec) throw erro('SEM_AVALIACAO', 'Registre a avaliação de ' + titulo(p.nome) + ' antes de concluir a conversa.');
+      var agora = store.agora(), info = infoCriterios(store);
+      rec.dataFeedback = data;
+      rec.modalidade = modalidade;
+      rec.atualizadoEm = agora;
+      store.saveDown(rec);
+      // cronograma: o feedback marcado passa a "feito"; sem nada marcado, entra um item já feito
+      var doLiderado = store.listAgenda(cfg.ciclo).filter(function (a) { return a.lider === ctx.eu.mat && a.liderado === p.mat && a.status !== 'CANCELADO'; });
+      var fb = doLiderado.filter(function (a) { return a.tipo === 'FEEDBACK'; }).sort(porData);
+      var item = fb.filter(function (a) { return a.status === 'AGENDADO'; })[0] || fb.filter(function (a) { return a.status === 'REALIZADO'; })[0];
+      if (item) {
+        item.status = 'REALIZADO'; item.realizadoEm = data; item.modalidade = modalidade; if (obs) item.obs = obs; item.atualizadoEm = agora;
+        store.salvarAgenda(item);
+      } else {
+        store.salvarAgenda({ id: store.uuid(), ciclo: cfg.ciclo, lider: ctx.eu.mat, liderado: p.mat, data: data, tipo: 'FEEDBACK', status: 'REALIZADO', realizadoEm: data, modalidade: modalidade, obs: obs, atualizadoEm: agora });
+      }
+      // quem ficou no mensal já sai com as conversas mensais marcadas
+      var freq = frequenciaDe(cfg, rec, info, ehLider(ctx, p.mat) ? mediaDaEquipe(store, cfg, cfg.ciclo, p.mat, ctx.isAdmin) : null);
+      var mensais = 0;
+      var temFuturo = doLiderado.some(function (a) { return a.tipo === 'ACOMPANHAMENTO' && a.status === 'AGENDADO' && a.data > hoje; });
+      if (freq && freq.tipo === 'MENSAL' && !temFuturo) {
+        for (var m = 1; m <= 5; m++) {
+          store.salvarAgenda({ id: store.uuid(), ciclo: cfg.ciclo, lider: ctx.eu.mat, liderado: p.mat, data: diaUtil(somarMeses(data, m)), tipo: 'ACOMPANHAMENTO', status: 'AGENDADO', realizadoEm: '', modalidade: modalidade, obs: '', atualizadoEm: agora });
+          mensais++;
         }
       }
-      store.log(ctx.eu.mat, existente ? 'editou_liderado' : 'avaliou_liderado', p.mat);
-      return { ok: true, media: rec.media, frequencia: frequenciaDe(cfg, rec, infoCriterios(store), null) };
+      store.log(ctx.eu.mat, 'conversa_registrada', p.mat + ' ' + data + ' ' + modalidade);
+      return { ok: true, situacao: situacaoDe(rec), frequencia: freq, acompanhamentos: mensais };
     });
   }
 
@@ -694,7 +739,7 @@ var FeedbackCore = (function () {
   function aMeuFeedback(store, ctx, d) {
     var cfg = ctx.cfg, hoje = store.hoje(), info = infoCriterios(store), eu = ctx.eu;
     var meus = store.listDown().filter(function (r) { return r.avaliado === eu.mat; });
-    var visivel = function (r) { return !!(r && r.dataFeedback && r.dataFeedback <= hoje); };
+    var visivel = function (r) { return !!(r && r.dataFeedback); }; // só depois da conversa registrada
     var ciclos = {};
     ciclos[cfg.ciclo] = true;
     meus.forEach(function (r) { ciclos[r.ciclo] = true; });
@@ -711,11 +756,11 @@ var FeedbackCore = (function () {
       lider: ehLider(ctx, eu.mat)
     };
     if (!rec) { out.status = 'AGUARDANDO'; return out; }
-    if (!visivel(rec)) { out.status = 'MARCADO'; out.dataFeedback = rec.dataFeedback; return out; }
+    if (!visivel(rec)) { out.status = 'MARCADO'; return out; }
     var mediaEq = out.lider ? mediaDaEquipe(store, cfg, ciclo, eu.mat, ctx.isAdmin) : null;
     out.status = 'DISPONIVEL';
     out.feedback = {
-      tipo: rec.tipo || 'PADRAO', avaliador: titulo(rec.avaliadorNome), dataFeedback: rec.dataFeedback, dataReavaliacao: rec.dataReavaliacao || '',
+      tipo: rec.tipo || 'PADRAO', avaliador: titulo(rec.avaliadorNome), dataFeedback: rec.dataFeedback, modalidade: rec.modalidade || '', dataReavaliacao: rec.dataReavaliacao || '',
       media: rec.media, itens: itensOrdenados(rec.notas, info, rec.obs), fortes: rec.fortes || [], fracos: rec.fracos || [],
       plano: rec.plano || [], consideracoes: rec.consideracoes || '', cienciaEm: rec.cienciaEm || ''
     };
@@ -729,7 +774,7 @@ var FeedbackCore = (function () {
     return store.comTrava(function () {
       var rec = null;
       store.listDown(ciclo).forEach(function (r) { if (r.avaliado === ctx.eu.mat) rec = r; });
-      if (!rec || !rec.dataFeedback || rec.dataFeedback > hoje) throw erro('VALIDACAO', 'Ainda não há feedback para confirmar.');
+      if (!rec || !rec.dataFeedback) throw erro('VALIDACAO', 'Ainda não há conversa registrada para confirmar.');
       if (rec.cienciaEm) return { ok: true, cienciaEm: rec.cienciaEm };
       rec.cienciaEm = store.agora();
       store.saveDown(rec);
@@ -791,7 +836,7 @@ var FeedbackCore = (function () {
     return {
       id: a.id, ciclo: a.ciclo, lider: a.lider, liderNome: idx.porMat[a.lider] ? titulo(idx.porMat[a.lider].nome) : '',
       liderado: a.liderado, lideradoNome: idx.porMat[a.liderado] ? titulo(idx.porMat[a.liderado].nome) : '',
-      data: a.data, tipo: a.tipo, status: a.status, realizadoEm: a.realizadoEm || '', obs: a.obs || '',
+      data: a.data, tipo: a.tipo, status: a.status, realizadoEm: a.realizadoEm || '', modalidade: a.modalidade || '', obs: a.obs || '',
       atrasado: a.status === 'AGENDADO' && a.data < hoje
     };
   }
@@ -809,7 +854,7 @@ var FeedbackCore = (function () {
       var ups = store.listUp(cfg.ciclo);
       var dia = diaUtil(inicio), noDia = 0, feedbacks = 0, acompanhamentos = 0, agora = store.agora();
       var novo = function (p, data, tipo) {
-        store.salvarAgenda({ id: store.uuid(), ciclo: cfg.ciclo, lider: ctx.eu.mat, liderado: p.mat, data: data, tipo: tipo, status: 'AGENDADO', realizadoEm: '', obs: '', atualizadoEm: agora });
+        store.salvarAgenda({ id: store.uuid(), ciclo: cfg.ciclo, lider: ctx.eu.mat, liderado: p.mat, data: data, tipo: tipo, status: 'AGENDADO', realizadoEm: '', modalidade: '', obs: '', atualizadoEm: agora });
       };
       var resp = {};
       store.listParticipacao(cfg.ciclo).forEach(function (x) { if (x.form === FORM_UP) resp[x.avaliador] = true; });
@@ -819,15 +864,15 @@ var FeedbackCore = (function () {
       }).forEach(function (p) {
         var doLiderado = itens.filter(function (a) { return a.liderado === p.mat; });
         var rec = downs[p.mat];
-        if (!rec && !doLiderado.some(function (a) { return a.tipo === 'FEEDBACK'; })) {
+        if (!(rec && rec.dataFeedback) && !doLiderado.some(function (a) { return a.tipo === 'FEEDBACK'; })) {
           if (noDia >= porDia) { dia = diaUtil(somarDias(dia, 1)); noDia = 0; }
           novo(p, dia, 'FEEDBACK');
           noDia++; feedbacks++;
         }
         var freq = frequenciaDe(cfg, rec, info, ehLider(ctx, p.mat) ? mediaDaEquipe(store, cfg, cfg.ciclo, p.mat, ctx.isAdmin, ups) : null);
         var temFuturo = doLiderado.some(function (a) { return a.tipo === 'ACOMPANHAMENTO' && a.status === 'AGENDADO' && a.data >= hoje; });
-        if (freq && freq.tipo === 'MENSAL' && !temFuturo) {
-          var base = rec.dataFeedback || hoje;
+        if (freq && freq.tipo === 'MENSAL' && !temFuturo && rec.dataFeedback) {
+          var base = rec.dataFeedback;
           for (var m = 1, criados = 0; m <= 8 && criados < 5; m++) {
             var data = diaUtil(somarMeses(base, m));
             if (data <= hoje) continue;
@@ -854,6 +899,10 @@ var FeedbackCore = (function () {
       realizadoEm = dataValida(d.realizadoEm) ? d.realizadoEm : hoje;
       if (realizadoEm > hoje) throw erro('VALIDACAO', 'A data em que o feedback foi feito não pode ser no futuro.');
     }
+    if (tipo === 'FEEDBACK' && status === 'REALIZADO') {
+      // concluir o feedback é registrar a conversa (exige a avaliação registrada)
+      return aRegistrarConversa(store, ctx, { mat: p.mat, data: realizadoEm, modalidade: d.modalidade, obs: d.obs });
+    }
     return store.comTrava(function () {
       var atual = null;
       if (d.id) {
@@ -862,7 +911,8 @@ var FeedbackCore = (function () {
       }
       var rec = {
         id: atual ? atual.id : store.uuid(), ciclo: cfg.ciclo, lider: ctx.eu.mat, liderado: p.mat, data: data, tipo: tipo,
-        status: status, realizadoEm: realizadoEm, obs: textoLinha(d.obs, 300), atualizadoEm: store.agora()
+        status: status, realizadoEm: realizadoEm, modalidade: MODALIDADES[d.modalidade] ? d.modalidade : (atual ? atual.modalidade || '' : ''),
+        obs: textoLinha(d.obs, 300), atualizadoEm: store.agora()
       };
       store.salvarAgenda(rec);
       store.log(ctx.eu.mat, atual ? 'agenda_editada' : 'agenda_criada', p.mat + ' ' + data + ' ' + status);
@@ -925,7 +975,9 @@ var FeedbackCore = (function () {
       return {
         mat: l.mat, nome: titulo(l.nome), perfil: l.perfil, utd: utdDoCC(l.cc), equipe: eq.length,
         responderam: eq.filter(function (p) { return !!m.resp[p.mat]; }).length,
-        avaliados: downs.length, mediaUp: mediaGeral(recebidas), nRespostas: recebidas.length, mediaDown: mediaGeral(downs)
+        avaliados: downs.length, conversas: downs.filter(function (r) { return !!r.dataFeedback; }).length,
+        concluidos: downs.filter(function (r) { return !!r.cienciaEm; }).length,
+        mediaUp: mediaGeral(recebidas), nRespostas: recebidas.length, mediaDown: mediaGeral(downs)
       };
     }).sort(function (a, b) { return b.equipe - a.equipe || (a.nome < b.nome ? -1 : 1); });
     return {
@@ -937,6 +989,8 @@ var FeedbackCore = (function () {
         comLider: comLider.length,
         responderam: comLider.filter(function (p) { return !!m.resp[p.mat]; }).length,
         avaliados: comLider.filter(function (p) { return !!m.down[ctx.liderMap[p.mat] + '>' + p.mat]; }).length,
+        conversas: comLider.filter(function (p) { var r = m.down[ctx.liderMap[p.mat] + '>' + p.mat]; return !!(r && r.dataFeedback); }).length,
+        concluidos: comLider.filter(function (p) { var r = m.down[ctx.liderMap[p.mat] + '>' + p.mat]; return !!(r && r.cienciaEm); }).length,
         semCpf: ativos.filter(function (p) { return !p.cpfHash; }).length
       },
       lideres: linhas,
@@ -957,7 +1011,8 @@ var FeedbackCore = (function () {
         mat: p.mat, nome: titulo(p.nome), cc: str(p.cc).trim(), utd: utdDoCC(p.cc), perfil: p.perfil,
         lider: l ? titulo(l.nome) : '', liderMat: l ? l.mat : '',
         respondeu: !!m.resp[p.mat], respondeuEm: m.resp[p.mat] ? m.resp[p.mat].data : null,
-        avaliado: !!r, mediaDown: r ? r.media : null, ciencia: !!(r && r.cienciaEm), frequencia: freq ? freq.tipo : null
+        avaliado: !!r, mediaDown: r ? r.media : null, ciencia: !!(r && r.cienciaEm), frequencia: freq ? freq.tipo : null,
+        situacao: situacaoDe(r), conversaEm: r ? r.dataFeedback || '' : '', modalidade: r ? r.modalidade || '' : ''
       };
     }).sort(porNome);
     return { ciclo: ciclo, cicloRotulo: rotuloCiclo(ciclo), ciclos: ciclosDisponiveis(store, cfg), pessoas: pessoas };
@@ -986,7 +1041,7 @@ var FeedbackCore = (function () {
         return {
           id: r.id, tipo: r.tipo || 'PADRAO', avaliador: r.avaliador, avaliadorNome: titulo(r.avaliadorNome || (idx.porMat[r.avaliador] || {}).nome),
           avaliado: r.avaliado, avaliadoNome: titulo(r.avaliadoNome || (av || {}).nome), utd: utdDoCC(av ? av.cc : ''),
-          dataFeedback: r.dataFeedback, dataReavaliacao: r.dataReavaliacao, media: r.media,
+          dataFeedback: r.dataFeedback || '', modalidade: r.modalidade || '', situacao: situacaoDe(r), dataReavaliacao: r.dataReavaliacao, media: r.media,
           itens: itensOrdenados(r.notas, info, r.obs), fortes: r.fortes || [], fracos: r.fracos || [], plano: r.plano || [],
           consideracoes: r.consideracoes || '', cienciaEm: r.cienciaEm || '', atualizadoEm: r.atualizadoEm, frequencia: freq
         };
@@ -1067,6 +1122,8 @@ var FeedbackCore = (function () {
     // 6) Cronograma
     var ag = store.listAgenda(ciclo).filter(function (a) { return a.status !== 'CANCELADO'; });
     var cronograma = {
+      semConversa: downs.filter(function (r) { return !r.dataFeedback; }).length,
+      semCiencia: downs.filter(function (r) { return r.dataFeedback && !r.cienciaEm; }).length,
       agendados: ag.filter(function (a) { return a.status === 'AGENDADO'; }).length,
       realizados: ag.filter(function (a) { return a.status === 'REALIZADO'; }).length,
       atrasados: ag.filter(function (a) { return a.status === 'AGENDADO' && a.data < hoje; }).length
@@ -1077,6 +1134,8 @@ var FeedbackCore = (function () {
     if (liderancas.itens.length) destaques.push('Lideranças: os itens mais fracos são ' + piores(liderancas.itens).map(function (x) { return x.texto + ' (' + fmt1(x.media) + ')'; }).join(', ') + '.');
     if (liderados.itens.length) destaques.push('Liderados: os itens mais fracos são ' + piores(liderados.itens).map(function (x) { return x.texto + ' (' + fmt1(x.media) + ')'; }).join(', ') + '.');
     if (mensal) destaques.push(mensal + (mensal === 1 ? ' pessoa precisa' : ' pessoas precisam') + ' de acompanhamento mensal.');
+    if (cronograma.semConversa) destaques.push(cronograma.semConversa + (cronograma.semConversa === 1 ? ' avaliação registrada ainda não teve a conversa com o liderado.' : ' avaliações registradas ainda não tiveram a conversa com o liderado.'));
+    if (cronograma.semCiencia) destaques.push(cronograma.semCiencia + (cronograma.semCiencia === 1 ? ' conversa feita aguarda a confirmação do liderado.' : ' conversas feitas aguardam a confirmação do liderado.'));
     if (cronograma.atrasados) destaques.push(cronograma.atrasados + (cronograma.atrasados === 1 ? ' feedback do cronograma está atrasado.' : ' feedbacks do cronograma estão atrasados.'));
     if (comparacao) {
       var quedas = liderados.itens.map(function (x) {
@@ -1379,10 +1438,11 @@ var FeedbackCore = (function () {
       var p = aParticipacao(store, ctx, { ciclo: ciclo }).pessoas;
       return {
         arquivo: 'participacao_' + ciclo,
-        cabecalho: ['Ciclo', 'Matrícula', 'Nome', 'C.C', 'UTD', 'Líder', 'Avaliou o líder', 'Data', 'Avaliado pelo líder', 'Média recebida', 'Ciência', 'Frequência'],
+        cabecalho: ['Ciclo', 'Matrícula', 'Nome', 'C.C', 'UTD', 'Líder', 'Avaliou o líder', 'Data', 'Avaliado pelo líder', 'Média recebida', 'Conversa', 'Modalidade', 'Ciência', 'Situação', 'Frequência'],
         linhas: p.map(function (x) {
           return [ciclo, x.mat, x.nome, x.cc, x.utd, x.lider, x.respondeu ? 'Sim' : 'Não', x.respondeuEm || '', x.avaliado ? 'Sim' : 'Não',
-            x.mediaDown == null ? '' : x.mediaDown, x.ciencia ? 'Sim' : 'Não', x.frequencia === 'MENSAL' ? 'Mensal' : x.frequencia === 'SEMESTRAL' ? 'Semestral' : ''];
+            x.mediaDown == null ? '' : x.mediaDown, x.conversaEm || '', MODALIDADES[x.modalidade] || '', x.ciencia ? 'Sim' : 'Não', SITUACOES[x.situacao] || '',
+            x.frequencia === 'MENSAL' ? 'Mensal' : x.frequencia === 'SEMESTRAL' ? 'Semestral' : ''];
         })
       };
     }
@@ -1408,12 +1468,12 @@ var FeedbackCore = (function () {
       ll.forEach(function (x) { freqPorId[x.id] = x.frequencia; });
       return {
         arquivo: 'lider_x_liderado_' + ciclo,
-        cabecalho: ['Ciclo', 'Tipo', 'Líder', 'Matrícula do líder', 'Liderado', 'Matrícula do liderado', 'Data do feedback', 'Data da reavaliação', 'Média']
+        cabecalho: ['Ciclo', 'Tipo', 'Líder', 'Matrícula do líder', 'Liderado', 'Matrícula do liderado', 'Situação', 'Data da conversa', 'Modalidade', 'Data da reavaliação', 'Média']
           .concat(cd.map(function (c) { return c.texto; }), ['Por quê', 'Pontos fortes', 'Pontos fracos', 'Plano de ação', 'Considerações finais', 'Ciência', 'Frequência']),
         linhas: downs.map(function (r) {
           var f = freqPorId[r.id];
           return [ciclo, r.tipo === 'LIDERANCA' ? 'Liderança' : 'Liderado', nomeDe(r.avaliador, r.avaliadorNome), r.avaliador, nomeDe(r.avaliado, r.avaliadoNome), r.avaliado,
-            r.dataFeedback || '', r.dataReavaliacao || '', r.media]
+            SITUACOES[situacaoDe(r)], r.dataFeedback || '', MODALIDADES[r.modalidade] || '', r.dataReavaliacao || '', r.media]
             .concat(cd.map(function (c) { return (r.notas || {})[c.id] || ''; }),
               [porquesTexto(r, 'obs'), (r.fortes || []).join(' | '), (r.fracos || []).join(' | '), (r.plano || []).join(' | '), r.consideracoes || '',
                 r.cienciaEm ? r.cienciaEm.slice(0, 10) : '', f ? (f.tipo === 'MENSAL' ? 'Mensal: ' + f.motivos.join('; ') : 'Semestral') : '']);
@@ -1424,10 +1484,10 @@ var FeedbackCore = (function () {
       var g = aAgendaGeral(store, ctx, { ciclo: ciclo });
       return {
         arquivo: 'cronograma_' + ciclo,
-        cabecalho: ['Ciclo', 'Líder', 'Liderado', 'Matrícula', 'Tipo', 'Data marcada', 'Situação', 'Feito em', 'Observação'],
+        cabecalho: ['Ciclo', 'Líder', 'Liderado', 'Matrícula', 'Tipo', 'Data marcada', 'Situação', 'Feito em', 'Modalidade', 'Observação'],
         linhas: g.itens.map(function (a) {
           return [ciclo, a.liderNome, a.lideradoNome, a.liderado, TIPOS_AGENDA[a.tipo] || a.tipo, a.data,
-            a.atrasado ? 'Atrasado' : (STATUS_AGENDA[a.status] || a.status), a.realizadoEm, a.obs];
+            a.atrasado ? 'Atrasado' : (STATUS_AGENDA[a.status] || a.status), a.realizadoEm, MODALIDADES[a.modalidade] || '', a.obs];
         })
       };
     }
@@ -1454,6 +1514,7 @@ var FeedbackCore = (function () {
     equipe: { fn: aEquipe },
     formLiderado: { fn: aFormLiderado },
     salvarLiderado: { fn: aSalvarLiderado },
+    registrarConversa: { fn: aRegistrarConversa },
     meusResultados: { fn: aMeusResultados },
     meuFeedback: { fn: aMeuFeedback },
     darCiencia: { fn: aDarCiencia },
@@ -1513,6 +1574,9 @@ var FeedbackCore = (function () {
     somarDias: somarDias,
     diaUtil: diaUtil,
     frequenciaDe: frequenciaDe,
+    situacaoDe: situacaoDe,
+    MODALIDADES: MODALIDADES,
+    SITUACOES: SITUACOES,
     CRITERIOS_PADRAO: CRITERIOS_PADRAO,
     CONFIG_PADRAO: CONFIG_PADRAO,
     FORM_UP: FORM_UP,
